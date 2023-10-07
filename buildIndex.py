@@ -14,7 +14,7 @@ def getparams(lst: List[str]) -> Tuple[bool, str]:
     # TODO -> By now, debug mode is set to true
     debug = True
     mode = "TFIDF"
-    # TODO -> Inspect lst and get info about index mode and debug active/deactive
+    # TODO -> Inspect lst and get info about index mode and debug active/inactive
     return debug, mode
 
 
