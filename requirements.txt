@@ -1,1 +1,3 @@
 Icecream
+nltk
+psutil
