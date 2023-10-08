@@ -52,8 +52,9 @@ class InvertedIndex:
 # iidx = Dict[          Lista di termini (si usa il Dict perche funge da hashMap)
 
 #   str,                Str e' l'indicizzazione di iidx, quindi un termine
-#   List[              Ogni termine ha una posting list (Coppie docid, frequency) TODO -> List o Dict?
-#
+#   List[              Ogni termine ha una posting list (Coppie docid, frequency) LISTA
+#                      Sfruttando l'ordine crescente dei docid, ogni volta che viene aggiunta una entry per questo termine
+#                           o devo aggiornare l'ultimo presente in lista, oppure ne devo aggiungere uno nuovo
 #
 #   ]
 # ]
