@@ -4,6 +4,7 @@ from icecream import ic
 from nltk import PorterStemmer
 import utils.constant
 
+
 class Preprocesser:
 
     def __init__(self, stemming: bool = False, stopwords: bool = False, urls: bool = False):
@@ -21,10 +22,18 @@ class Preprocesser:
         self.stopwords_active = stopwords
         self.urls_check_active = urls
 
+        if self.stemming_active:
+            self.stemmer = PorterStemmer()
+
+        if self.stopwords_active:
+            # TODO -> Check file url
+            with open('../config/stopwords.txt', 'r', encoding="utf-8") as f:
+                self.stopwords = f.read().splitlines()
+
     # Application of regular expression for a first cleaning operation
     def clean(self, text):
 
-        if self.urls_check_active == True:
+        if self.urls_check_active:
             re.sub(self.url_RGX, '', text)
 
         re.sub(self.html_exp, '', text)
@@ -36,23 +45,18 @@ class Preprocesser:
         return text
 
     # Removal of stopwords from a list of words
-    def remove_stopwords(self, tokens: List[str], stopwords: Set[str]) -> List[str]:
-        with open('pg345.txt', 'r', encoding="utf-8") as f:
-            stopwords_file_text = f.read()
-            stopwords = stopwords_file_text.splitlines()
-
-            for word in stopwords:
+    def remove_stopwords(self, tokens: List[str]) -> List[str]:
+            for word in self.stopwords:
                 if word in tokens:
                     tokens.remove(word)
             return tokens
 
     # Stemming of a list of words
     def perform_stemming(self, words):
-        stemmer = PorterStemmer()
 
         for word in words:
             index = words.index(words)
-            word[index] = stemmer.stem(word)
+            word[index] = self.stemmer.stem(word)
 
         return words
 
@@ -69,11 +73,11 @@ class Preprocesser:
         # Text tokenization
         terms = text.split(" ")
 
-        if(self.stopwords_active == True):
+        if self.stopwords_active:
             terms = self.remove_stopwords(terms)
 
-        if(self.stemming_check == True):
+        if self.stemming_active:
             terms = self.perform_stemming(terms)
 
-        return terms
+        return docId, terms
 

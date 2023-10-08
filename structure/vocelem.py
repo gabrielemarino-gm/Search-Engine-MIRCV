@@ -20,10 +20,9 @@ class PostingList:
     List of <docId, term frequency>
     """
     def __init__(self, document: int, freq: int = 1):
-        self.postlist: Dict[int, Tuple(int, int)] = {}
+        self.postlist: Dict[int, Tuple[int, int]] = {}
 
     def increment_entry(self):
-        self.tfd += 1
         pass
 
 
@@ -32,15 +31,14 @@ class InvertedIndex:
     Represents pairs of <term, PostingList>
     """
     def __init__(self):
-        self.iidx = Dict[str, List[PostingList]]
+        self.iidx: Dict[str, List[PostingList]] = {}
 
     def add(self, term: str, doc: int) -> None:
-            """
-            :param term: Term to add to the vocabulary
-            :param doc: Document containing that term
-            :return: None
-            """
-            
+        """
+        :param term: Term to add to the vocabulary
+        :param doc: Document containing that term
+        :return: None
+        """
         pass
 
     def get_posting_list_by_term(self, term: str) -> Dict[str, List[PostingList]]:
