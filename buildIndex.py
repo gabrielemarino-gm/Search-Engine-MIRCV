@@ -1,10 +1,8 @@
 # --------------------PACKAGES--------------------
 from icecream import ic
-from typing import List, Tuple
-
-from utils import *
-
+from typing import List, Tuple, Dict
 import sys
+import time
 
 # ----------------GLOBAL VARIABLES----------------
 # TODO -> Pick those from XML or input parameters
@@ -14,18 +12,21 @@ CORPUS_PATH = "/data"
 
 # --------------MAIN-ONLY FUNCTIONS---------------
 def getparams(lst: List[str]) -> Tuple[bool, str]:
-    debug = True
-    mode = "TFIDF"
-    for opt in lst[1:]:
-        ic(opt)
-    # TODO -> Inspect lst and get info about index mode and debug active/inactive
-    return debug, mode
+    mod = 'TFIDF'
+    dbg = False
+    for i in range(1, len(lst)):
+        if lst[i] == '-d':
+            dbg = True
+        elif lst[i] == '--mode':
+            mod = lst[i+1]
+    return dbg, mod
 
 
 # ----------------STARTING POINT------------------
-dbg, _ = getparams(sys.argv)
+DEBUG, MODE = getparams(sys.argv)
 
-if not dbg: ic.disable()
+if not DEBUG: ic.disable()
+
 
 # Preprocessing poi SPIMI (Documento per documento) - Preprocessing dentro SPIMI oppure Preprocessing prima di darlo a SPIMI?
 # Inverse Index Creation
@@ -33,20 +34,7 @@ if not dbg: ic.disable()
 #   -   Lexicon (Terms info)
 #   -   Document Table (Document info [metadati in general])
 
-
-
-# 1. Come fare Hash Table in Python
 # 2. Come si controlla la memoria libera/occupata (RAM)
-
-#TODO -> Modulo Preprocessing
-#TODO -> Modulo SPIMI
-
-# Inizializzare un preprocesser (come fare preprocessing)
-# Abilitiamo lo stemming? Abilitiamo lo stopWord removing?
-
-# 32    Ciao Gabri, io sono matteo
-# {32, []}
-# [{32, "ciao"},{32, "gabri"},{32, "io"},{32, "sono"},{32, "matteo"}]
 
 #import psutil
 
@@ -60,14 +48,11 @@ if not dbg: ic.disable()
 # print(f"Percentuale di utilizzo della memoria: {mem.percent}%")
 
 
-
-# ic(psutil.virtual_memory().percent)
-
-
 # Path inside the main directory of the project (Search-Engine-MIRCV)
-filepath_test = "../collection.tsv"
-output_test = "../data/test/"
+# collection_path = "./data/collection.tsv"
+# outputfolder_path = "./data/test"
+#
+# spimi = SPIMI(collection_path, outputfolder_path, 75, True, True, True)
+# spimi.algorithm()
 
 
-spimi = SPIMI(filepath_test, "cazzo", 4, True, True, True)
-spimi.algorithm()

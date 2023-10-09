@@ -1,4 +1,4 @@
-from typing import List, Tuple, Set
+from typing import List, Tuple
 import re
 from nltk import PorterStemmer
 import os
@@ -11,10 +11,10 @@ class Preprocesser:
 
         # Initialize regular expression variables
         self.html_exp = re.compile(r'<[^>]+>')
-        self.non_digit_exp = re.compile(r'[^a-zA-Z ]')
+        self.non_digit_exp = re.compile(r'[^a-zA-Z ]') # TODO -> Controllare: Ha senso se ho fatto lower?
         self.multiple_space_exp = re.compile(r' +')
         self.consecutive_letters_exp = re.compile(r'(.)\\1{2,}')
-        self.camel_case_exp = re.compile(r'(?<=[a-z])(?=[A-Z])')
+        self.camel_case_exp = re.compile(r'(?<=[a-z])(?=[A-Z])') # TODO -> Controllare: Ha senso se ho fatto lower?
 
         # Initialize mode flags
         self.stemming_active = stemming
@@ -53,7 +53,6 @@ class Preprocesser:
 
     # Stemming of a list of words
     def perform_stemming(self, words):
-
         for word in words:
             index = words.index(word)
             words[index] = self.stemmer.stem(word)

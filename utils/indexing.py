@@ -21,20 +21,19 @@ class SPIMI:
         self.processor = Preprocesser(stemming=stemming, stopwords=stopword, delete_urls=urls)
         self.b = 0
 
-        ic()
-        print(f"SPIMI Parameters:\ninput_path: {self.input_path}\n output_path: {self.output_path}\n MAXMEM: {self.MAX_MEM}\n")
+        ic(f"SPIMI Parameters:\ninput_path: {self.input_path}\n output_path: {self.output_path}\n MAXMEM: {self.MAX_MEM}\n")
 
-    def get_next_doc(self) -> Dict[str, int]:
+    def get_next_doc(self) -> str:
         with open(self.input_path, 'r', encoding='utf-8') as f:
             for line in f:
                 yield line
 
     def write_block_to_disk(self):
         # TODO Da rivedere meglio
-        with open(f"Data/Block-{self.b}.txt", 'w') as f:
+        with open(f"{self.output_path}/Block-{self.b}.txt", 'w') as f:
             f.write(str(self.inverted_index))
 
-        with open(f"Data/Dictionary-{self.b}.txt", 'w') as f:
+        with open(f"{self.output_path}/Dictionary-{self.b}.txt", 'w') as f:
             f.write(str(self.dictionary))
 
         self.b += 1
@@ -43,10 +42,8 @@ class SPIMI:
         """
         Implementation of the Single-Pass In-Memory Indexing
         """
-
         id = 0
 
-        memory = psutil.virtual_memory()
         for doc_content in self.get_next_doc():
             doc_id, terms = self.processor.process(doc_content)
             id += 1
@@ -60,9 +57,8 @@ class SPIMI:
                 # Add the term to the inverted index
                 self.inverted_index.add(t, doc_id)
 
-            if memory.percent > self.MAX_MEM:
-                print(f"Write block {self.b}")
-                ic()
+            if psutil.virtual_memory().percent > self.MAX_MEM:
+                ic(f"Write block {self.b}")
                 # TODO -> Salva IndiceParziale su disco (anche Dizionario?)
                 self.write_block_to_disk()
                 del(self.dictionary)
@@ -71,9 +67,7 @@ class SPIMI:
                 self.inverted_index = InvertedIndex()
 
             if id%100000 == 0:
-                print(f"Document progression: {id}")
-                ic()
-
+                ic(f"Document progression: {id}")
 
 
 # Pseudocode SPIMI (Single-Pass In-Memory Indexing)
