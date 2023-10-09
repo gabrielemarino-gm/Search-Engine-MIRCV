@@ -2,11 +2,9 @@
 from icecream import ic
 from typing import List, Tuple
 
-from structure import *
 from utils import *
 
 import sys
-import psutil
 
 # ----------------GLOBAL VARIABLES----------------
 # TODO -> Pick those from XML or input parameters
@@ -29,8 +27,6 @@ dbg, _ = getparams(sys.argv)
 
 if not dbg: ic.disable()
 
-ic()
-
 # Preprocessing poi SPIMI (Documento per documento) - Preprocessing dentro SPIMI oppure Preprocessing prima di darlo a SPIMI?
 # Inverse Index Creation
 #   -   Inverse Index Structure
@@ -47,26 +43,31 @@ ic()
 
 # Inizializzare un preprocesser (come fare preprocessing)
 # Abilitiamo lo stemming? Abilitiamo lo stopWord removing?
-a = Preprocesser()
-a.process("44/tHello,darkness")
 
 # 32    Ciao Gabri, io sono matteo
 # {32, []}
 # [{32, "ciao"},{32, "gabri"},{32, "io"},{32, "sono"},{32, "matteo"}]
 
-import psutil
+#import psutil
 
 # Ottieni le informazioni sull'uso della memoria RAM
-mem = psutil.virtual_memory()
+#mem = psutil.virtual_memory()
 
 # Stampa le informazioni sull'uso della memoria RAM
-print(f"Memoria totale: {mem.total} bytes")
-print(f"Memoria disponibile: {mem.available / (1024 ** 2)} megabytes")
-print(f"Memoria in uso: {mem.used / (1024 ** 3)} gigabytes")
-print(f"Percentuale di utilizzo della memoria: {mem.percent}%")
+# print(f"Memoria totale: {mem.total} bytes")
+# print(f"Memoria disponibile: {mem.available / (1024 ** 2)} megabytes")
+# print(f"Memoria in uso: {mem.used / (1024 ** 3)} gigabytes")
+# print(f"Percentuale di utilizzo della memoria: {mem.percent}%")
 
 
 
-ic(psutil.virtual_memory().percent)
+# ic(psutil.virtual_memory().percent)
 
-a = PostingList()
+
+# Path inside the main directory of the project (Search-Engine-MIRCV)
+filepath_test = "../collection.tsv"
+output_test = "../data/test/"
+
+
+spimi = SPIMI(filepath_test, "cazzo", 4, True, True, True)
+spimi.algorithm()

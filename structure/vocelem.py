@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 
 class Vocabulary:
@@ -10,28 +10,43 @@ class Vocabulary:
 
     def add(self, term: str) -> None:
         if not self.vocab.get(term):
-            self.vocab.update([(term, 1)])
+            # If an entry for that term doesn't exist, add one with value 1
+            self.vocab[term] = 1
         else:
-            self.vocab.update([(term, self.vocab.get(term) + 1)])
+            # If it's present, increment it
+            self.vocab[term] += 1
+
+    def get(self, term: str) -> int:
+        # Return frequency of given term
+        return self.vocab.get(term)
 
 
-class PostingList:
+class Posting:
     """
-    List of <docId, term frequency>
+    One Posting
+    Composed by a doc_id and term frequency on that document
     """
-    def __init__(self, document: int, freq: int = 1):
-        self.postlist: Dict[int, Tuple[int, int]] = {}
+    def __init__(self, doc_id: int) -> None:
+        self.doc_id = doc_id
+        self.count = 1
 
-    def increment_entry(self):
-        pass
+    def get_doc_id(self) -> int:
+        return self.doc_id
+
+    def increment(self) -> None:
+        self.count += 1
+
+    def __str__(self) -> str:
+        return f'({self.doc_id}:{self.count})'
 
 
 class InvertedIndex:
     """
-    Represents pairs of <term, PostingList>
+    InvertedIndex structure
+    Dict indexed by a term, each one containing a list of postings
     """
     def __init__(self):
-        self.iidx: Dict[str, List[PostingList]] = {}
+        self.iidx: Dict[str, List[Posting]] = {}
 
     def add(self, term: str, doc: int) -> None:
         """
@@ -39,22 +54,31 @@ class InvertedIndex:
         :param doc: Document containing that term
         :return: None
         """
-        pass
+        posting_list = self.iidx.get(term)
+        if not posting_list:
+            # First time we add that term
+            new_posting = Posting(doc)
+            self.iidx[term] = [new_posting]
+        else:
+            # Term already exists
+            last_posting = posting_list[-1]
+            if last_posting.get_doc_id() == doc:
+                # Last posting regards current document
+                last_posting.increment()
+            else:
+                # Last posting is not current document
+                new_posting = Posting(doc)
+                posting_list.append(new_posting)
 
-    def get_posting_list_by_term(self, term: str) -> Dict[str, List[PostingList]]:
+    def get_posting_list_by_term(self, term: str) -> List[Posting]:
         return self.iidx.get(term)
 
-
-
-# InvertedIndex = {str, PostingList}
-# PostingList = [(docid, termFrequency on that document)]
-
-# iidx = Dict[          Lista di termini (si usa il Dict perche funge da hashMap)
-
-#   str,                Str e' l'indicizzazione di iidx, quindi un termine
-#   List[              Ogni termine ha una posting list (Coppie docid, frequency) LISTA
-#                      Sfruttando l'ordine crescente dei docid, ogni volta che viene aggiunta una entry per questo termine
-#                           o devo aggiornare l'ultimo presente in lista, oppure ne devo aggiungere uno nuovo
-#
-#   ]
-# ]
+    def __str__(self) -> str:
+        r = f'['
+        for key in self.iidx:
+            r += f'\'{key}\':'
+            for e in self.iidx.get(key):
+                r += f'{e}'
+            r += ','
+        r += f']'
+        return r
