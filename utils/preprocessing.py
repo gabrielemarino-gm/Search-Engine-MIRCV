@@ -25,6 +25,7 @@ class Preprocesser:
             self.url_RGX = re.compile(r'(https?:\/\/\S+|www\.\S+)')
 
         if self.stemming_active:
+            # self.stemmer = PorterStemmer()
             self.stemmer = SnowballStemmer("english")
 
         if self.stopwords_active:
