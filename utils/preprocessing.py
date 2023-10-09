@@ -1,6 +1,6 @@
 from typing import List, Tuple
 import re
-from nltk import PorterStemmer
+from nltk import PorterStemmer, SnowballStemmer
 import os
 from icecream import ic
 
@@ -25,12 +25,13 @@ class Preprocesser:
             self.url_RGX = re.compile(r'(https?:\/\/\S+|www\.\S+)')
 
         if self.stemming_active:
-            self.stemmer = PorterStemmer()
+            self.stemmer = SnowballStemmer("english")
 
         if self.stopwords_active:
             stopwords_file_path = os.path.join(os.path.dirname(__file__), "..", "config", "stopwords.txt")
             with open(stopwords_file_path, 'r', encoding="utf-8") as f:
                 self.stopwords = f.read().splitlines()
+            self.stopwords = set(self.stopwords) # Fucking Faster cit.
 
     # Application of regular expression for a first cleaning operation
     def clean(self, text):
@@ -61,8 +62,9 @@ class Preprocesser:
 
     def process(self, doc: str) -> Tuple[int, List[str]]:
         """
-        Get as input a line <docid/ttext>
-        return DocID and the list of terms preprocessed
+        Executes the preprocessing of a document
+        :param doc: doc_id/tdoc_content
+        :return: A tuple <docid, processed list of terms>
         """
         ic.disable()
 

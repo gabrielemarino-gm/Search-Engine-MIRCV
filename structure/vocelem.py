@@ -48,7 +48,7 @@ class InvertedIndex:
     def __init__(self):
         self.iidx: Dict[str, List[Posting]] = {}
 
-    def add(self, term: str, doc: int) -> None:
+    def add(self, doc: int, term: str) -> None:
         """
         :param term: Term to add to the vocabulary
         :param doc: Document containing that term

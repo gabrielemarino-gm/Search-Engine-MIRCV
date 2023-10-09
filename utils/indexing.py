@@ -55,18 +55,19 @@ class SPIMI:
 
                 self.dictionary.add(t)
                 # Add the term to the inverted index
-                self.inverted_index.add(t, doc_id)
+                self.inverted_index.add(doc_id, t)
 
             if psutil.virtual_memory().percent > self.MAX_MEM:
                 ic(f"Write block {self.b}")
                 # TODO -> Salva IndiceParziale su disco (anche Dizionario?)
                 self.write_block_to_disk()
-                del(self.dictionary)
-                del(self.inverted_index)
+
+                del self.dictionary
+                del self.inverted_index
                 self.dictionary = Vocabulary()
                 self.inverted_index = InvertedIndex()
 
-            if id%100000 == 0:
+            if id % 100000 == 0:
                 ic(f"Document progression: {id}")
 
 
