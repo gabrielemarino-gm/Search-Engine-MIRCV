@@ -47,7 +47,7 @@ class Preprocesser:
     # Stemming of a list of words
     def perform_stemming(self, words):
         temp = []
-        for i in range(words):
+        for i in range(len(words)):
             temp.append(self.stemmer.stem(words[i]))
 
         return words
@@ -73,11 +73,9 @@ class Preprocesser:
         terms = text.split(" ")
 
         # Stopwords removal
-        if self.stopwords_active:
+        if self.stemmstop_active:
             terms = self.remove_stopwords(terms)
-
-        # Stemming process
-        if self.stemming_active:
             terms = self.perform_stemming(terms)
+
 
         return doc_id, terms

@@ -31,20 +31,20 @@ DEBUG, MODE = getparams(sys.argv)
 if not DEBUG: ic.disable()
 
 # Path inside the main directory of the project (Search-Engine-MIRCV)
-collection_path = "../collection.tsv"
+collection_path = "../mini_collection.tsv"
 outputfolder_path = "Data"
 
-spimi = SPIMI(collection_path, outputfolder_path, 75, True, True, True)
-spimi.algorithm()
+spimi = SPIMI(collection_path, outputfolder_path, 75, True)
+spimi.algorithm(debug=True)
 
 
-def get_next_doc() -> str:
-    with open('./data/redux.tsv', 'r', encoding='utf-8') as f:
-        for line in f:
-            yield line
+#def get_next_doc() -> str:
+#    with open('./data/redux.tsv', 'r', encoding='utf-8') as f:
+#        for line in f:
+#            yield line
 
 
-processor = Preprocesser(True)
+#processor = Preprocesser(True)
 # TODO -> Times on 100k documents
 # TODO -> BASE = ~5 seconds
 # TODO -> BASE + URL = ~6 seconds
@@ -52,28 +52,28 @@ processor = Preprocesser(True)
 # TODO -> BASE + STEMMING = ~90 seconds
 # TODO -> BASE + URL + STEMMING + STOPWORD = ~93 seconds
 
-temp = []
-
-start = time.time_ns()
-for l in get_next_doc():
-    temp.append(processor.process(l)[1])
-end = time.time_ns()
-
-ic(f'Time spent in Preprocessing: {(end-start)/10**9} seconds')
-
-voc = Vocabulary()
-iidx = InvertedIndex()
-
-start = time.time_ns()
-for i in range(len(temp)):
-    for term in temp[i]:
-        voc.add(term)
-        iidx.add(i, term)
-        pass
-end = time.time_ns()
+#temp = []
+#
+#start = time.time_ns()
+#for l in get_next_doc():
+#    temp.append(processor.process(l)[1])
+#end = time.time_ns()
+#
+#ic(f'Time spent in Preprocessing: {(end-start)/10**9} seconds')
+#
+#voc = Vocabulary()
+#iidx = InvertedIndex()
+#
+#start = time.time_ns()
+#for i in range(len(temp)):
+#    for term in temp[i]:
+#        voc.add(term)
+#        iidx.add(i, term)
+#        pass
+#end = time.time_ns()
 
 # TODO -> Indexing of 100k documents with stopwords (more tokens)
 # TODO -> WITH STOPWORDS = ~12 seconds
 # TODO -> WITHOUT STOPWORDS = ~7 seconds
 
-ic(f'Time spent in Indexing: {(end-start)/10**9} seconds')
+#ic(f'Time spent in Indexing: {(end-start)/10**9} seconds')
