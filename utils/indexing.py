@@ -69,35 +69,3 @@ class SPIMI:
 
             if id % 100000 == 0:
                 ic(f"Document progression: {id}")
-
-
-# Pseudocode SPIMI (Single-Pass In-Memory Indexing)
-# C'è una parte dell'algoritmo omessa: qualla che fa il parse dei documenti,
-# e li trasforma nella coppia (Term, DocID) = token SPIMI va chiamato a loop per i vari token_strem
-#
-# SPIMI-INVERT(token_stream) Token = É una coppia Term-DocID
-
-#     output file = NEWFILE()
-#     dictionary = NEWHASH()
-#     while (free memory available)
-#     do token <— next(token_stream)
-#         if term(token) NOT IN dictionary
-#             then postings_list = ADDToDICTIONARY (dictionary, term(token))
-#         else postings_list = GETPosTIngsLIsT(dictionary, term(token))
-#         if full (postings_list)
-#             then postings_list = DoUbLEPostINgsLIsT (dictionary, term(token))
-#         ADDToPosTINgsLIsT (postings list, doclD(token))
-#     sorted terms <— SORTTerMs(dictionary)
-#     WRITE-BLOCKToDIsk(sorted_terms, dictionary, output file)
-#     return output_file
-
-
-# ----------------GLI APPUNTI DI MATTE----------------
-# SPIMI -> Utilizza le classi InvertedIndex, Vucabulary e Preprocesser per applicare l'algoritmo
-
-# Inizializzazione -> Prende in input il file da processare e in output dove mettere indici parziali/finali
-# Una volta inizializzato tutto, la funzione algorithm() inizia a fare cose
-# Gestione della memoria delegata a SPIMI
-
-# Scrittura e lettura degli indici parziali/finali, la fa SPIMI o viene delegata alla classe InvertedIndex?
-# Prima  o poi qualcuno dovra ciclare la lista di parole per ogni riga(documento), lo fa SPIMI

@@ -1,15 +1,17 @@
 from typing import List, Tuple
 import re
-from nltk import PorterStemmer, SnowballStemmer
+from nltk import PorterStemmer
 import os
 from icecream import ic
 
+MAX_TERM_LENGTH = 64
 
 class Preprocesser:
 
-    def __init__(self, stemming: bool = False, stopwords: bool = False, delete_urls: bool = False):
+    def __init__(self, stemmstop: bool = False):
 
         # Initialize regular expression variables
+        self.url_RGX = re.compile(r'(https?:\/\/\S+|www\.\S+)')
         self.html_exp = re.compile(r'<[^>]+>')
         self.non_digit_exp = re.compile(r'[^a-zA-Z ]') # TODO -> Controllare: Ha senso se ho fatto lower?
         self.multiple_space_exp = re.compile(r' +')
@@ -17,29 +19,18 @@ class Preprocesser:
         self.camel_case_exp = re.compile(r'(?<=[a-z])(?=[A-Z])') # TODO -> Controllare: Ha senso se ho fatto lower?
 
         # Initialize mode flags
-        self.stemming_active = stemming
-        self.stopwords_active = stopwords
-        self.urls_check_active = delete_urls
+        self.stemmstop_active = stemmstop
 
-        if self.urls_check_active:
-            self.url_RGX = re.compile(r'(https?:\/\/\S+|www\.\S+)')
+        if self.stemmstop_active:
+            self.stemmer = PorterStemmer()
 
-        if self.stemming_active:
-            # self.stemmer = PorterStemmer()
-            self.stemmer = SnowballStemmer("english")
-
-        if self.stopwords_active:
             stopwords_file_path = os.path.join(os.path.dirname(__file__), "..", "config", "stopwords.txt")
             with open(stopwords_file_path, 'r', encoding="utf-8") as f:
-                self.stopwords = f.read().splitlines()
-            self.stopwords = set(self.stopwords) # Fucking Faster cit.
+                self.stopwords = set(f.read().splitlines()) # Fucking Faster cit.
 
-    # Application of regular expression for a first cleaning operation
+    # Generic text cleaning
     def clean(self, text):
-
-        if self.urls_check_active:
-            text = re.sub(self.url_RGX, '', text)
-
+        text = re.sub(self.url_RGX, '', text)
         text = re.sub(self.html_exp, ' ', text)
         text = re.sub(self.non_digit_exp, ' ', text)
         text = re.sub(self.multiple_space_exp, ' ', text)
@@ -55,9 +46,9 @@ class Preprocesser:
 
     # Stemming of a list of words
     def perform_stemming(self, words):
-        for word in words:
-            index = words.index(word)
-            words[index] = self.stemmer.stem(word)
+        temp = []
+        for i in range(words):
+            temp.append(self.stemmer.stem(words[i]))
 
         return words
 

@@ -30,27 +30,6 @@ DEBUG, MODE = getparams(sys.argv)
 
 if not DEBUG: ic.disable()
 
-
-# Preprocessing poi SPIMI (Documento per documento) - Preprocessing dentro SPIMI oppure Preprocessing prima di darlo a SPIMI?
-# Inverse Index Creation
-#   -   Inverse Index Structure
-#   -   Lexicon (Terms info)
-#   -   Document Table (Document info [metadati in general])
-
-# 2. Come si controlla la memoria libera/occupata (RAM)
-
-#import psutil
-
-# Ottieni le informazioni sull'uso della memoria RAM
-#mem = psutil.virtual_memory()
-
-# Stampa le informazioni sull'uso della memoria RAM
-# print(f"Memoria totale: {mem.total} bytes")
-# print(f"Memoria disponibile: {mem.available / (1024 ** 2)} megabytes")
-# print(f"Memoria in uso: {mem.used / (1024 ** 3)} gigabytes")
-# print(f"Percentuale di utilizzo della memoria: {mem.percent}%")
-
-
 # Path inside the main directory of the project (Search-Engine-MIRCV)
 collection_path = "../collection.tsv"
 outputfolder_path = "Data"
@@ -65,7 +44,7 @@ def get_next_doc() -> str:
             yield line
 
 
-processor = Preprocesser(True, True, True)
+processor = Preprocesser(True)
 # TODO -> Times on 100k documents
 # TODO -> BASE = ~5 seconds
 # TODO -> BASE + URL = ~6 seconds
