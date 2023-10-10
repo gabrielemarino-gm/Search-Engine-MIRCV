@@ -1,6 +1,6 @@
 package it.unipi.aide;
 
-public class App 
+public class CreateIndex
 {
     public static void main( String[] args )
     {
