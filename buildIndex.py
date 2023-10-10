@@ -3,7 +3,7 @@ from icecream import ic
 from typing import List, Tuple, Dict
 import sys
 import time
-from utils import Preprocesser
+from utils import Preprocesser, SPIMI
 from structure import Vocabulary, InvertedIndex
 
 
@@ -52,11 +52,11 @@ if not DEBUG: ic.disable()
 
 
 # Path inside the main directory of the project (Search-Engine-MIRCV)
-# collection_path = "./data/collection.tsv"
-# outputfolder_path = "./data/test"
-#
-# spimi = SPIMI(collection_path, outputfolder_path, 75, True, True, True)
-# spimi.algorithm()
+collection_path = "../collection.tsv"
+outputfolder_path = "Data"
+
+spimi = SPIMI(collection_path, outputfolder_path, 75, True, True, True)
+spimi.algorithm()
 
 
 def get_next_doc() -> str:
