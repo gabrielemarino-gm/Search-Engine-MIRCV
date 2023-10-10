@@ -19,7 +19,7 @@ class SPIMI:
 
         self.dictionary = Vocabulary()
         self.inverted_index = InvertedIndex()
-        self.processor = Preprocesser(stemmstop=stemmstop)#, stopwords=stopword, delete_urls=urls)
+        self.processor = Preprocesser(stemmstop=stemmstop)  # , stopwords=stopword, delete_urls=urls)
         self.b = 0
 
         ic(f"SPIMI Parameters:\ninput_path: {self.input_path}\n output_path: {self.output_path}\n MAXMEM: {self.MAX_MEM}\n")
@@ -28,7 +28,6 @@ class SPIMI:
         with open(self.input_path, 'r', encoding='utf-8') as f:
             for line in f:
                 yield line
-
 
     def write_block_to_disk(self) -> bool:
         """
@@ -53,8 +52,6 @@ class SPIMI:
         with open(f"{self.output_path}/debug/Dictionary-{self.b}.txt", 'w') as f:
             f.write(str(self.dictionary))
 
-
-
     def algorithm(self, debug: bool = False) -> None:
         """
         Implementation of the Single-Pass In-Memory Indexing
@@ -64,7 +61,8 @@ class SPIMI:
         id = 0
 
         for doc_content in self.get_next_doc():
-            doc_id, terms = self.processor.process(doc_content)
+            doc_id, text = ic(doc_content.split('\t'))
+            terms = self.processor.process(text)
             id += 1
             for t in terms:
                 # Add the term to the dictionary. Overlapping handled by Dictionary

@@ -13,10 +13,10 @@ class Preprocesser:
         # Initialize regular expression variables
         self.url_RGX = re.compile(r'(https?:\/\/\S+|www\.\S+)')
         self.html_exp = re.compile(r'<[^>]+>')
-        self.non_digit_exp = re.compile(r'[^a-zA-Z ]') # TODO -> Controllare: Ha senso se ho fatto lower?
+        self.non_digit_exp = re.compile(r'[^a-zA-Z ]')
         self.multiple_space_exp = re.compile(r' +')
         self.consecutive_letters_exp = re.compile(r'(.)\\1{2,}')
-        self.camel_case_exp = re.compile(r'(?<=[a-z])(?=[A-Z])') # TODO -> Controllare: Ha senso se ho fatto lower?
+        self.camel_case_exp = re.compile(r'(?<=[a-z])(?=[A-Z])')
 
         # Initialize mode flags
         self.stemmstop_active = stemmstop
@@ -52,22 +52,19 @@ class Preprocesser:
 
         return words
 
-    def process(self, doc: str) -> Tuple[int, List[str]]:
+    def process(self, text: str) -> Tuple[int, List[str]]:
         """
         Executes the preprocessing of a document
         :param doc: doc_id/tdoc_content
         :return: A tuple <docid, processed list of terms>
         """
         ic.disable()
-
-        ic(doc)
-        doc_id, text = ic(doc.split('\t'))
-
+        ic(text)
         ic.enable()
 
         # Text cleaning
-        text = text.lower()
         text = self.clean(text)
+        text = text.lower()
 
         # Text tokenization
         terms = text.split(" ")
@@ -77,5 +74,4 @@ class Preprocesser:
             terms = self.remove_stopwords(terms)
             terms = self.perform_stemming(terms)
 
-
-        return doc_id, terms
+        return terms
