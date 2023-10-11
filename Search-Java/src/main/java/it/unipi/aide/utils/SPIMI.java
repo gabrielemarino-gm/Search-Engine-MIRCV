@@ -20,13 +20,13 @@ public class SPIMI {
     private final Preprocesser preprocesser;
     private int b;
 
-    public SPIMI(String inputPath, String outputPath, int maxmem, boolean stemmstop) {
-        MAX_MEM = maxmem;
+    public SPIMI(String inputPath, String outputPath, int maxMem, boolean stemmStop) {
+        MAX_MEM = maxMem;
         this.inputPath = inputPath;
         this.outputPath = outputPath;
         dictionary = new Vocabulary();
         invertedIndex = new InvertedIndex();
-        preprocesser = new Preprocesser(stemmstop);
+        preprocesser = new Preprocesser(stemmStop);
         b = 0;
 
         System.out.println("SPIMI Parameters:");

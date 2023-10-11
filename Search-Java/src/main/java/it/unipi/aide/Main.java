@@ -1,11 +1,9 @@
 package it.unipi.aide;
 
 import it.unipi.aide.utils.*;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 
 public class Main
@@ -15,41 +13,42 @@ public class Main
         boolean DEBUG = false;
         String MODE = "TFIDF";
 
-        String testPath = System.getProperty("user.dir");
-        System.out.println("DBG:    Dir = " + testPath);
+        // Preprocessing test
+        List<String> terms = runPreprocessing();
+        System.out.println(Arrays.toString(terms.toArray()));
+
+        // Index building
+        buildIndex();
+    }
+
+    private static List<String> runPreprocessing() {
+
+        List<String> terms = null;
 
         try
         {
-            System.out.println("DBG:    file path: " + testPath + "src/main/java/it/unipi/aide/config/prova.txt");
-            File file = new File(testPath + "/src/main/java/it/unipi/aide/config/prova.txt");
+            // File access
+            String currentDirectory = System.getProperty("user.dir");
+            String filePath = currentDirectory + "/src/main/java/it/unipi/aide/config/prova.txt";
+            String text = new String(Files.readAllBytes(Paths.get(filePath)));
 
-            if (file.exists())
-                System.out.println("DBG:    File Esiste");
+            // Preprocessing application
+            Preprocesser p = new Preprocesser(true);
+            terms = p.process(text);
         }
         catch (Exception e)
         {
             System.err.println(e.getMessage());
+            System.exit(1);
         }
-        
 
-        Preprocesser pTest = new Preprocesser(true);
+        return terms;
     }
 
-    public static String readTextFile(String path)
-    {
-        StringBuilder stringBuilder = new StringBuilder();
-        try (BufferedReader br = new BufferedReader(new FileReader(path)))
-        {
-            String line;
-            while ((line = br.readLine()) != null)
-            {
-                stringBuilder.append(line).append("\n");
-            }
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-        return stringBuilder.toString();
+    private static void buildIndex() {
+
+        // SPIMI call with try-catch
     }
 }
+
+

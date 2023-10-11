@@ -35,11 +35,9 @@ public class Preprocesser {
 
         if (stemmstopActive) {
 
-            // Load stopwords from a file
-            String testPath = System.getProperty("user.dir");
-            System.out.println("DBG:    file path: " + testPath + "/src/main/java/it/unipi/aide/config/prova.txt");
-
-            String stopwordsFilePath = "src/main/java/it/unipi/aide/config/prova.txt";
+            // File access
+            String currentDirectory = System.getProperty("user.dir");
+            String stopwordsFilePath = currentDirectory + "/src/main/java/it/unipi/aide/config/stopwords.txt";
             stopwords = new HashSet<>();
 
             try (BufferedReader br = new BufferedReader(new FileReader(stopwordsFilePath))) {
@@ -47,7 +45,6 @@ public class Preprocesser {
                 while ((line = br.readLine()) != null) {
                     stopwords.add(line);
                 }
-                System.out.println(stopwords);
             } catch (IOException e) {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
@@ -100,6 +97,14 @@ public class Preprocesser {
         if (stemmstopActive) {
             terms = removeStopwords(terms);
             terms = performStemming(terms);
+        }
+
+        // Empty terms removal
+        for (int i = terms.size() - 1; i >= 0; i--) {
+            String element = terms.get(i);
+            if (element.trim().isEmpty()) {
+                terms.remove(i);
+            }
         }
 
         // Return as a Tuple or another suitable data structure in Java
