@@ -36,7 +36,7 @@ public class Preprocesser {
         if (stemmstopActive) {
 
             // Load stopwords from a file
-            String stopwordsFilePath = "path/to/stopwords.txt"; // Specify the actual file path
+            String stopwordsFilePath = "config/stopwords.txt";
             stopwords = new HashSet<>();
 
             try (BufferedReader br = new BufferedReader(new FileReader(stopwordsFilePath))) {
@@ -44,6 +44,7 @@ public class Preprocesser {
                 while ((line = br.readLine()) != null) {
                     stopwords.add(line);
                 }
+                System.out.println(stopwords);
             } catch (IOException e) {
                 e.printStackTrace();
             }

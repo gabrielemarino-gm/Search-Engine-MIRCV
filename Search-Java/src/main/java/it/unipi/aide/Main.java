@@ -3,6 +3,7 @@ package it.unipi.aide;
 import it.unipi.aide.utils.*;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
@@ -26,8 +27,17 @@ public class Main {
 
         String CORPUS_PATH = "/data"; // Sostituisci con il percorso effettivo del corpus
 
-        String wholeText = readTextFile("utils/test.txt");
+        String testPath = "utils/prova.txt";
+        System.out.println("ciao" + System.getProperty("user.dir"));
+        String wholeText = readTextFile(testPath);
         System.out.println(wholeText);
+
+        File file = new File("config/stopwords.txt");
+        if (file.exists()) {
+            System.out.println("ok");
+        } else {
+            System.out.println("Il file non esiste.");
+        }
 
         Preprocesser pTest = new Preprocesser(true);
         List<String> processedText = pTest.process(wholeText);
