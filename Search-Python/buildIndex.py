@@ -31,7 +31,7 @@ DEBUG, MODE = getparams(sys.argv)
 if not DEBUG: ic.disable()
 
 # Path inside the main directory of the project (Search-Engine-MIRCV)
-collection_path = "../mini_collection.tsv"
+collection_path = "../../mini_collection.tsv"
 outputfolder_path = "Data"
 
 spimi = SPIMI(collection_path, outputfolder_path, 75, True)

@@ -36,7 +36,10 @@ public class Preprocesser {
         if (stemmstopActive) {
 
             // Load stopwords from a file
-            String stopwordsFilePath = "config/stopwords.txt";
+            String testPath = System.getProperty("user.dir");
+            System.out.println("DBG:    file path: " + testPath + "/src/main/java/it/unipi/aide/config/prova.txt");
+
+            String stopwordsFilePath = "src/main/java/it/unipi/aide/config/prova.txt";
             stopwords = new HashSet<>();
 
             try (BufferedReader br = new BufferedReader(new FileReader(stopwordsFilePath))) {
@@ -46,6 +49,7 @@ public class Preprocesser {
                 }
                 System.out.println(stopwords);
             } catch (IOException e) {
+                System.out.println(e.getMessage());
                 e.printStackTrace();
             }
         }
