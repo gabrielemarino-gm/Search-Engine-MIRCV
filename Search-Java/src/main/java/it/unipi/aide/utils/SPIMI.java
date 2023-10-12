@@ -73,6 +73,7 @@ public class SPIMI {
 
     public void write_block_to_disk_debug() {
         try {
+            System.out.println("qui");
             // Write inverted index to debug text file
             BufferedWriter indexWriter = new BufferedWriter(
                     new FileWriter(outputPath + "/debug/Block-" + b + ".txt")
@@ -138,18 +139,17 @@ public class SPIMI {
                 }
             }
         }
+
+        // debug test
+        invertedIndex.printIndex();
     }
 
     private double getPercentOfMemoryUsed() {
-        // Ottieni l'istanza di MemoryMXBean
-        MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
 
-        // Ottieni l'utilizzo della memoria
+        MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
         MemoryUsage heapMemoryUsage = memoryMXBean.getHeapMemoryUsage();
         long usedMemory = heapMemoryUsage.getUsed();
         long maxMemory = heapMemoryUsage.getMax();
-
-        // Calcola l'utilizzo della memoria in percentuale
         return ((double) usedMemory / maxMemory) * 100.0;
     }
 }

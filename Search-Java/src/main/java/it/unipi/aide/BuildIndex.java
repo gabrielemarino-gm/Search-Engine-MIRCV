@@ -1,12 +1,8 @@
 package it.unipi.aide;
 
 import it.unipi.aide.utils.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
 
-public class Main
+public class BuildIndex
 {
     public static void main(String[] args)
     {
@@ -14,14 +10,14 @@ public class Main
         String MODE = "TFIDF";
 
         // Preprocessing test
-        List<String> terms = runPreprocessing();
-        System.out.println(Arrays.toString(terms.toArray()));
+        /*List<String> terms = runPreprocessing();
+        System.out.println(Arrays.toString(terms.toArray()));*/
 
         // Index building
         buildIndex();
     }
 
-    private static List<String> runPreprocessing() {
+    /*private static List<String> runPreprocessing() {
 
         List<String> terms = null;
 
@@ -43,11 +39,16 @@ public class Main
         }
 
         return terms;
-    }
+    }*/
 
     private static void buildIndex() {
 
-        // SPIMI call with try-catch
+        String currentDirectory = System.getProperty("user.dir");
+        String inputPath = currentDirectory + "/src/main/java/it/unipi/aide/mini_collection.tsv";
+        String outputPath = currentDirectory + "/src/main/java/it/unipi/aide/data";
+
+        SPIMI s = new SPIMI(inputPath, outputPath, 75, true);
+        s.algorithm(true);
     }
 }
 

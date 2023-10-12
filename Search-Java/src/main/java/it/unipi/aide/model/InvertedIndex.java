@@ -34,4 +34,16 @@ public class InvertedIndex {
         result.append("]");
         return result.toString();
     }
+
+    public void printIndex() {
+        System.out.println("Inverted Index:");
+        for (String term : index.keySet()) {
+            System.out.print("'" + term + "': ");
+            List<Posting> postingList = index.get(term);
+            for (Posting posting : postingList) {
+                System.out.print(posting.toString() + " ");
+            }
+            System.out.println();
+        }
+    }
 }
