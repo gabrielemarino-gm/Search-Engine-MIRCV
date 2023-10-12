@@ -23,24 +23,11 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>it.unipi.aide.CreateIndex</mainClass>
-
+              <mainClass>it.unipi.Driver</mainClass>
             </manifest>
           </archive>
         </configuration>
       </plugin>
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-jar-plugin</artifactId>-->
-<!--        <version>3.2.0</version>-->
-<!--        <configuration>-->
-<!--          <archive>-->
-<!--            <manifest>-->
-<!--              <mainClass>it.unipi.aide.QueryHandler</mainClass>-->
-<!--            </manifest>-->
-<!--          </archive>-->
-<!--        </configuration>-->
-<!--      </plugin>-->
       </plugins>
   </build>
 
