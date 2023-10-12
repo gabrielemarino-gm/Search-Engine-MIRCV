@@ -1,6 +1,7 @@
 import psutil
 from icecream import ic
 from structure import InvertedIndex, Vocabulary
+from structure.vocelem import TermInfo
 from utils import Preprocesser
 from typing import Dict
 import pickle
@@ -21,6 +22,7 @@ class SPIMI:
         self.inverted_index = InvertedIndex()
         self.processor = Preprocesser(stemmstop=stemmstop)  # , stopwords=stopword, delete_urls=urls)
         self.b = 0
+        self.offsets_dictionary = {}
 
         ic(f"SPIMI Parameters:\ninput_path: {self.input_path}\n output_path: {self.output_path}\n MAXMEM: {self.MAX_MEM}\n")
 
@@ -31,12 +33,18 @@ class SPIMI:
 
     def write_block_to_disk(self) -> bool:
         """
-        Write the data structure in a binary file
+        Save in a binary file all the posting list found up to now
         :return: a bool indicates success of the procedure
         """
         try:
+
             with open(f"{self.output_path}/block/Block-{self.b}.bin", "wb") as file_bin:
-                pickle.dump(self.inverted_index, file_bin)
+                for t in self.dictionary.get_list_of_terms():
+                    for pl in self.inverted_index.get_posting_list_by_term(t):
+                        pickle.dump(pl, file_bin)
+                        offset = file_bin.tell()
+                        # For the moment I'll save the offset in the term info saved in the vocabulary.
+                        self.dictionary.get_term_info(t).update_offset(offset)
 
             with open(f"{self.output_path}/dictionary/Dictionary-{self.b}.bin", "wb") as file_bin:
                 pickle.dump(self.dictionary, file_bin)
@@ -69,7 +77,8 @@ class SPIMI:
                 if t == '':
                     continue
 
-                self.dictionary.add(t)
+                self.dictionary.add(TermInfo(t))
+
                 # Add the term to the inverted index
                 self.inverted_index.add(doc_id, t)
 

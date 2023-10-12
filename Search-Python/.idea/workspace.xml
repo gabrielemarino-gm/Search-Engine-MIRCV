@@ -1,25 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="2afa1ea4-230e-4326-8495-58b1543ea148" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../Il_Parcogiochi_di_Matteo.ipynb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Search-Java/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../Search-Java/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Search-Java/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../Search-Java/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Search-Java/src/main/java/it/unipi/aide/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/../Search-Java/src/main/java/it/unipi/aide/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Search-Java/src/main/java/it/unipi/aide/utils/Preprocesser.java" beforeDir="false" afterPath="$PROJECT_DIR$/../Search-Java/src/main/java/it/unipi/aide/utils/Preprocesser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../TODO_LIST" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../buildIndex.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../componentsTest.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../config/stopwords.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../parcogiochi_gabri.ipynb" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../requirements.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../structure/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../structure/vocelem.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../utils/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../utils/indexing.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../utils/merging.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../utils/preprocessing.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/parcogiochi_gabri.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/parcogiochi_gabri.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/structure/vocelem.py" beforeDir="false" afterPath="$PROJECT_DIR$/structure/vocelem.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/indexing.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/indexing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/merging.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/merging.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -32,9 +23,9 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 0
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 0
+}</component>
   <component name="ProjectId" id="2WcZJ6p3j9eYONMg3v4V8bPDMMP" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -47,6 +38,10 @@
     "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "main",
     "last_opened_file_path": "/Users/gabriele/Desktop/Università/Secondo Anno/Multimidia Information Retrival and Computer Vision/Project/Search-Engine-MIRCV/Search-Python",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -59,6 +54,7 @@
       <option name="presentableId" value="Default" />
       <updated>1697033753831</updated>
       <workItem from="1697033754841" duration="50000" />
+      <workItem from="1697033986278" duration="9434000" />
     </task>
     <servers />
   </component>
