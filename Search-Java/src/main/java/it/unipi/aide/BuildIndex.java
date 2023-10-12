@@ -25,6 +25,7 @@ public class BuildIndex
         {
             // File access
             String currentDirectory = System.getProperty("user.dir");
+
             String filePath = currentDirectory + "/src/main/java/it/unipi/aide/config/prova.txt";
             String text = new String(Files.readAllBytes(Paths.get(filePath)));
 
