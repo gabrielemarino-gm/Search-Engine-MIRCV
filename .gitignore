@@ -1,4 +1,4 @@
-Search-Python/data/
-Search-Python/.idea/
+/data/
+/.idea/
 /Search-Java/.idea/
 /Search-Java/target
