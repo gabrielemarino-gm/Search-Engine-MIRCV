@@ -29,10 +29,10 @@ public class Driver {
             }
             else{
                 System.err.println("Class Not Found");
-                System.err.println("Available Classes:\n\tcreateIndex\n\tmakeQuery\n\tevaluatePerformance");
+                System.err.println("Available Classes:\n\tcreateIndex\n\tmakeQuery\n\tevaluatePerformance\n");
             }
         }
         System.err.println("No Input Given");
-        System.err.println("Available Classes:\n\tcreateIndex\n\tmakeQuery\n\tevaluatePerformance");
+        System.err.println("Available Classes:\n\tcreateIndex\n\tmakeQuery\n\tevaluatePerformance\n");
     }
 }

@@ -1,14 +1,17 @@
 package it.unipi.aide.utils;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.regex.Pattern;
 
 import ca.rmen.porterstemmer.PorterStemmer;
 
-public class Preprocesser {
+/**
+ * Class to perform preprocessing on a string
+ */
+public class Preprocesser{
+    private final String STOPWORD_FILE_PATH = "stopwords.txt";
+
     private final Pattern urlPattern;
     private final Pattern htmlPattern;
     private final Pattern nonDigitPattern;
@@ -21,8 +24,11 @@ public class Preprocesser {
 
     PorterStemmer stemmer = new PorterStemmer();
 
+    /**
+     * Preprocesser constructor
+     * @param stemmstop enable Stopwords removal and Stemming
+     */
     public Preprocesser(boolean stemmstop) {
-        // Initialize regular expression patterns
         urlPattern = Pattern.compile("(https?://\\S+|www\\.\\S+)");
         htmlPattern = Pattern.compile("<[^>]+>");
         nonDigitPattern = Pattern.compile("[^a-zA-Z ]");
@@ -34,13 +40,22 @@ public class Preprocesser {
         stemmstopActive = stemmstop;
 
         if (stemmstopActive) {
-
-            // File access
-            String currentDirectory = System.getProperty("user.dir");
-            String stopwordsFilePath = currentDirectory + "/src/main/java/it/unipi/aide/config/stopwords.txt";
             stopwords = new HashSet<>();
 
-            try (BufferedReader br = new BufferedReader(new FileReader(stopwordsFilePath))) {
+           /*
+           * ClassLoader and InputStream to load the file relatively to the package
+           *
+           * Note: utility non-class files goes in resources folder
+           */
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            InputStream inputStream = classLoader.getResourceAsStream(STOPWORD_FILE_PATH);
+
+            if(inputStream == null){
+                System.err.println("Error while loading Stopwords file");
+                return;
+            }
+
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     stopwords.add(line);
@@ -52,9 +67,13 @@ public class Preprocesser {
         }
     }
 
-    // Generic text cleaning
-    public String clean(String text) {
-        text = urlPattern.matcher(text).replaceAll("");
+    /**
+     * Basic text cleaning
+     * @param text Text to clean
+     * @return Cleaned text
+     */
+    private String clean(String text) {
+        text = urlPattern.matcher(text).replaceAll(" ");
         text = htmlPattern.matcher(text).replaceAll(" ");
         text = nonDigitPattern.matcher(text).replaceAll(" ");
         text = multipleSpacePattern.matcher(text).replaceAll(" ");
@@ -64,8 +83,16 @@ public class Preprocesser {
         return text;
     }
 
-    // Removal of stopwords from a list of words
-    public List<String> removeStopwords(List<String> tokens) {
+    /**
+     * Remove Stopwords from a list of tokens
+     * @param tokens List of tokens
+     * @return List of tokens without Stopwords
+     */
+    private List<String> removeStopwords(List<String> tokens) {
+        /*
+         *TODO: This may be enhanced by removing Stopwords from 'tokens' list without
+         * creating a brand-new list
+         */
         List<String> filteredTokens = new ArrayList<>();
         for (String token : tokens) {
             if (!stopwords.contains(token)) {
@@ -75,8 +102,16 @@ public class Preprocesser {
         return filteredTokens;
     }
 
-    // Stemming of a list of words
-    public List<String> performStemming(List<String> words) {
+    /**
+     * Perform Stemming on a list of tokens
+     * @param words List of tokens
+     * @return List of stemmed tokens
+     */
+    private List<String> performStemming(List<String> words) {
+        /*
+         *TODO: This may be enhanced by directly extract and put back
+         * stemmed tokens in the same 'words' list
+         */
         List<String> stemmedWords = new ArrayList<>();
         for (String word : words) {
             stemmedWords.add(stemmer.stemWord(word));
@@ -84,22 +119,30 @@ public class Preprocesser {
         return stemmedWords;
     }
 
+    /**
+     * Perform the preprocessing on a string
+     * @param text Text to preprocess
+     * @return List of preprocessed tokens
+     */
     public List<String> process(String text) {
-        // Text cleaning
+
+        // STEP 1: Text cleaning
         text = clean(text);
+        // STEP 2: Lowercasing
         text = text.toLowerCase();
 
-        // Text tokenization
+        // STEP 3: Tokenization
         String[] termsArray = text.split(" ");
         List<String> terms = Arrays.asList(termsArray);
 
-        // Stopwords removal
+        // STEP 4: Remove Stopwords and Stemming
         if (stemmstopActive) {
             terms = removeStopwords(terms);
+
             terms = performStemming(terms);
         }
 
-        // Empty terms removal
+        // STEP 5: Remove empty tokens
         for (int i = terms.size() - 1; i >= 0; i--) {
             String element = terms.get(i);
             if (element.trim().isEmpty()) {
@@ -107,8 +150,6 @@ public class Preprocesser {
             }
         }
 
-        // Return as a Tuple or another suitable data structure in Java
-        // You can define a Tuple class or use an existing one
         return terms;
     }
 }
