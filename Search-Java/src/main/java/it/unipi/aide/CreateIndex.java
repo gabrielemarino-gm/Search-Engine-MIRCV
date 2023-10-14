@@ -1,15 +1,19 @@
 package it.unipi.aide;
 
+import com.sun.xml.internal.messaging.saaj.packaging.mime.util.OutputUtil;
 import it.unipi.aide.algorithms.SPIMI;
 import  it.unipi.aide.utils.Preprocesser;
 
 import java.util.List;
 
-public class CreateIndex {
+public class CreateIndex
+{
 
-    private String TEST_COLLECTION = "../data/mini_collection.tsv";
+    private static String TEST_COLLECTION = "data/source/mini_collection.tsv";
+    private static String OUTPUT_PATH = "data/partial/";
 
-    public static void main(String[] args) {
+    public static void main(String[] args)
+    {
         boolean DEBUG = false;
         String MODE = "TFIDF";
         /*
@@ -31,13 +35,13 @@ public class CreateIndex {
          * */
 
         // Index building
-        SPIMI spimi = new SPIMI("../data/mini_collection.tsv", "../data/out/", 65, true);
+        SPIMI spimi = new SPIMI(TEST_COLLECTION, OUTPUT_PATH, 60, true);
         spimi.algorithm(true);
         // Index merging
-
     }
 
-    private static void tests(){
+    private static void tests()
+    {
         Preprocesser p = new Preprocesser(true);
 
         List<String> l = p.process("Hi i am Matteo and I LiveIn Viterbo, because my family transferred here");

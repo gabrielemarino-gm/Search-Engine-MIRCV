@@ -2,18 +2,38 @@ package it.unipi.aide.model;
 
 import java.util.*;
 
-public class Vocabulary {
-    private final Map<String, Integer> vocab = new HashMap<>();
+public class Vocabulary
+{
+    private final Map<String, TermInfo> vocab = new HashMap<>();
 
-    public void add(String term) {
-        if (!vocab.containsKey(term)) {
-            vocab.put(term, 1);
-        } else {
-            vocab.put(term, vocab.get(term) + 1);
+    /**
+     * Add a new term in the vocabulary it not exits yet,
+     * otherwise just update the existing one
+     */
+    public void add(String term)
+    {
+        if (!vocab.containsKey(term))
+        {
+            vocab.put(term, new TermInfo());
+        }
+        else
+        {
+            vocab.get(term).incrementTotalFrequency();
         }
     }
 
-    public int get(String term) {
-        return vocab.getOrDefault(term, 0);
+    /**
+     * Get the list of just the terms of the vocabulary
+     * */
+    public List<String> getTerms()
+    {
+        Set<String> keySet = vocab.keySet();
+
+        // Converte l'insieme delle chiavi in una lista
+        return new ArrayList<>(keySet);
+    }
+
+    public TermInfo get(String term) {
+        return vocab.getOrDefault(term, new TermInfo());
     }
 }

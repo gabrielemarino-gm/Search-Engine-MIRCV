@@ -1,18 +1,22 @@
 package it.unipi.aide.utils;
 
+import java.io.File;
+
 /**
  * This class is used to check, create and delete files and directories
  * along the whole project without implementing the wheel
  */
-public class FileManager {
-
+public class FileManager
+{
     /**
     * Check if a directory exists
     * @param path Path of the directory to check
     * @return true if exists, false otherwise
     */
-    public static boolean checkDir(String path){
-        return true;
+    public static boolean checkDir(String path)
+    {
+        File directory = new File(path);
+        return directory.exists() && directory.isDirectory();
     }
 
     /**
@@ -20,9 +24,15 @@ public class FileManager {
      * @param path Path in which directory should be created
      * @return true upon success, false otherwise
      */
-    public static boolean createDir(String path){
+    public static boolean createDir(String path)
+    {
+        if (!checkDir(path))
+        {
+            File directory = new File(path);
+            return directory.mkdirs();
+        }
 
-        return true;
+        return false;
     }
 
     /**
@@ -30,9 +40,37 @@ public class FileManager {
      * @param path Path of the directory to remove
      * @return true upon success, false otherwise
      */
-    public static boolean deleteDir(String path){
+    public static boolean deleteDir(String path)
+    {
+        File directory = new File(path);
 
-        return true;
+        if (directory.exists() && directory.isDirectory())
+        {
+            // Delete the directory and its contents
+            String[] entries = directory.list();
+            if (entries != null)
+            {
+                for (String entry : entries)
+                {
+                    File entryFile = new File(directory, entry);
+                    if (entryFile.isDirectory())
+                    {
+                        // Recursively delete subdirectories
+                        deleteDir(entryFile.getAbsolutePath());
+                    }
+                    else
+                    {
+                        // Delete files
+                        entryFile.delete();
+                    }
+                }
+            }
+
+            // Delete the directory itself
+            return directory.delete();
+        }
+
+        return false;
     }
 
     /**
@@ -40,9 +78,10 @@ public class FileManager {
      * @param path Path of the file to check
      * @return true if exists, false otherwise
      */
-    public static boolean checkFile(String path){
-
-        return true;
+    public static boolean checkFile(String path)
+    {
+        File file = new File(path);
+        return file.exists() && file.isFile();
     }
 
     /**
@@ -50,9 +89,18 @@ public class FileManager {
      * @param path Path at witch create the file
      * @return true upon success, false otherwise
      */
-    public static boolean createFile(String path){
-
-        return true;
+    public static boolean createFile(String path)
+    {
+        File file = new File(path);
+        try
+        {
+            return file.createNewFile();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            return false;
+        }
     }
 
 
@@ -61,8 +109,37 @@ public class FileManager {
      * @param path Path of the file to remove
      * @return true upon success, false otherwise
      */
-    public static boolean removeFile(String path){
+    public static boolean removeFile(String path)
+    {
+        File file = new File(path);
+        if (file.exists() && file.isFile())
+        {
+            return file.delete();
+        }
+        return false;
+    }
 
-        return true;
+    public static void cleanFolder(String path)
+    {
+        File directory = new File(path);
+
+        String[] entries = directory.list();
+        if (entries != null)
+        {
+            for (String entry : entries)
+            {
+                File entryFile = new File(directory, entry);
+                if (entryFile.isDirectory())
+                {
+                    // Recursively delete subdirectories
+                    deleteDir(entryFile.getAbsolutePath());
+                }
+                else
+                {
+                    // Delete files
+                    entryFile.delete();
+                }
+            }
+        }
     }
 }

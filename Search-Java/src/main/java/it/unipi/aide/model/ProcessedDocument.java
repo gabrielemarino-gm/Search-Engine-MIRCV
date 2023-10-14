@@ -5,12 +5,14 @@ import java.util.List;
 /**
  * This class represents a preprocessed document
  */
-public class ProcessedDocument {
+public class ProcessedDocument
+{
     private String pid;
     private int docid;
     private List<String> tokens;
 
-    public ProcessedDocument(String pid, int docid, List<String> tokens) {
+    public ProcessedDocument(String pid, int docid, List<String> tokens)
+    {
         this.pid = pid;
         this.docid = docid;
         this.tokens = tokens;

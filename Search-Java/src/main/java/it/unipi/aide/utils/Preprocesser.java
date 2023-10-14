@@ -9,7 +9,8 @@ import ca.rmen.porterstemmer.PorterStemmer;
 /**
  * Class to perform preprocessing on a string
  */
-public class Preprocesser{
+public class Preprocesser
+{
     private final String STOPWORD_FILE_PATH = "stopwords.txt";
 
     private final Pattern urlPattern;
@@ -28,7 +29,8 @@ public class Preprocesser{
      * Preprocesser constructor
      * @param stemmstop enable Stopwords removal and Stemming
      */
-    public Preprocesser(boolean stemmstop) {
+    public Preprocesser(boolean stemmstop)
+    {
         urlPattern = Pattern.compile("(https?://\\S+|www\\.\\S+)");
         htmlPattern = Pattern.compile("<[^>]+>");
         nonDigitPattern = Pattern.compile("[^a-zA-Z ]");
@@ -39,7 +41,8 @@ public class Preprocesser{
         // Initialize mode flags
         stemmstopActive = stemmstop;
 
-        if (stemmstopActive) {
+        if (stemmstopActive)
+        {
             stopwords = new HashSet<>();
 
            /*
@@ -50,17 +53,22 @@ public class Preprocesser{
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             InputStream inputStream = classLoader.getResourceAsStream(STOPWORD_FILE_PATH);
 
-            if(inputStream == null){
+            if(inputStream == null)
+            {
                 System.err.println("Error while loading Stopwords file");
                 return;
             }
 
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream)))
+            {
                 String line;
-                while ((line = br.readLine()) != null) {
+                while ((line = br.readLine()) != null)
+                {
                     stopwords.add(line);
                 }
-            } catch (IOException e) {
+            }
+            catch (IOException e)
+            {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
             }
@@ -72,7 +80,8 @@ public class Preprocesser{
      * @param text Text to clean
      * @return Cleaned text
      */
-    private String clean(String text) {
+    private String clean(String text)
+    {
         text = urlPattern.matcher(text).replaceAll(" ");
         text = htmlPattern.matcher(text).replaceAll(" ");
         text = nonDigitPattern.matcher(text).replaceAll(" ");
@@ -88,7 +97,8 @@ public class Preprocesser{
      * @param tokens List of tokens
      * @return List of tokens without Stopwords
      */
-    private List<String> removeStopwords(List<String> tokens) {
+    private List<String> removeStopwords(List<String> tokens)
+    {
         /*
          *TODO: This may be enhanced by removing Stopwords from 'tokens' list without
          * creating a brand-new list
@@ -107,13 +117,15 @@ public class Preprocesser{
      * @param words List of tokens
      * @return List of stemmed tokens
      */
-    private List<String> performStemming(List<String> words) {
+    private List<String> performStemming(List<String> words)
+    {
         /*
          *TODO: This may be enhanced by directly extract and put back
          * stemmed tokens in the same 'words' list
          */
         List<String> stemmedWords = new ArrayList<>();
-        for (String word : words) {
+        for (String word : words)
+        {
             stemmedWords.add(stemmer.stemWord(word));
         }
         return stemmedWords;
@@ -124,7 +136,8 @@ public class Preprocesser{
      * @param text Text to preprocess
      * @return List of preprocessed tokens
      */
-    public List<String> process(String text) {
+    public List<String> process(String text)
+    {
 
         // STEP 1: Text cleaning
         text = clean(text);
@@ -136,16 +149,18 @@ public class Preprocesser{
         List<String> terms = Arrays.asList(termsArray);
 
         // STEP 4: Remove Stopwords and Stemming
-        if (stemmstopActive) {
+        if (stemmstopActive)
+        {
             terms = removeStopwords(terms);
-
             terms = performStemming(terms);
         }
 
         // STEP 5: Remove empty tokens
-        for (int i = terms.size() - 1; i >= 0; i--) {
+        for (int i = terms.size() - 1; i >= 0; i--)
+        {
             String element = terms.get(i);
-            if (element.trim().isEmpty()) {
+            if (element.trim().isEmpty())
+            {
                 terms.remove(i);
             }
         }

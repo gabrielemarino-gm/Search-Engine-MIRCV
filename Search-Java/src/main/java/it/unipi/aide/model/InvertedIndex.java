@@ -2,22 +2,63 @@ package it.unipi.aide.model;
 
 import java.util.*;
 
-public class InvertedIndex {
+public class InvertedIndex
+{
     private final Map<String, List<Posting>> index = new HashMap<>();
 
-    public void add(int doc, String term) {
+    /**
+     * Add a new Posting List in the index it not exits yet,
+     * otherwise just update the existing one
+     */
+    public void add(int doc, String term)
+    {
         List<Posting> postingList = index.get(term);
-        if (postingList == null) {
+
+        // Check if the Posting List already exists
+        if (postingList == null)
+        {
+            // If no, create a new one
             Posting newPosting = new Posting(doc);
             index.put(term, new ArrayList<>(Collections.singletonList(newPosting)));
-        } else {
+        }
+        else
+        {
+            // Else, just update
             Posting lastPosting = postingList.get(postingList.size() - 1);
-            if (lastPosting.getDocId() == doc) {
+            if (lastPosting.getDocId() == doc)
+            {
                 lastPosting.increment();
-            } else {
+            }
+            else
+            {
                 Posting newPosting = new Posting(doc);
                 postingList.add(newPosting);
             }
+        }
+    }
+
+
+    public List<Posting> getPostingList(String t)
+    {
+        return index.get(t);
+    }
+
+    /**
+     * Debug method
+     */
+    public void printIndex()
+    {
+        System.out.println("Inverted Index:");
+        for (String term : index.keySet())
+        {
+            System.out.print("'" + term + "': ");
+            List<Posting> postingList = index.get(term);
+
+            for (Posting posting : postingList)
+            {
+                System.out.print(posting.toString() + " ");
+            }
+            System.out.println();
         }
     }
 
@@ -35,15 +76,5 @@ public class InvertedIndex {
         return result.toString();
     }
 
-    public void printIndex() {
-        System.out.println("Inverted Index:");
-        for (String term : index.keySet()) {
-            System.out.print("'" + term + "': ");
-            List<Posting> postingList = index.get(term);
-            for (Posting posting : postingList) {
-                System.out.print(posting.toString() + " ");
-            }
-            System.out.println();
-        }
-    }
+
 }

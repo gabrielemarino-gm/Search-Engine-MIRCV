@@ -1,24 +1,27 @@
 package it.unipi.aide.model;
 
-class Posting {
+public class Posting
+{
     private final int docId;
-    private int count;
+    private int frequency;
 
-    public Posting(int docId) {
+    public Posting(int docId)
+    {
         this.docId = docId;
-        this.count = 1;
+        this.frequency = 1;
     }
 
     public int getDocId() {
         return docId;
     }
+    public int getFrequency() {return frequency;}
 
     public void increment() {
-        count++;
+        frequency++;
     }
 
     @Override
     public String toString() {
-        return "(" + docId + ":" + count + ")";
+        return "(" + docId + ":" + frequency + ")";
     }
 }

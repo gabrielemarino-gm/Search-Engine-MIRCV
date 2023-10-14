@@ -1,4 +1,6 @@
 package it.unipi.aide.algorithms;
 
-public class Merging {
+public class Merging
+{
+    // TODO
 }
