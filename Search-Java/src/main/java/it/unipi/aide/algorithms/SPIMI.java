@@ -60,7 +60,6 @@ public class SPIMI
         // System.out.println("MAXMEM: " + MAX_MEM);
     }
 
-
     /**
      * Creates an iterator on the corpus to process
      * @return An iterator on the process
@@ -121,35 +120,12 @@ public class SPIMI
             return false;
         }
 
-        // try
-        // {
-        //     // Write inverted index to binary file
-        //     ObjectOutputStream indexStream = new ObjectOutputStream (
-        //             Files.newOutputStream(Paths.get(outputPath + "/block/Block-" + b + ".bin"))
-        //     );
-        //     indexStream.writeObject(invertedIndex);
-        //     indexStream.close();
-//
-        //     // Write vocabulary to binary file
-        //     ObjectOutputStream vocabularyStream = new ObjectOutputStream (
-        //             Files.newOutputStream(Paths.get(outputPath + "/vocabulary/vocabulary-" + b + ".bin"))
-        //     );
-        //     vocabularyStream.writeObject(vocabulary);
-        //     vocabularyStream.close();
-        // }
-        // catch (IOException e)
-        // {
-        //     e.printStackTrace();
-        //     return false;
-        // }
-
         // Debug version to write plain text
         if (debug)
         {
             FileManager.createDir(outputPath + "debug");
             try
             {
-                System.out.println("qui");
                 // Write inverted index to debug text file
                 BufferedWriter indexWriter = new BufferedWriter(
                         new FileWriter(outputPath + "debug/Block-" + b + ".txt")
@@ -230,11 +206,12 @@ public class SPIMI
                 invertedIndex.add(document.getDocid(), t);
                 numBlocksPosting++;
             }
-
+            // TODO Attenzione, il blocco finale non viene creato così facendo.
+            //  se per esempio ho che l'ultimo
             //if (getPercentOfMemoryUsed() > MAX_MEM)
-            if (numBlocksPosting > 1000)
+            if (numBlocksPosting > 10000)
             {
-                System.out.println("Writing block #" + b);
+                System.out.println("DBG:    Writing block #" + b);
 
                 if (writeBlockToDisk(debug))
                 {

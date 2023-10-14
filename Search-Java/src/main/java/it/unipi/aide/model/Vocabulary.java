@@ -36,4 +36,17 @@ public class Vocabulary
     public TermInfo get(String term) {
         return vocab.getOrDefault(term, new TermInfo());
     }
+
+    @Override
+    public String toString()
+    {
+        String ret = null;
+        for (String term: vocab.keySet())
+        {
+            TermInfo ti = vocab.get(term);
+            ret = ret + term + ": " + ti.toString() + "\n";
+        }
+
+        return ret;
+    }
 }

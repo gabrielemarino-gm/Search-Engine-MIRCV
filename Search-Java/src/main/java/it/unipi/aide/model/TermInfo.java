@@ -22,4 +22,9 @@ public class TermInfo
     public void setNumPosting(int n) {this.numPosting = n;}
     public void setTotalFrequency(int f) {this.totalFrequency = f;}
     public void setOffset(int o) {this.offset = o;}
+    @Override
+    public String toString()
+    {
+        return "(" + totalFrequency + ", " + offset + ", " + numPosting +")";
+    }
 }

@@ -63,11 +63,14 @@ public class InvertedIndex
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         StringBuilder result = new StringBuilder("[");
-        for (String key : index.keySet()) {
+        for (String key : index.keySet())
+        {
             result.append("'").append(key).append("':");
-            for (Posting e : index.get(key)) {
+            for (Posting e : index.get(key))
+            {
                 result.append(e.toString());
             }
             result.append(",");
