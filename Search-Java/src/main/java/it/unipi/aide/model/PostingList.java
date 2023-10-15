@@ -1,5 +1,6 @@
 package it.unipi.aide.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PostingList
@@ -10,6 +11,7 @@ public class PostingList
     public PostingList(String term)
     {
         this.term = term;
+        postingList = new ArrayList<Posting>();
     }
 
     public void addPosting(Posting p)

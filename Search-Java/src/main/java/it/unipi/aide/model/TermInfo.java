@@ -5,11 +5,12 @@ public class TermInfo
     private int totalFrequency;
     private int offset;
     private int numPosting;
-    public TermInfo()
+    public final long SIZE_TERM = 64;
+    public TermInfo(int totalFrequency, int offset, int numPosting)
     {
-        this.totalFrequency = 1;
-        this.offset = 1;
-        this.numPosting = 1;
+        this.totalFrequency = totalFrequency;
+        this.offset = offset;
+        this.numPosting = numPosting;
     }
 
     public void incrementTotalFrequency()

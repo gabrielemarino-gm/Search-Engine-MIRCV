@@ -99,14 +99,39 @@ public class SPIMI
                 StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
 
                 FileChannel frequencyFileChannel = (FileChannel) Files.newByteChannel(Paths.get(outputPath+"frequenciesBlock-"+b),
-            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE))
+            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+
+             FileChannel vocabularyFileChannel = (FileChannel) Files.newByteChannel(Paths.get(outputPath+"vocabularyBlock-"+b),
+                     StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE))
         {
             // Create the buffer where write the streams of bytes
             MappedByteBuffer docIdBuffer = docIdFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numBlocksPosting*4L);
-            MappedByteBuffer frequencyBuffer = docIdFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numBlocksPosting*4L);
-            
+            MappedByteBuffer frequencyBuffer = frequencyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numBlocksPosting*4L);
+
+            long vocOffset = 0;
             for (String t: vocabulary.getTerms())
             {
+                // For each term I have to save into the vocabulary file.
+                TermInfo termInfo = vocabulary.get(t);
+                // System.out.println("DBG:    " + termInfo.toString());
+
+                // Allocate the buffer for write:
+                // + 64 byte for the term
+                // + 4 byte for the frequency
+                // + 4 byte for the offset
+                // + 4 byte for the number of posting
+                MappedByteBuffer vocabularyBuffer = vocabularyFileChannel.map(FileChannel.MapMode.READ_WRITE, vocOffset, termInfo.SIZE_TERM+4L+4L+4L);
+                vocOffset += termInfo.SIZE_TERM+4+4+4;
+
+                // Write vocabulary entry
+                String paddedTerm = String.format("%-64s", t).substring(0, 64); // Pad with spaces up to 64 characters
+                vocabularyBuffer.put(paddedTerm.getBytes());
+
+                vocabularyBuffer.putInt(termInfo.getTotalFrequency());
+                vocabularyBuffer.putInt(termInfo.getOffset());
+                vocabularyBuffer.putInt(termInfo.getNumPosting());
+
+                // Write the other 2 files for DocId and Frequency
                 for (Posting p: invertedIndex.getPostingList(t))
                 {
                     docIdBuffer.putInt(p.getDocId());
@@ -154,8 +179,9 @@ public class SPIMI
     /**
      * Executes the SPIMI algorithm as configured
      * @param debug Enable debug mode
+     * @return the number of blocks created
      */
-    public void algorithm(boolean debug)
+    public int algorithm(boolean debug)
     {
         System.out.println("Starting algorithm...");
         /*
@@ -209,8 +235,8 @@ public class SPIMI
                 invertedIndex.add(document.getDocid(), t);
                 numBlocksPosting++;
             }
-            // TODO Attenzione, il blocco finale non viene creato così facendo.
-            //  se per esempio ho che l'ultimo
+
+
             //if (getPercentOfMemoryUsed() > MAX_MEM)
             if (numBlocksPosting > 10000)
             {
@@ -230,16 +256,17 @@ public class SPIMI
                 }
             }
 
-            if (docid % 100 == 0)
-            {
-                System.out.println("Document progression: " + docid);
-            }
+            // if (docid % 100 == 0)
+            // {
+            //     System.out.println("Document progression: " + docid);
+            // }
         }
 
         // We need to write the last block, that can stay in memory under the threshold
         if (writeBlockToDisk(debug))
         {
-            System.out.println("LOG:    Write the last block: " + b);
+            System.out.println("LOG:    Writing block #" + b);
+            b++;
         }
         else
         {
@@ -248,6 +275,7 @@ public class SPIMI
 
         // Debug test un par di palle xD
 //        invertedIndex.printIndex();
+        return b;
     }
 
     /**

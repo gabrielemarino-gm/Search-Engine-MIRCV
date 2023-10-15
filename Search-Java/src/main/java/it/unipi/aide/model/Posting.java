@@ -5,10 +5,10 @@ public class Posting
     private final int docId;
     private int frequency;
 
-    public Posting(int docId)
+    public Posting(int docId, int frequency)
     {
         this.docId = docId;
-        this.frequency = 1;
+        this.frequency = frequency;
     }
 
     public int getDocId() {

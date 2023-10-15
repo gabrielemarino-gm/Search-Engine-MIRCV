@@ -18,7 +18,7 @@ public class InvertedIndex
         if (postingList == null)
         {
             // If no, create a new one
-            Posting newPosting = new Posting(doc);
+            Posting newPosting = new Posting(doc, 1);
             index.put(term, new ArrayList<>(Collections.singletonList(newPosting)));
         }
         else
@@ -31,7 +31,7 @@ public class InvertedIndex
             }
             else
             {
-                Posting newPosting = new Posting(doc);
+                Posting newPosting = new Posting(doc, 1);
                 postingList.add(newPosting);
             }
         }
@@ -80,4 +80,8 @@ public class InvertedIndex
     }
 
 
+    public void sort()
+    {
+
+    }
 }

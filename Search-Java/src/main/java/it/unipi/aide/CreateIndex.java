@@ -1,6 +1,7 @@
 package it.unipi.aide;
 
 import com.sun.xml.internal.messaging.saaj.packaging.mime.util.OutputUtil;
+import it.unipi.aide.algorithms.Merging;
 import it.unipi.aide.algorithms.SPIMI;
 import  it.unipi.aide.utils.Preprocesser;
 
@@ -36,8 +37,13 @@ public class CreateIndex
 
         // Index building
         SPIMI spimi = new SPIMI(TEST_COLLECTION, OUTPUT_PATH, 60, true);
-        spimi.algorithm(true);
+        int numBlocks = spimi.algorithm(true);
+        System.out.println("DBG:    SPIMI writes " + numBlocks + " blocks");
         // Index merging
+        Merging merge = new Merging();
+        merge.mergeBloks(numBlocks);
+        // merge.mergeBloks(3);
+
     }
 
     private static void tests()

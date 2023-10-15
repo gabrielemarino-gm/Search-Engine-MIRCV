@@ -14,7 +14,7 @@ public class Vocabulary
     {
         if (!vocab.containsKey(term))
         {
-            vocab.put(term, new TermInfo());
+            vocab.put(term, new TermInfo(1, 0, 1));
         }
         else
         {
@@ -34,7 +34,7 @@ public class Vocabulary
     }
 
     public TermInfo get(String term) {
-        return vocab.getOrDefault(term, new TermInfo());
+        return vocab.getOrDefault(term, new TermInfo(1,0,1));
     }
 
     @Override
