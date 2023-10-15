@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Vocabulary
 {
-    private final Map<String, TermInfo> vocab = new HashMap<>();
+    private final TreeMap<String, TermInfo> vocab = new TreeMap<>();
 
     /**
      * Add a new term in the vocabulary it not exits yet,
