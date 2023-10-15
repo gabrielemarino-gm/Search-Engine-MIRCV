@@ -198,10 +198,13 @@ public class SPIMI
             // TODO -> Create a Document Index (pid, docid, #words, ...)
             for (String t : tokens)
             {
+                // if the term is an empty term, just skip it
                 if (t.isEmpty()) {
                     continue;
                 }
 
+                // Add term to the vocabulary and to the inverted index.
+                // If the term already exists, the method add the docId to the posting list
                 vocabulary.add(t);
                 invertedIndex.add(document.getDocid(), t);
                 numBlocksPosting++;
@@ -231,6 +234,16 @@ public class SPIMI
             {
                 System.out.println("Document progression: " + docid);
             }
+        }
+
+        // We need to write the last block, that can stay in memory under the threshold
+        if (writeBlockToDisk(debug))
+        {
+            System.out.println("LOG:    Write the last block: " + b);
+        }
+        else
+        {
+            System.out.println("ERROR: Not able to write the binary file");
         }
 
         // Debug test un par di palle xD

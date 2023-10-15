@@ -73,7 +73,7 @@ public class InvertedIndex
             {
                 result.append(e.toString());
             }
-            result.append(",");
+            result.append("\n");
         }
         result.append("]");
         return result.toString();
