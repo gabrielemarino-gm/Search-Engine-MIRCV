@@ -4,7 +4,7 @@ import java.util.*;
 
 public class InvertedIndex
 {
-    private final Map<String, List<Posting>> index = new HashMap<>();
+    private final TreeMap<String, List<Posting>> index = new TreeMap<>();
 
     /**
      * Add a new Posting List in the index it not exits yet,
@@ -61,6 +61,10 @@ public class InvertedIndex
             System.out.println();
         }
     }
+    public void addPostingList(String t, PostingList pl)
+    {
+        index.put(t, pl.getPostings());
+    }
 
     @Override
     public String toString()
@@ -80,8 +84,4 @@ public class InvertedIndex
     }
 
 
-    public void sort()
-    {
-
-    }
 }

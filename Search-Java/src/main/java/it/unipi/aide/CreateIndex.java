@@ -11,7 +11,8 @@ public class CreateIndex
 {
 
     private static String TEST_COLLECTION = "data/source/mini_collection.tsv";
-    private static String OUTPUT_PATH = "data/partial/";
+    private static String OUTPUT_PATH_SPIMI = "data/partial/";
+    private static String OUTPUT_PATH_MERGE = "data/complete/";
 
     public static void main(String[] args)
     {
@@ -36,14 +37,12 @@ public class CreateIndex
          * */
 
         // Index building
-        SPIMI spimi = new SPIMI(TEST_COLLECTION, OUTPUT_PATH, 60, true);
+        SPIMI spimi = new SPIMI(TEST_COLLECTION, OUTPUT_PATH_SPIMI, 60, true);
         int numBlocks = spimi.algorithm(true);
-        System.out.println("DBG:    SPIMI writes " + numBlocks + " blocks");
-        // Index merging
-        Merging merge = new Merging();
-        merge.mergeBloks(numBlocks);
-        // merge.mergeBloks(3);
 
+        // Index merging
+        Merging merge = new Merging(OUTPUT_PATH_MERGE);
+        merge.mergeBloks(numBlocks);
     }
 
     private static void tests()

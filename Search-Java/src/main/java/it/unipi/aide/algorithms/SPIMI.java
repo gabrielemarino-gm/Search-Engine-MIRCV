@@ -129,6 +129,7 @@ public class SPIMI
 
                 vocabularyBuffer.putInt(termInfo.getTotalFrequency());
                 vocabularyBuffer.putInt(termInfo.getOffset());
+                // System.out.println("DBG:    " + paddedTerm + " | " + "numPosting = " + termInfo.getNumPosting());
                 vocabularyBuffer.putInt(termInfo.getNumPosting());
 
                 // Write the other 2 files for DocId and Frequency
@@ -240,7 +241,7 @@ public class SPIMI
             //if (getPercentOfMemoryUsed() > MAX_MEM)
             if (numBlocksPosting > 10000)
             {
-                System.out.println("DBG:    Writing block #" + b);
+                System.out.println("LOG:    Writing block #" + b);
 
                 if (writeBlockToDisk(debug))
                 {
