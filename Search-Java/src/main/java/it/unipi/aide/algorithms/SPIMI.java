@@ -7,7 +7,6 @@ import it.unipi.aide.utils.Preprocesser;
 import java.io.*;
 import java.lang.management.*;
 import java.nio.MappedByteBuffer;
-import java.nio.channels.ByteChannel;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -30,11 +29,13 @@ public class SPIMI
     private final int MAX_MEM;
     private final String inputPath;
     private final String outputPath;
+
     private Vocabulary vocabulary;
     private InvertedIndex invertedIndex;
     private final Preprocesser preprocesser;
-    private int b;
+    private int incrementalBlockNumber;
     private int numBlocksPosting;
+
     /**
      * SPIMI constructor
      * @param inputPath Where the Corpus to process is located
@@ -51,13 +52,8 @@ public class SPIMI
         vocabulary = new Vocabulary();
         invertedIndex = new InvertedIndex();
         preprocesser = new Preprocesser(stemming);
-        b = 0;
+        incrementalBlockNumber = 0;
         numBlocksPosting = 0;
-
-        // System.out.println("SPIMI Parameters:");
-        // System.out.println("inputPath: " + inputPath);
-        // System.out.println("outputPath: " + outputPath);
-        // System.out.println("MAXMEM: " + MAX_MEM);
     }
 
     /**
@@ -95,41 +91,51 @@ public class SPIMI
      */
     public boolean writeBlockToDisk(boolean debug)
     {
-        try (FileChannel docIdFileChannel = (FileChannel) Files.newByteChannel(Paths.get(outputPath+"docIDsBlock-"+b),
-                StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+        String docPath = outputPath+"docIDsBlock-"+ incrementalBlockNumber;
+        String freqPath = outputPath+"frequenciesBlock-"+ incrementalBlockNumber;
+        String vocPath = outputPath+"vocabularyBlock-"+ incrementalBlockNumber;
 
-                FileChannel frequencyFileChannel = (FileChannel) Files.newByteChannel(Paths.get(outputPath+"frequenciesBlock-"+b),
-            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+        if(!FileManager.checkFile(docPath)) FileManager.createFile(docPath);
+        if(!FileManager.checkFile(freqPath)) FileManager.createFile(freqPath);
+        if(!FileManager.createFile(vocPath)) FileManager.createFile(vocPath);
 
-             FileChannel vocabularyFileChannel = (FileChannel) Files.newByteChannel(Paths.get(outputPath+"vocabularyBlock-"+b),
+        try (
+                // Open a FileChannel for both docId, frequencies and vocabulary fragments
+                FileChannel docIdFileChannel = (FileChannel) Files.newByteChannel(Paths.get(docPath),
+                        StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+
+                FileChannel frequencyFileChannel = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
+                     StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+
+                FileChannel vocabularyFileChannel = (FileChannel) Files.newByteChannel(Paths.get(vocPath),
                      StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE))
         {
             // Create the buffer where write the streams of bytes
             MappedByteBuffer docIdBuffer = docIdFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numBlocksPosting*4L);
             MappedByteBuffer frequencyBuffer = frequencyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numBlocksPosting*4L);
 
+
             long vocOffset = 0;
             for (String t: vocabulary.getTerms())
             {
                 // For each term I have to save into the vocabulary file.
                 TermInfo termInfo = vocabulary.get(t);
-                // System.out.println("DBG:    " + termInfo.toString());
 
                 // Allocate the buffer for write:
                 // + 64 byte for the term
                 // + 4 byte for the frequency
-                // + 4 byte for the offset
+                // + 8 byte for the offset
                 // + 4 byte for the number of posting
-                MappedByteBuffer vocabularyBuffer = vocabularyFileChannel.map(FileChannel.MapMode.READ_WRITE, vocOffset, termInfo.SIZE_TERM+4L+4L+4L);
-                vocOffset += termInfo.SIZE_TERM+4+4+4;
+                MappedByteBuffer vocabularyBuffer = vocabularyFileChannel.map(FileChannel.MapMode.READ_WRITE, vocOffset, TermInfo.SIZE_TERM+4L+8L+4L);
+                vocOffset += TermInfo.SIZE_TERM+4+4+4;
 
                 // Write vocabulary entry
-                String paddedTerm = String.format("%-64s", t).substring(0, 64); // Pad with spaces up to 64 characters
-                vocabularyBuffer.put(paddedTerm.getBytes());
+                String paddedTerm = String.format("%-64s", termInfo.getTerm()).substring(0, 64); // Pad with spaces up to 64 characters
 
+                // Write
+                vocabularyBuffer.put(paddedTerm.getBytes());
                 vocabularyBuffer.putInt(termInfo.getTotalFrequency());
-                vocabularyBuffer.putInt(termInfo.getOffset());
-                // System.out.println("DBG:    " + paddedTerm + " | " + "numPosting = " + termInfo.getNumPosting());
+                vocabularyBuffer.putLong(termInfo.getOffset());
                 vocabularyBuffer.putInt(termInfo.getNumPosting());
 
                 // Write the other 2 files for DocId and Frequency
@@ -154,14 +160,15 @@ public class SPIMI
             {
                 // Write inverted index to debug text file
                 BufferedWriter indexWriter = new BufferedWriter(
-                        new FileWriter(outputPath + "debug/Block-" + b + ".txt")
+                        new FileWriter(outputPath + "debug/Block-" + incrementalBlockNumber + ".txt")
                 );
+
                 indexWriter.write(invertedIndex.toString());
                 indexWriter.close();
 
                 // Write vocabulary to debug text file
                 BufferedWriter vocabularyWriter = new BufferedWriter(
-                        new FileWriter(outputPath + "debug/vocabulary-" + b + ".txt")
+                        new FileWriter(outputPath + "debug/vocabulary-" + incrementalBlockNumber + ".txt")
                 );
 
                 vocabularyWriter.write(vocabulary.toString());
@@ -222,14 +229,11 @@ public class SPIMI
             ProcessedDocument document = new ProcessedDocument(pid, docid, tokens);
             docid++;
 
-            // TODO -> Create a Document Index (pid, docid, #words, ...)
-            for (String t : tokens)
-            {
-                // if the term is an empty term, just skip it
-                if (t.isEmpty()) {
-                    continue;
-                }
+            if(document.getTokens().isEmpty()) continue;
 
+            // TODO -> Create a Document Index (pid, docid, #words, ...)
+            for (String t : document.getTokens())
+            {
                 // Add term to the vocabulary and to the inverted index.
                 // If the term already exists, the method add the docId to the posting list
                 vocabulary.add(t);
@@ -237,15 +241,15 @@ public class SPIMI
                 numBlocksPosting++;
             }
 
-
-            //if (getPercentOfMemoryUsed() > MAX_MEM)
+            // if (getPercentOfMemoryUsed() > MAX_MEM)
+            // TODO -> Remember to swap this to memory threshold
             if (numBlocksPosting > 10000)
             {
-                System.out.println("LOG:    Writing block #" + b);
+                System.out.println("LOG:    Writing block #" + incrementalBlockNumber);
 
                 if (writeBlockToDisk(debug))
                 {
-                    b++;
+                    incrementalBlockNumber++;
                     numBlocksPosting = 0;
                     vocabulary = new Vocabulary();
                     invertedIndex = new InvertedIndex();
@@ -256,27 +260,21 @@ public class SPIMI
                     break;
                 }
             }
-
-            // if (docid % 100 == 0)
-            // {
-            //     System.out.println("Document progression: " + docid);
-            // }
         }
 
         // We need to write the last block, that can stay in memory under the threshold
         if (writeBlockToDisk(debug))
         {
-            System.out.println("LOG:    Writing block #" + b);
-            b++;
+            System.out.println("LOG:    Writing block #" + incrementalBlockNumber);
+            incrementalBlockNumber++;
         }
         else
         {
             System.out.println("ERROR: Not able to write the binary file");
         }
 
-        // Debug test un par di palle xD
-//        invertedIndex.printIndex();
-        return b;
+        // There will be 'incrementalBlockNumber' blocks, but the last one has index 'incrementalBlockNumber - 1'
+        return incrementalBlockNumber;
     }
 
     /**

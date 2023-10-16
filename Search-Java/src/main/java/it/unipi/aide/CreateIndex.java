@@ -1,35 +1,42 @@
 package it.unipi.aide;
 
-import com.sun.xml.internal.messaging.saaj.packaging.mime.util.OutputUtil;
 import it.unipi.aide.algorithms.Merging;
 import it.unipi.aide.algorithms.SPIMI;
-import  it.unipi.aide.utils.Preprocesser;
-
-import java.util.List;
 
 public class CreateIndex
 {
-
-    private static String TEST_COLLECTION = "data/source/mini_collection.tsv";
-    private static String OUTPUT_PATH_SPIMI = "data/partial/";
-    private static String OUTPUT_PATH_MERGE = "data/complete/";
-
     public static void main(String[] args)
     {
         boolean DEBUG = false;
-        String MODE = "TFIDF";
-        /*
-         * TODO -> Use args[] to retrieve input parameters
-         *  To add input parameters change the Configuration from
-         *  Run > Edit configurations...
-         *  Then add an 'Application'
-         *  Set a custom name, insert the desired Main Class
-         *  and add parameters on 'Program Arguments' input bar
-         *  ie. -d -mode TFIDF -ss
-         *  When this piece of code will be done, the upper example
-         *  will run this in debug mode, creating the index by TFIDF and
-         *  StemmingStopwords removal enabled
-         * */
+        boolean COMPRESSION = false;
+        boolean STOPSTEM = false;
+        String INPUT_PATH = null;
+        String OUTPUT_PATH = null;
+        String MODE = null;
+
+        int i  = 0;
+        int maxArgs = args.length;
+        while(i < maxArgs){
+            if (args[i].equals("-c")) {COMPRESSION = true; i += 1; continue;}
+            if (args[i].equals("-d")) {DEBUG = true; i += 1; continue;}
+            if (args[i].equals("-ss")) {STOPSTEM = true; i += 1; continue;}
+            if (args[i].equals("-in")) {INPUT_PATH = args[i+1]; i += 2; continue;}
+            if (args[i].equals("-out")) {OUTPUT_PATH = args[i+1]; i += 2; continue;}
+            if (args[i].equals("-m")) {MODE = args[i+1]; i += 2; continue;}
+        }
+
+        if(INPUT_PATH == null){
+            System.err.println("Input path not specified. Exiting.");
+            System.exit(1);
+        }
+        if(OUTPUT_PATH == null){
+            System.err.println("Output path not specified. Exiting.");
+            System.exit(1);
+        }
+        if(MODE == null){
+            System.err.println("Mode not specified. Assuming TFIDF.");
+            MODE = "TFIDF";
+        }
 
         /*
          * TODO -> Functions to build index should go there
@@ -37,23 +44,13 @@ public class CreateIndex
          * */
 
         // Index building
-        SPIMI spimi = new SPIMI(TEST_COLLECTION, OUTPUT_PATH_SPIMI, 60, true);
-        int numBlocks = spimi.algorithm(true);
+        SPIMI spimi = new SPIMI(INPUT_PATH, OUTPUT_PATH, 60, STOPSTEM);
+        int numBlocks = spimi.algorithm(DEBUG);
+
+        System.out.println("Index created. Merging.");
 
         // Index merging
-        Merging merge = new Merging(OUTPUT_PATH_MERGE);
-        merge.mergeBloks(numBlocks);
+        Merging merge = new Merging(OUTPUT_PATH);
+        merge.mergeBlocks(numBlocks);
     }
-
-    private static void tests()
-    {
-        Preprocesser p = new Preprocesser(true);
-
-        List<String> l = p.process("Hi i am Matteo and I LiveIn Viterbo, because my family transferred here");
-        for(String s : l){
-            System.out.println(s);
-        }
-        System.exit(0);
-    }
-
 }

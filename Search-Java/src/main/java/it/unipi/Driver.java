@@ -38,6 +38,7 @@ public class Driver
             {
                 System.err.println("Class Not Found");
                 System.err.println("Available Classes:\n\tcreateIndex\n\tmakeQuery\n\tevaluatePerformance\n");
+                System.exit(1);
             }
         }
 

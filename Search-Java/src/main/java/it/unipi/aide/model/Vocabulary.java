@@ -14,7 +14,7 @@ public class Vocabulary
     {
         if (!vocab.containsKey(term))
         {
-            vocab.put(term, new TermInfo(1, 0, 1));
+            vocab.put(term, new TermInfo(term));
         }
         else
         {
@@ -33,6 +33,11 @@ public class Vocabulary
         return new ArrayList<>(keySet);
     }
 
+    /**
+     * Returns term info from the dictionary
+     * @param term Term to retrieve
+     * @return TermInfo of given term
+     */
     public TermInfo get(String term) {
         return vocab.getOrDefault(term, new TermInfo(1,0,1));
     }

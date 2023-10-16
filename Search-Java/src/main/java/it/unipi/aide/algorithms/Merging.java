@@ -7,7 +7,6 @@ import it.unipi.aide.model.TermInfo;
 import it.unipi.aide.utils.FileManager;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
@@ -19,24 +18,28 @@ import java.util.*;
 
 public class Merging
 {
-    private final static String PARTIAL_PATH = "data/partial/";
+    private final String INPUT_PATH;
+    private final String OUTPUT_PATH;
 
     private InvertedIndex invertedIndex = new InvertedIndex();
-    private String outputPath;
 
     public Merging(String outputPath)
     {
-        this.outputPath = outputPath;
+        this.INPUT_PATH = outputPath;
+        this.OUTPUT_PATH = outputPath + "../complete/";
     }
 
-    public void mergeBloks(int numFiles)
+    /**
+     * Merge partial blocks into one unique block
+     * @param numFiles How many partial blocks there are
+     */
+    public void mergeBlocks(int numFiles)
     {
 
-
         // Check if the directory with the blocks results exists
-        if(FileManager.checkDir(PARTIAL_PATH))
+        if(FileManager.checkDir(INPUT_PATH))
         {
-            // Create 4 array of considering the buffers for all the files in the path, for the docids and frequencies
+            // Create a channel for each block, both for docId, frequencies and vocabulary fragments
             FileChannel[] docIdFileChannel = new FileChannel[numFiles];
             MappedByteBuffer[] docIdBuffers = new MappedByteBuffer[numFiles];
 
@@ -46,18 +49,19 @@ public class Merging
             FileChannel[] vocabulariesFileChannel = new FileChannel[numFiles];
             MappedByteBuffer[] vocabulariesBuffers = new MappedByteBuffer[numFiles];
 
-
+            // Create one offset for each block, both for docId, frequencies and vocabulary fragments
             long[] offsetDocId = new long[numFiles];
             long[] offsetFrequency = new long[numFiles];
             long[] offsetVocabulary = new long[numFiles];
 
+            // Unknown
             long[] dimBlockIndexFile = new long[numFiles];
             boolean[] stoppingCondition = new boolean[numFiles];
 
             TermInfo[] termsToMerge = new TermInfo[numFiles];
             PostingList[] postingList = new PostingList[numFiles];
             TreeMap<String, Integer> mapOfTerm = new TreeMap<>();
-
+            // Unknown
 
             try
             {
@@ -67,20 +71,23 @@ public class Merging
                     // initialize the FileChannel of all file needed
                     for (int indexBlock = 0; indexBlock < numFiles; indexBlock++)
                     {
-                        // System.out.println("DBG: Block-" + indexBlock);
-                        docIdFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(PARTIAL_PATH + "docIDsBlock-" + indexBlock),
+                        String docPath = INPUT_PATH + "docIDsBlock-" + indexBlock;
+                        String freqPath = INPUT_PATH + "frequenciesBlock-" + indexBlock;
+                        String vocPath = INPUT_PATH + "vocabularyBlock-" + indexBlock;
+
+                        docIdFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(docPath),
                                 StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
 
-                        frequenciesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(PARTIAL_PATH + "frequenciesBlock-" + indexBlock),
+                        frequenciesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
                                 StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
 
-                        vocabulariesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(PARTIAL_PATH + "vocabularyBlock-" + indexBlock),
+                        vocabulariesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(vocPath),
                                 StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
 
+                        // Maybe -> Maybe use the vocabulary as it brings more info?
                         dimBlockIndexFile[indexBlock] = docIdFileChannel[indexBlock].size();
                     }
 
-                    System.out.println();
 
                     // for each block, initialize all the data structure of a term needed
                     for (int indexBlock = 0; indexBlock < numFiles; indexBlock++)
@@ -93,13 +100,9 @@ public class Merging
                             continue;
                         }
 
-                        // System.out.println("DBG:     block #" + indexBlock);
-                        // System.out.println("DBG:     offset docID = " + offsetDocId[indexBlock]);
-                        // System.out.println("DBG:     offset freq  = " + offsetFrequency[indexBlock]);
-                        // System.out.println("DBG:     offset vocab = " + offsetVocabulary[indexBlock]);
-
                         // Stating to read inside the vocabulary the length of the first posting list
-                        vocabulariesBuffers[indexBlock] = vocabulariesFileChannel[indexBlock].map(FileChannel.MapMode.READ_WRITE, offsetVocabulary[indexBlock], 64L + 4L + 4L + 4L);
+                        vocabulariesBuffers[indexBlock] = vocabulariesFileChannel[indexBlock].map(FileChannel.MapMode.READ_WRITE,
+                                offsetVocabulary[indexBlock], 64L + 4L + 8L + 4L);
 
                         byte[] termBytes = new byte[64];
                         vocabulariesBuffers[indexBlock].get(termBytes);
@@ -108,18 +111,15 @@ public class Merging
                         int nPosting = vocabulariesBuffers[indexBlock].getInt();
 
                         String term = new String(termBytes).trim();
-                        System.out.println("DBG:    TermInfo = " + term + " <" + frequency + ", " + offset + ", " + nPosting + ">");
 
                         // I need to take in account the term that occur in each step, looping in the vocabulary of each block.
                         if (mapOfTerm.get(term) != null)
                         {
                             mapOfTerm.compute(term, (key, oldValue) -> oldValue + 1);
-                            // System.out.println("DBG:    Term not null: " + term + ", " + mapOfTerm.get(term));
                         }
                         else
                         {
                             mapOfTerm.put(term, 1);
-                            // System.out.println("DBG:    Term null: " + term + ", " + mapOfTerm.get(term));
                         }
 
                         termsToMerge[indexBlock] = new TermInfo(frequency, offset, nPosting);
@@ -137,7 +137,6 @@ public class Merging
                             int d = docIdBuffers[indexBlock].getInt();
                             int f = frequenciesBuffers[indexBlock].getInt();
                             postingList[indexBlock].addPosting(new Posting(d, f));
-                            // System.out.println("DBG: <" + d + ", " + f + ">");
                         }
 
                         System.out.println("DBG:   " + postingList[indexBlock]);
@@ -147,10 +146,6 @@ public class Merging
 
                     String minorTerm = mapOfTerm.firstKey();
                     PostingList mergePostingList = new PostingList(minorTerm);
-
-                    System.out.println("DBG:    termsToMerge[0] =" + termsToMerge[0]);
-                    System.out.println("DBG:    termsToMerge[1] =" + termsToMerge[1]);
-                    System.out.println("DBG:    termsToMerge[2] =" + termsToMerge[2]);
 
                     for (int indexBlock = 0; indexBlock < numFiles; indexBlock++)
                     {
@@ -191,7 +186,7 @@ public class Merging
         }
         else
         {
-            System.err.println("ERR:    Merge error, directory " + PARTIAL_PATH + " doesn't exists!");
+            System.err.println("ERR:    Merge error, directory " + INPUT_PATH + " doesn't exists!");
         }
     }
 
@@ -199,12 +194,12 @@ public class Merging
     {
         if (debug)
         {
-            FileManager.createDir(outputPath + "debug");
+            FileManager.createDir(OUTPUT_PATH + "debug");
             try
             {
                 // Write inverted index to debug text file
                 BufferedWriter indexWriter = new BufferedWriter(
-                        new FileWriter(outputPath + "debug/invertedIndex.txt")
+                        new FileWriter(OUTPUT_PATH + "debug/invertedIndex.txt")
                 );
                 indexWriter.write(invertedIndex.toString());
                 indexWriter.close();

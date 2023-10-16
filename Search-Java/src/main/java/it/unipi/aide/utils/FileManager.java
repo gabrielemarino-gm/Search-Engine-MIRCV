@@ -48,6 +48,7 @@ public class FileManager
         {
             // Delete the directory and its contents
             String[] entries = directory.list();
+
             if (entries != null)
             {
                 for (String entry : entries)
