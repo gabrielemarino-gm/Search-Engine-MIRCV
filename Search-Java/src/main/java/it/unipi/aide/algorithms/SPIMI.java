@@ -228,6 +228,17 @@ public class SPIMI
                     System.out.println("ERROR: Not able to write the binary file");
                     break;
                 }
+
+                int i = 0;
+                System.out.println("LOG:    Waiting for fre memory...");
+                while (getPercentOfMemoryUsed() > MAX_MEM-20)
+                {
+                    if (i%1000000 == 0)
+                        System.out.println("LOG:    Memory = " + getPercentOfMemoryUsed());
+                    i++;
+                    continue;
+                }
+                System.out.println("LOG:    Memory Free!");
             }
 
             if (docid%1000000 == 0)
@@ -239,6 +250,8 @@ public class SPIMI
         {
             System.out.println("LOG:    Writing block #" + incrementalBlockNumber);
             incrementalBlockNumber++;
+            vocabulary = new Vocabulary();
+            invertedIndex = new InvertedIndex();
         }
         else
         {
