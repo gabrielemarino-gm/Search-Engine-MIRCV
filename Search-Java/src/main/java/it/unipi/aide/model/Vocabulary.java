@@ -44,7 +44,7 @@ public class Vocabulary
      * @return TermInfo of given term
      */
     public TermInfo get(String term) {
-        return vocab.getOrDefault(term, new TermInfo(1,0,1));
+        return vocab.getOrDefault(term, new TermInfo(term, 1,0,1));
     }
 
     @Override

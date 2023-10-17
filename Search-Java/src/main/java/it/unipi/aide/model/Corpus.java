@@ -1,0 +1,67 @@
+package it.unipi.aide.model;
+
+import javax.print.Doc;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+public class Corpus implements Iterable<String>{
+    private String INPUT_PATH;
+
+    public Corpus(String in_path) {
+        INPUT_PATH = in_path;
+    }
+
+    @Override
+    public Iterator<String> iterator()
+    {
+        return new DocIterator();
+    }
+
+    private class DocIterator implements Iterator<String>
+    {
+        private BufferedReader br = null;
+
+        private DocIterator(){
+            try{
+                br = new BufferedReader(new FileReader(INPUT_PATH));
+            }
+            catch (FileNotFoundException e){
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public boolean hasNext(){
+            boolean toRet = false;
+
+            try
+            {
+                toRet = br.ready();
+            } catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+            return toRet;
+        }
+
+        @Override
+        public String next(){
+            String toRet = null;
+
+            try
+            {
+                toRet = br.readLine();
+            } catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+            return toRet;
+        }
+    }
+
+}

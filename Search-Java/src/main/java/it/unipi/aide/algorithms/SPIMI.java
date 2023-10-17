@@ -205,16 +205,15 @@ public class SPIMI
         */
         int docid = 0;
 
-        Iterator<String> docIterator = getNextDoc();
-
         // Starting cleaning the folder
         FileManager.cleanFolder(outputPath);
+        Corpus corpus = new Corpus(inputPath);
+
 
         // For each documents
-        while (docIterator.hasNext())
+        for(String doc: corpus)
         {
-            String docContent = docIterator.next();
-            String[] docParts = docContent.split("\t");
+            String[] docParts = doc.split("\t");
 
             /*
              * docid = Unique id assigned in incremental manner

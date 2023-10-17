@@ -10,8 +10,9 @@ public class TermInfo
     private int numPosting;
     private int numBlocks;
 
-    public TermInfo(int totalFrequency, long offset, int numPosting)
+    public TermInfo(String term, int totalFrequency, long offset, int numPosting)
     {
+        this.term = term;
         this.totalFrequency = totalFrequency;
         this.offset = offset;
         this.numPosting = numPosting;

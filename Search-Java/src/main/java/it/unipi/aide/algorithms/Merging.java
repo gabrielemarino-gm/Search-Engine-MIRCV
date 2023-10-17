@@ -125,9 +125,9 @@ public class Merging
                             mapOfTerm.put(term, 1);
                         }
 
-                        termsToMerge[indexBlock] = new TermInfo(frequency, offset, nPosting);
-                        termsToMerge[indexBlock].setTerm(term);
-                        postingList[indexBlock] = new PostingList(term);
+
+                        termsToMerge[indexBlock] = new TermInfo(term, frequency, offset, nPosting);
+                        postingList[indexBlock] = new PostingList(new String(termBytes).trim());
 
                         System.out.println("DBG:    TermInfo = " + termsToMerge[indexBlock]);
                         // Need to read nPosting integers, i.e. the entire posting list for that term
