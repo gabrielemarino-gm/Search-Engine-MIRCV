@@ -35,7 +35,6 @@ public class Merging
      */
     public void mergeBlocks(int numFiles)
     {
-
         // Check if the directory with the blocks results exists
         if(FileManager.checkDir(INPUT_PATH))
         {
@@ -91,10 +90,6 @@ public class Merging
                     // for each block, initialize all the data structure of a term needed
                     for (int indexBlock = 0; indexBlock < numFiles; indexBlock++)
                     {
-                        System.out.println("DBG:   BLOCK #: " + indexBlock);
-                        System.out.println("DBG:    dimVocabularyFile: " + dimVocabularyFile[indexBlock]);
-                        System.out.println("DBG:    offsetVocabulary: " + offsetVocabulary[indexBlock]);
-
                         // Check if we arrived at the end of the file of the current block
                         if (offsetVocabulary[indexBlock] >= dimVocabularyFile[indexBlock])
                         {
@@ -129,10 +124,7 @@ public class Merging
                         termsToMerge[indexBlock] = new TermInfo(term, frequency, offset, nPosting);
                         postingList[indexBlock] = new PostingList(new String(termBytes).trim());
 
-                        System.out.println("DBG:    TermInfo = " + termsToMerge[indexBlock]);
                         // Need to read nPosting integers, i.e. the entire posting list for that term
-                        System.out.println("DBG:    offsetDocId: " + offsetDocId[indexBlock]);
-                        System.out.println("DBG:    offsetFrequency: " + offsetFrequency[indexBlock]);
                         docIdBuffers[indexBlock] = docIdFileChannel[indexBlock].map(FileChannel.MapMode.READ_WRITE, offsetDocId[indexBlock], 4L * nPosting);
                         frequenciesBuffers[indexBlock] = frequenciesFileChannel[indexBlock].map(FileChannel.MapMode.READ_WRITE, offsetFrequency[indexBlock], 4L * nPosting);
 
@@ -144,10 +136,6 @@ public class Merging
                             int f = frequenciesBuffers[indexBlock].getInt();
                             postingList[indexBlock].addPosting(new Posting(d, f));
                         }
-
-                        System.out.println("DBG:    " + postingList[indexBlock]);
-                        System.out.println();
-
                     }
 
                     // STOPPING CONDITION. If all the element of the boolean array are true then stop the while loop
@@ -185,7 +173,6 @@ public class Merging
                     // delete the term merged from the mapOfTerm
                     mapOfTerm.remove(minorTerm);
 
-                    System.out.println();
                 }
 
             }

@@ -54,6 +54,12 @@ public class SPIMI
         preprocesser = new Preprocesser(stemming);
         incrementalBlockNumber = 0;
         numBlocksPosting = 0;
+
+        System.out.println("LOG:    SPIMI Parameters");
+        System.out.println("LOG:        MAX_MEM = " + maxMem);
+        System.out.println("LOG:        inputPath = " + inputPath);
+        System.out.println("LOG:        outputPath = " + outputPath);
+        System.out.println("LOG:        stemming = " + stemming);
     }
 
     /**
@@ -200,14 +206,13 @@ public class SPIMI
                 // If the term already exists, the method add the docId to the posting list
                 vocabulary.add(t); // TODO Sistemare aggiornamento frequenza e numero posting
                 invertedIndex.add(document.getDocid(), t);
-                System.out.println("DBG     nPosting '" + t + "' = " + invertedIndex.getPostingList(t).size());
                 vocabulary.updateNumPosting(t, invertedIndex.getPostingList(t).size());
                 numBlocksPosting++;
             }
 
-            // if (getPercentOfMemoryUsed() > MAX_MEM)
+            if (getPercentOfMemoryUsed() > MAX_MEM)
             // TODO -> Remember to swap this to memory threshold
-            if (numBlocksPosting > 100)
+            // if (numBlocksPosting > 100)
             {
                 System.out.println("LOG:    Writing block #" + incrementalBlockNumber);
 
@@ -224,6 +229,9 @@ public class SPIMI
                     break;
                 }
             }
+
+            if (docid%1000000 == 0)
+                System.out.println("LOG:    Documets processed " + docid);
         }
 
         // We need to write the last block, that can stay in memory under the threshold
