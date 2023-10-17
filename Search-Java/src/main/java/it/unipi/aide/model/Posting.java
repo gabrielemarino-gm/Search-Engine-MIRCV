@@ -5,6 +5,11 @@ public class Posting
     private final int docId;
     private int frequency;
 
+    public Posting(int docId){
+        this.docId = docId;
+        this.frequency = 1;
+    }
+
     public Posting(int docId, int frequency)
     {
         this.docId = docId;
