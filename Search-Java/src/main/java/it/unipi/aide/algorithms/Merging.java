@@ -55,7 +55,7 @@ public class Merging
             long[] offsetVocabulary = new long[numFiles];
 
             // Unknown
-            long[] dimBlockIndexFile = new long[numFiles];
+            long[] dimVocabularyFile = new long[numFiles];
             boolean[] stoppingCondition = new boolean[numFiles];
 
             TermInfo[] termsToMerge = new TermInfo[numFiles];
@@ -65,35 +65,38 @@ public class Merging
 
             try
             {
+                // initialize the FileChannel of all file needed
+                for (int indexBlock = 0; indexBlock < numFiles; indexBlock++)
+                {
+                    String docPath = INPUT_PATH + "docIDsBlock-" + indexBlock;
+                    String freqPath = INPUT_PATH + "frequenciesBlock-" + indexBlock;
+                    String vocPath = INPUT_PATH + "vocabularyBlock-" + indexBlock;
+
+                    docIdFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(docPath),
+                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+
+                    frequenciesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
+                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+
+                    vocabulariesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(vocPath),
+                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+
+                    // Maybe -> Maybe use the vocabulary as it brings more info?
+                    dimVocabularyFile[indexBlock] = vocabulariesFileChannel[indexBlock].size();
+                }
+
                 // Until we have data to analyze
                 while(true)
                 {
-                    // initialize the FileChannel of all file needed
-                    for (int indexBlock = 0; indexBlock < numFiles; indexBlock++)
-                    {
-                        String docPath = INPUT_PATH + "docIDsBlock-" + indexBlock;
-                        String freqPath = INPUT_PATH + "frequenciesBlock-" + indexBlock;
-                        String vocPath = INPUT_PATH + "vocabularyBlock-" + indexBlock;
-
-                        docIdFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(docPath),
-                                StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
-
-                        frequenciesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
-                                StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
-
-                        vocabulariesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(vocPath),
-                                StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
-
-                        // Maybe -> Maybe use the vocabulary as it brings more info?
-                        dimBlockIndexFile[indexBlock] = docIdFileChannel[indexBlock].size();
-                    }
-
-
                     // for each block, initialize all the data structure of a term needed
                     for (int indexBlock = 0; indexBlock < numFiles; indexBlock++)
                     {
+                        System.out.println("DBG:   BLOCK #: " + indexBlock);
+                        System.out.println("DBG:    dimVocabularyFile: " + dimVocabularyFile[indexBlock]);
+                        System.out.println("DBG:    offsetVocabulary: " + offsetVocabulary[indexBlock]);
+
                         // Check if we arrived at the end of the file of the current block
-                        if (offsetDocId[indexBlock] >= dimBlockIndexFile[indexBlock])
+                        if (offsetVocabulary[indexBlock] >= dimVocabularyFile[indexBlock])
                         {
                             // If we finish to elaborate the file, just go to the next iteration
                             stoppingCondition[indexBlock] = true;
@@ -107,7 +110,7 @@ public class Merging
                         byte[] termBytes = new byte[64];
                         vocabulariesBuffers[indexBlock].get(termBytes);
                         int frequency = vocabulariesBuffers[indexBlock].getInt();
-                        int offset = vocabulariesBuffers[indexBlock].getInt();
+                        long offset = vocabulariesBuffers[indexBlock].getLong();
                         int nPosting = vocabulariesBuffers[indexBlock].getInt();
 
                         String term = new String(termBytes).trim();
@@ -124,9 +127,12 @@ public class Merging
 
                         termsToMerge[indexBlock] = new TermInfo(frequency, offset, nPosting);
                         termsToMerge[indexBlock].setTerm(term);
-                        postingList[indexBlock] = new PostingList(new String(termBytes).trim());
+                        postingList[indexBlock] = new PostingList(term);
 
+                        System.out.println("DBG:    TermInfo = " + termsToMerge[indexBlock]);
                         // Need to read nPosting integers, i.e. the entire posting list for that term
+                        System.out.println("DBG:    offsetDocId: " + offsetDocId[indexBlock]);
+                        System.out.println("DBG:    offsetFrequency: " + offsetFrequency[indexBlock]);
                         docIdBuffers[indexBlock] = docIdFileChannel[indexBlock].map(FileChannel.MapMode.READ_WRITE, offsetDocId[indexBlock], 4L * nPosting);
                         frequenciesBuffers[indexBlock] = frequenciesFileChannel[indexBlock].map(FileChannel.MapMode.READ_WRITE, offsetFrequency[indexBlock], 4L * nPosting);
 
@@ -139,31 +145,10 @@ public class Merging
                             postingList[indexBlock].addPosting(new Posting(d, f));
                         }
 
-                        System.out.println("DBG:   " + postingList[indexBlock]);
+                        System.out.println("DBG:    " + postingList[indexBlock]);
+                        System.out.println();
+
                     }
-
-                    // We need to retrieve the term lexicographically minor, because I'll merge that term
-
-                    String minorTerm = mapOfTerm.firstKey();
-                    PostingList mergePostingList = new PostingList(minorTerm);
-
-                    for (int indexBlock = 0; indexBlock < numFiles; indexBlock++)
-                    {
-                        // if the posting list it's inherent ate the minor term, merge it!
-                        if (termsToMerge[indexBlock].getTerm().equals(minorTerm))
-                        {
-                            // Add all the posting. The method sort those postings for DocID.
-                            mergePostingList.addPostingList(postingList[indexBlock]);
-
-                            // Now we need to update the buffer offset of just the blocks merged
-                            offsetDocId[indexBlock] += 4;
-                            offsetFrequency[indexBlock] += 4;
-                            offsetVocabulary[indexBlock] += 76;
-                        }
-                    }
-
-                    // Now just add the merged posting list to the global inverted index
-                    invertedIndex.addPostingList(minorTerm, mergePostingList);
 
                     // STOPPING CONDITION. If all the element of the boolean array are true then stop the while loop
                     BitSet bitSet = new BitSet();
@@ -173,6 +158,34 @@ public class Merging
                     if (bitSet.cardinality() == stoppingCondition.length)
                         break;
 
+
+                    // We need to retrieve the term lexicographically minor, because I'll merge that term
+                    String minorTerm = mapOfTerm.firstKey();
+                    PostingList mergePostingList = new PostingList(minorTerm);
+
+                    for (int indexBlock = 0; indexBlock < numFiles; indexBlock++)
+                    {
+                        // if the posting list it's inherent at the minor term, merge it!
+                        if (termsToMerge[indexBlock].getTerm().equals(minorTerm))
+                        {
+                            // Add all the posting. The method sort those postings for DocID.
+                            mergePostingList.addPostingList(postingList[indexBlock]);
+
+                            // Now we need to update the buffer offset of just the blocks merged
+                            offsetDocId[indexBlock] += 4L * termsToMerge[indexBlock].getNumPosting();
+                            offsetFrequency[indexBlock] += 4L * termsToMerge[indexBlock].getNumPosting();
+                            offsetVocabulary[indexBlock] += 64 + 4 + 8 + 4;
+                        }
+                    }
+
+                    // Now just add the merged posting list to the global inverted index
+                    invertedIndex.addPostingList(minorTerm, mergePostingList);
+
+                    // Clean data structure
+                    // delete the term merged from the mapOfTerm
+                    mapOfTerm.remove(minorTerm);
+
+                    System.out.println();
                 }
 
             }

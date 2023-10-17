@@ -10,7 +10,7 @@ public class TermInfo
     private int numPosting;
     private int numBlocks;
 
-    public TermInfo(int totalFrequency, int offset, int numPosting)
+    public TermInfo(int totalFrequency, long offset, int numPosting)
     {
         this.totalFrequency = totalFrequency;
         this.offset = offset;
@@ -28,8 +28,12 @@ public class TermInfo
 
     public void incrementTotalFrequency()
     {
-        this.numPosting++;
         this.totalFrequency++;
+    }
+
+    public void incrementNumPosting()
+    {
+        this.numPosting++;
     }
 
     public void incrementNumBlock()

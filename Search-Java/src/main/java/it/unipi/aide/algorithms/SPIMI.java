@@ -100,7 +100,7 @@ public class SPIMI
         if(!FileManager.createFile(vocPath)) FileManager.createFile(vocPath);
 
         try (
-                // Open a FileChannel for both docId, frequencies and vocabulary fragments
+                // Open a FileChannel for docId, frequencies and vocabulary fragments
                 FileChannel docIdFileChannel = (FileChannel) Files.newByteChannel(Paths.get(docPath),
                         StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
 
@@ -127,7 +127,7 @@ public class SPIMI
                 // + 8 byte for the offset
                 // + 4 byte for the number of posting
                 MappedByteBuffer vocabularyBuffer = vocabularyFileChannel.map(FileChannel.MapMode.READ_WRITE, vocOffset, TermInfo.SIZE_TERM+4L+8L+4L);
-                vocOffset += TermInfo.SIZE_TERM+4+4+4;
+                vocOffset += TermInfo.SIZE_TERM + 4 + 8 + 4;
 
                 // Write vocabulary entry
                 String paddedTerm = String.format("%-64s", termInfo.getTerm()).substring(0, 64); // Pad with spaces up to 64 characters
@@ -137,6 +137,11 @@ public class SPIMI
                 vocabularyBuffer.putInt(termInfo.getTotalFrequency());
                 vocabularyBuffer.putLong(termInfo.getOffset());
                 vocabularyBuffer.putInt(termInfo.getNumPosting());
+
+                System.out.println("DBG:    Write '" + termInfo.getTerm() + "' (" + termInfo.getTotalFrequency()
+                                                                         + ", " + termInfo.getOffset()
+                                                                         + ", " + termInfo.getNumPosting()  + ")");
+
 
                 // Write the other 2 files for DocId and Frequency
                 for (Posting p: invertedIndex.getPostingList(t))
@@ -236,14 +241,15 @@ public class SPIMI
             {
                 // Add term to the vocabulary and to the inverted index.
                 // If the term already exists, the method add the docId to the posting list
-                vocabulary.add(t);
+                vocabulary.add(t); // TODO Sistemare aggiornameto frequenza e numero posting
                 invertedIndex.add(document.getDocid(), t);
+                System.out.println("DBG     nPosting '" + t + "' = " + invertedIndex.getPostingList(t).size());
                 numBlocksPosting++;
             }
 
             // if (getPercentOfMemoryUsed() > MAX_MEM)
             // TODO -> Remember to swap this to memory threshold
-            if (numBlocksPosting > 10000)
+            if (numBlocksPosting > 100)
             {
                 System.out.println("LOG:    Writing block #" + incrementalBlockNumber);
 
