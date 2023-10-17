@@ -2,6 +2,7 @@ package it.unipi.aide;
 
 import it.unipi.aide.algorithms.Merging;
 import it.unipi.aide.algorithms.SPIMI;
+import it.unipi.aide.utils.FileManager;
 
 public class CreateIndex
 {

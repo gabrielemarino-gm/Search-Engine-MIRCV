@@ -31,7 +31,8 @@ public class Corpus implements Iterable<String>{
                 br = new BufferedReader(new FileReader(INPUT_PATH));
             }
             catch (FileNotFoundException e){
-                e.printStackTrace();
+                System.err.println("Input File Not Found");
+                System.exit(1);
             }
         }
 

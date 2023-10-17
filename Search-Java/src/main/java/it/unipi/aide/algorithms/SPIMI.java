@@ -47,42 +47,13 @@ public class SPIMI
     {
         MAX_MEM = maxMem;
         this.inputPath = inputPath;
-        this.outputPath = outputPath;
+        this.outputPath = outputPath+"partial/";
 
         vocabulary = new Vocabulary();
         invertedIndex = new InvertedIndex();
         preprocesser = new Preprocesser(stemming);
         incrementalBlockNumber = 0;
         numBlocksPosting = 0;
-    }
-
-    /**
-     * Creates an iterator on the corpus to process
-     * @return An iterator on the process
-     */
-    private Iterator<String> getNextDoc()
-    {
-        /*
-        * TODO -> By allocating this 'lines' array and adding line from the file,
-        *  we are moving the entire corpus in memory
-        *   -
-        *  Check if it's true, and if there is another way to do it
-        */
-        List<String> lines = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(inputPath))) 
-        {
-            String line;
-            while ((line = br.readLine()) != null) 
-            {
-                lines.add(line);
-            }
-        } 
-        catch (IOException e) 
-        {
-            e.printStackTrace();
-        }
-        
-        return lines.iterator();
     }
 
     /**
@@ -138,11 +109,6 @@ public class SPIMI
                 vocabularyBuffer.putLong(termInfo.getOffset());
                 vocabularyBuffer.putInt(termInfo.getNumPosting());
 
-                System.out.println("DBG:    Write '" + termInfo.getTerm() + "' (" + termInfo.getTotalFrequency()
-                                                                         + ", " + termInfo.getOffset()
-                                                                         + ", " + termInfo.getNumPosting()  + ")");
-
-
                 // Write the other 2 files for DocId and Frequency
                 for (Posting p: invertedIndex.getPostingList(t))
                 {
@@ -160,7 +126,7 @@ public class SPIMI
         // Debug version to write plain text
         if (debug)
         {
-            FileManager.createDir(outputPath + "debug");
+            FileManager.createDir(outputPath + "debug/");
             try
             {
                 // Write inverted index to debug text file
@@ -209,7 +175,6 @@ public class SPIMI
         FileManager.cleanFolder(outputPath);
         Corpus corpus = new Corpus(inputPath);
 
-
         // For each documents
         for(String doc: corpus)
         {
@@ -223,20 +188,12 @@ public class SPIMI
             String text = docParts[1];
             List<String> tokens = preprocesser.process(text);
 
-            /*
-            * TODO -> Empty document check not done
-            *  tokens.size() == 0
-            *  -
-            *  The preprocessor already handles empty tokens
-            *  no need to iterate tokens
-            */
-
             ProcessedDocument document = new ProcessedDocument(pid, docid, tokens);
+            // TODO -> Create a Document Index (pid, docid, #words, ...)
             docid++;
 
             if(document.getTokens().isEmpty()) continue;
 
-            // TODO -> Create a Document Index (pid, docid, #words, ...)
             for (String t : document.getTokens())
             {
                 // Add term to the vocabulary and to the inverted index.

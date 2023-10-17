@@ -93,8 +93,12 @@ public class FileManager
     public static boolean createFile(String path)
     {
         File file = new File(path);
+
         try
         {
+            if(!checkDir(file.getParent())){
+                createDir(file.getParent());
+            }
             return file.createNewFile();
         }
         catch (Exception e)
@@ -103,7 +107,6 @@ public class FileManager
             return false;
         }
     }
-
 
     /**
      * Removes a file

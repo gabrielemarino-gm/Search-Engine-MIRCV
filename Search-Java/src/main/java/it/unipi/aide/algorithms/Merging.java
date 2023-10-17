@@ -25,8 +25,8 @@ public class Merging
 
     public Merging(String outputPath)
     {
-        this.INPUT_PATH = outputPath;
-        this.OUTPUT_PATH = outputPath + "../complete/";
+        this.INPUT_PATH = outputPath+ "partial/";
+        this.OUTPUT_PATH = outputPath + "complete/";
     }
 
     /**
@@ -207,7 +207,7 @@ public class Merging
     {
         if (debug)
         {
-            FileManager.createDir(OUTPUT_PATH + "debug");
+            FileManager.createDir(OUTPUT_PATH + "debug/");
             try
             {
                 // Write inverted index to debug text file
