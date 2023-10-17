@@ -2,6 +2,7 @@ package it.unipi.aide.model;
 
 public class TermInfo
 {
+    public final static long SIZE = 64L +4L + 8L + 4L;
     public final static int SIZE_TERM = 64;
 
     private String term;
@@ -22,7 +23,7 @@ public class TermInfo
     public TermInfo(String term){
         this.term = term;
         this.totalFrequency = 1;
-        this.offset = 1;
+        this.offset = 0;
         this.numPosting = 1;
         this.numBlocks = 0;
     }
@@ -54,7 +55,7 @@ public class TermInfo
     @Override
     public String toString()
     {
-        return "(" + totalFrequency + ", " + offset + ", " + numPosting +")";
+        return "["+term+"]"+"(" + totalFrequency + ", " + offset + ", " + numPosting +")";
     }
 
 

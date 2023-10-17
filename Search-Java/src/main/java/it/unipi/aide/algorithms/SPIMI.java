@@ -210,9 +210,9 @@ public class SPIMI
                 numBlocksPosting++;
             }
 
-            if (getPercentOfMemoryUsed() > MAX_MEM)
+//            if (getPercentOfMemoryUsed() > MAX_MEM)
             // TODO -> Remember to swap this to memory threshold
-            // if (numBlocksPosting > 100)
+             if (numBlocksPosting > 6400)
             {
                 System.out.println("LOG:    Writing block #" + incrementalBlockNumber);
 

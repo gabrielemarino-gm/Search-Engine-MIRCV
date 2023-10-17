@@ -47,6 +47,10 @@ public class Vocabulary
         return vocab.getOrDefault(term, new TermInfo(term, 1,0,1));
     }
 
+    public void set(TermInfo terminfo){
+        vocab.put(terminfo.getTerm(), terminfo);
+    }
+
     @Override
     public String toString()
     {

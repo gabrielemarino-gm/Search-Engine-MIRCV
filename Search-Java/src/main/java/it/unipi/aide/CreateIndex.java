@@ -1,6 +1,7 @@
 package it.unipi.aide;
 
 import it.unipi.aide.algorithms.Merging;
+import it.unipi.aide.algorithms.MergingM;
 import it.unipi.aide.algorithms.SPIMI;
 import it.unipi.aide.utils.FileManager;
 
@@ -57,6 +58,10 @@ public class CreateIndex
         int numBlocks = spimi.algorithm(DEBUG);
 
         System.out.println("Index created. Merging.");
+
+        MergingM mergem = new MergingM(OUTPUT_PATH);
+        mergem.mergeBlocks(numBlocks);
+        System.exit(0);
 
         // Index merging
         Merging merge = new Merging(OUTPUT_PATH);
