@@ -181,7 +181,6 @@ public class Merging
                 e.printStackTrace();
             }
 
-
             writeIndex(true);
         }
         else
