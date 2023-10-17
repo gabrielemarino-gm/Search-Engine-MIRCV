@@ -14,30 +14,45 @@ public class InvertedIndex
     {
         List<Posting> postingList = index.get(term);
 
-        // Check if the Posting List already exists
         if (postingList == null)
         {
-            // If no, create a new one
-            Posting newPosting = new Posting(doc, 1);
+            // No Posting List for that term, creating new
+            Posting newPosting = new Posting(doc);
             index.put(term, new ArrayList<>(Collections.singletonList(newPosting)));
         }
         else
         {
-            // Else, just update
+            // Posting List exists, use that
             Posting lastPosting = postingList.get(postingList.size() - 1);
+            // Last posting for that term is about current document
             if (lastPosting.getDocId() == doc)
             {
                 lastPosting.increment();
             }
             else
             {
-                Posting newPosting = new Posting(doc, 1);
+                // Last posting is for another document, create a new posting
+                Posting newPosting = new Posting(doc);
                 postingList.add(newPosting);
             }
         }
     }
 
+    /**
+     * Add a Posting List for given document
+     * @param t Term inside the Inverted Index
+     * @param pl Posting List to add
+     */
+    public void addPostingList(String t, PostingList pl)
+    {
+        index.put(t, pl.getPostings());
+    }
 
+    /**
+     * Get a posting list by term
+     * @param t Term from which get the PostingList
+     * @return Its PostingList
+     */
     public List<Posting> getPostingList(String t)
     {
         return index.get(t);
@@ -60,10 +75,6 @@ public class InvertedIndex
             }
             System.out.println();
         }
-    }
-    public void addPostingList(String t, PostingList pl)
-    {
-        index.put(t, pl.getPostings());
     }
 
     @Override
