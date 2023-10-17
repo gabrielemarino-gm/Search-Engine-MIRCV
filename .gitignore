@@ -1,5 +1,5 @@
 /data/
 /.idea/
 /Search-Java/.idea/
-/Search-Java/target
-Search-Java/data/source/collection.tsv
+/Search-Java/target/
+Search-Java/data/
