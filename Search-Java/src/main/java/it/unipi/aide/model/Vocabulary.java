@@ -22,6 +22,11 @@ public class Vocabulary
         }
     }
 
+    public void updateNumPosting(String term, int np)
+    {
+        vocab.get(term).setNumPosting(np);
+    }
+
     /**
      * Get the list of just the terms of the vocabulary
      * */

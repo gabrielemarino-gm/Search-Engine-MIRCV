@@ -210,6 +210,7 @@ public class SPIMI
         // Starting cleaning the folder
         FileManager.cleanFolder(outputPath);
 
+        // For each documents
         while (docIterator.hasNext())
         {
             String docContent = docIterator.next();
@@ -241,9 +242,10 @@ public class SPIMI
             {
                 // Add term to the vocabulary and to the inverted index.
                 // If the term already exists, the method add the docId to the posting list
-                vocabulary.add(t); // TODO Sistemare aggiornameto frequenza e numero posting
+                vocabulary.add(t); // TODO Sistemare aggiornamento frequenza e numero posting
                 invertedIndex.add(document.getDocid(), t);
                 System.out.println("DBG     nPosting '" + t + "' = " + invertedIndex.getPostingList(t).size());
+                vocabulary.updateNumPosting(t, invertedIndex.getPostingList(t).size());
                 numBlocksPosting++;
             }
 
