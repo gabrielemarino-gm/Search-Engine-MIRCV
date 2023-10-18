@@ -14,7 +14,7 @@ public class CreateIndex
         String INPUT_PATH = null;
         String OUTPUT_PATH = null;
         String MODE = null;
-        int MAXMEM = 60;
+        int MAXMEM = 50;
 
         int i = 0;
         int maxArgs = args.length;
@@ -31,7 +31,7 @@ public class CreateIndex
             else {i++; System.err.println("Input path not specified. Exiting.");}
         }
 
-        if (MAXMEM > 99 || MAXMEM < 0) MAXMEM = 60;
+        if (MAXMEM > 60 || MAXMEM < 0) MAXMEM = 50;
 
         if(INPUT_PATH == null)
         {
@@ -50,7 +50,6 @@ public class CreateIndex
             System.err.println("Mode not specified. Assuming TFIDF.");
             MODE = "TFIDF";
         }
-
         // Index building
         SPIMI spimi = new SPIMI(INPUT_PATH, OUTPUT_PATH, MAXMEM, STOPSTEM);
         int numBlocks = spimi.algorithm(DEBUG);

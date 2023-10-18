@@ -5,7 +5,6 @@ import it.unipi.aide.utils.FileManager;
 import it.unipi.aide.utils.Preprocesser;
 
 import java.io.*;
-import java.lang.management.*;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -107,7 +106,7 @@ public class SPIMI
                 numBlocksPosting++;
             }
 
-            if (getPercentOfMemoryUsed() > MAX_MEM)
+            if (getPercentOfMemoryUsedPhy() > MAX_MEM)
             {
                 System.out.println("LOG:    Writing block #" + incrementalBlockNumber);
 
@@ -125,18 +124,21 @@ public class SPIMI
                 }
 
                 // Wait that the garbage collector free the memory
-                System.out.println("LOG:    Wait for free memory. Actual mem occupation " + getPercentOfMemoryUsed() + "%");
+                System.out.println("LOG:    Wait for free memory. Actual occupation: " + getPercentOfMemoryUsedPhy() + "%");
                 System.gc(); // Force the GC.
 
-                while (getPercentOfMemoryUsed() > MAX_MEM-5)
+                while (getPercentOfMemoryUsedPhy() > MAX_MEM-5)
                     continue;
 
-                System.out.println("LOG:    Memory Free! " + getPercentOfMemoryUsed() + "%");
+                System.out.println("LOG:    Memory Free! Actual occupation: " + getPercentOfMemoryUsedPhy() + "%");
 
             }
 
-            if (docid%1000000 == 0)
+            if (docid%100000 == 0)
+            {
+                System.out.println(String.format("LOG:\t\tMax: %f\tFree: %f\tTotal: %f\tPercent: %f",Runtime.getRuntime().maxMemory()/Math.pow(10,6)/2,Runtime.getRuntime().freeMemory()/Math.pow(10,6),Runtime.getRuntime().totalMemory()/Math.pow(10,6),getPercentOfMemoryUsedPhy()));
                 System.out.println("LOG:    Documents processed " + docid);
+            }
         }
 
 
@@ -187,11 +189,13 @@ public class SPIMI
 
             // Used to write TermInfo on the disk, one next to the other
             long vocOffset = 0;
+            long partialOffset = 0;
+
             for (String t: vocabulary.getTerms())
             {
                 // For each term I have to save into the vocabulary file.
                 TermInfo termInfo = vocabulary.get(t);
-
+                termInfo.setOffset(partialOffset);
                 // Allocate the buffer for write:
                 // + 64 byte for the term
                 // + 4 byte for the frequency
@@ -214,6 +218,7 @@ public class SPIMI
                 {
                     docIdBuffer.putInt(p.getDocId());
                     frequencyBuffer.putInt(p.getFrequency());
+                    partialOffset += 4L;
                 }
             }
         }
@@ -237,7 +242,7 @@ public class SPIMI
                 indexWriter.write(invertedIndex.toString());
                 indexWriter.close();
 
-                // Write vocabulary to debug text file
+                // Wrdite vocabulary to debug text file
                 BufferedWriter vocabularyWriter = new BufferedWriter(
                         new FileWriter(outputPath + "debug/vocabulary-" + incrementalBlockNumber + ".txt")
                 );
@@ -253,18 +258,17 @@ public class SPIMI
         return true;
     }
 
-
     /**
      * Support function to get used memory in %
      * @return xx.x% of memory used
      */
-    private double getPercentOfMemoryUsed()
-    {
-        MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
-        MemoryUsage heapMemoryUsage = memoryMXBean.getHeapMemoryUsage();
-        long usedMemory = heapMemoryUsage.getUsed();
-        long maxMemory = heapMemoryUsage.getMax();
-        return ((double) usedMemory / maxMemory) * 100.0;
+    private double getPercentOfMemoryUsedPhy(){
+        long freeMemory = Runtime.getRuntime().freeMemory();
+        long totalMemory = Runtime.getRuntime().totalMemory();
+        long maxMemory = Runtime.getRuntime().maxMemory()/2;
+        double percent = ((double) (totalMemory - freeMemory) / maxMemory) * 100.0;
+
+        return percent;
     }
 }
 

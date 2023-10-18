@@ -54,13 +54,13 @@ public class Vocabulary
     @Override
     public String toString()
     {
-        String ret = null;
+        StringBuilder result = new StringBuilder();
         for (String term: vocab.keySet())
         {
             TermInfo ti = vocab.get(term);
-            ret = ret + term + ": " + ti.toString() + "\n";
+            result.append(ti.toString()).append('\n');
         }
 
-        return ret;
+        return result.toString();
     }
 }

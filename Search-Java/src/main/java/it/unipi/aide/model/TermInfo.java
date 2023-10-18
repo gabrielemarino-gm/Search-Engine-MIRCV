@@ -53,7 +53,7 @@ public class TermInfo
     @Override
     public String toString()
     {
-        return "["+term+"]"+"(" + totalFrequency + ", " + offset + ", " + numPosting +")";
+        return String.format("[%s](%d,%d,%d)",term,totalFrequency,numPosting,offset);
     }
 
 
