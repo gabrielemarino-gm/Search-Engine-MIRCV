@@ -210,9 +210,9 @@ public class SPIMI
                 numBlocksPosting++;
             }
 
-//            if (getPercentOfMemoryUsed() > MAX_MEM)
+            if (getPercentOfMemoryUsed() > MAX_MEM)
             // TODO -> Remember to swap this to memory threshold
-             if (numBlocksPosting > 6400)
+            //if (numBlocksPosting > 6400)
             {
                 System.out.println("LOG:    Writing block #" + incrementalBlockNumber);
 
@@ -228,6 +228,16 @@ public class SPIMI
                     System.out.println("ERROR: Not able to write the binary file");
                     break;
                 }
+
+                // Wait that the garbage collector free the memory
+                System.out.println("LOG:    Wait for free memory. Actual mem occupation " + getPercentOfMemoryUsed() + "%");
+                System.gc(); // Force the GC.
+
+                while (getPercentOfMemoryUsed() > MAX_MEM-5)
+                    continue;
+
+                System.out.println("LOG:    Memory Free! " + getPercentOfMemoryUsed() + "%");
+
             }
 
             if (docid%1000000 == 0)

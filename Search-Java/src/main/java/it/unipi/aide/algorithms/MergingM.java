@@ -51,7 +51,6 @@ public class MergingM
 
             try
             {
-
                 String FdocPath = OUTPUT_PATH + "docIDsBlock";
                 String FfreqPath = OUTPUT_PATH + "frequenciesBlock";
                 String FvocPath = OUTPUT_PATH + "vocabularyBlock";
@@ -88,7 +87,6 @@ public class MergingM
                     // Get first term for each block's vocabulary
                     vocs[indexBlock] = getNextVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
                     offsetVocabulary[indexBlock] += TermInfo.SIZE;
-
                 }
 
                 // Until we have data to analyze
@@ -107,29 +105,34 @@ public class MergingM
                     for (int indexBlock = 0; indexBlock < numFiles; indexBlock++)
                     {
                         // If current term is equal the smallest, transfer docs and freq into final buffer
-                        if(vocs[indexBlock] != null && vocs[indexBlock].getTerm().equals(smallestTerm)){
+                        if(vocs[indexBlock] != null && vocs[indexBlock].getTerm().equals(smallestTerm))
+                        {
                             // Trasfering docIDs
                             transferBytes(docIdFileChannel[indexBlock], offsetDocId[indexBlock],
                                     finalDocIDChannel, finalOffset, vocs[indexBlock].getNumPosting());
+
                             // Transfering Frequencies
                             transferBytes(frequenciesFileChannel[indexBlock], offsetFrequency[indexBlock],
                                     finalFreqChannel, finalOffset, vocs[indexBlock].getNumPosting());
 
+                            // Update the offset of the final file that contain the final inverted index
                             finalOffset += 4L * vocs[indexBlock].getNumPosting();
-                            finalFreq += vocs[indexBlock].getTotalFrequency();
 
+                            // Update the offset for the partial files
                             offsetDocId[indexBlock] += 4L * vocs[indexBlock].getNumPosting();
                             offsetFrequency[indexBlock] += 4L * vocs[indexBlock].getNumPosting();
 
+                            // Update the number of posting and the total frequency of that term
                             finalNPostings += vocs[indexBlock].getNumPosting();
                             finalFreq += vocs[indexBlock].getTotalFrequency();
 
-                            // This block is finished, set is null and skip
+                            // if this block is finished, set its vocs to null and skip
                             if(offsetVocabulary[indexBlock] >= dimVocabularyFile[indexBlock])
                             {
                                 vocs[indexBlock] = null;
                                 continue;
                             }
+
                             vocs[indexBlock] = getNextVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
                             offsetVocabulary[indexBlock] += TermInfo.SIZE;
                         }
@@ -140,19 +143,25 @@ public class MergingM
 
                     writeTermToDisk(finalVocChannel, finalTerm);
 
+                    // STOPPING CONDITION
+                    // if all the entry of vocs are null, we have finished
                     boolean allNull = true;
-                    for(TermInfo t: vocs){
-                        if(t != null ) allNull = false; break;
+                    for(TermInfo t: vocs)
+                    {
+                        if (t != null )
+                            allNull = false;
+
+                        break;
                     }
 
-                    if(allNull) break;
+                    if(allNull)
+                        break;
                 }
             }
             catch (Exception e)
             {
                 e.printStackTrace();
             }
-
         }
         else
         {
@@ -160,7 +169,8 @@ public class MergingM
         }
     }
 
-    private void writeTermToDisk(FileChannel finalVocChannel, TermInfo finalTerm) throws IOException {
+    private void writeTermToDisk(FileChannel finalVocChannel, TermInfo finalTerm) throws IOException
+    {
         MappedByteBuffer tempBuffer = finalVocChannel.map(FileChannel.MapMode.READ_WRITE, vFinalOffset, TermInfo.SIZE);
 
         String paddedTerm = String.format("%-64s", finalTerm.getTerm()).substring(0, 64); // Pad with spaces up to 64 characters
@@ -174,9 +184,11 @@ public class MergingM
         vFinalOffset += TermInfo.SIZE;
     }
 
-    private String getSmallestTerm(TermInfo[] vocs) {
+    private String getSmallestTerm(TermInfo[] vocs)
+    {
         String toRet = null;
-        for(TermInfo t: vocs){
+        for(TermInfo t: vocs)
+        {
             if(t == null) continue;
             if(toRet == null) toRet = t.getTerm();
             if(t.getTerm().compareTo(toRet) < 0) toRet = t.getTerm();
@@ -184,7 +196,8 @@ public class MergingM
         return toRet;
     }
 
-    private TermInfo getNextVoc(FileChannel fileChannel, long offsetVocabulary) throws IOException{
+    private TermInfo getNextVoc(FileChannel fileChannel, long offsetVocabulary) throws IOException
+    {
         MappedByteBuffer tempBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, offsetVocabulary, TermInfo.SIZE);
 
         byte[] termBytes = new byte[64];

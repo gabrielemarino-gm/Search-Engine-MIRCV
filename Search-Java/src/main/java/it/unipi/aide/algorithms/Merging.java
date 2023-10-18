@@ -62,6 +62,7 @@ public class Merging
             TreeMap<String, Integer> mapOfTerm = new TreeMap<>();
             // Unknown
 
+            int nTerms = 0;
             try
             {
                 // initialize the FileChannel of all file needed
@@ -120,7 +121,6 @@ public class Merging
                             mapOfTerm.put(term, 1);
                         }
 
-
                         termsToMerge[indexBlock] = new TermInfo(term, frequency, offset, nPosting);
                         postingList[indexBlock] = new PostingList(new String(termBytes).trim());
 
@@ -146,7 +146,6 @@ public class Merging
                     if (bitSet.cardinality() == stoppingCondition.length)
                         break;
 
-
                     // We need to retrieve the term lexicographically minor, because I'll merge that term
                     String minorTerm = mapOfTerm.firstKey();
                     PostingList mergePostingList = new PostingList(minorTerm);
@@ -163,6 +162,8 @@ public class Merging
                             offsetDocId[indexBlock] += 4L * termsToMerge[indexBlock].getNumPosting();
                             offsetFrequency[indexBlock] += 4L * termsToMerge[indexBlock].getNumPosting();
                             offsetVocabulary[indexBlock] += 64 + 4 + 8 + 4;
+
+                            nTerms++;
                         }
                     }
 
@@ -172,7 +173,8 @@ public class Merging
                     // Clean data structure
                     // delete the term merged from the mapOfTerm
                     mapOfTerm.remove(minorTerm);
-
+                    if (nTerms%1000000 == 0)
+                        System.out.println("LOG:    Processed " + nTerms + " terms");
                 }
 
             }

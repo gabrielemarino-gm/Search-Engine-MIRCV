@@ -57,11 +57,11 @@ public class CreateIndex
         SPIMI spimi = new SPIMI(INPUT_PATH, OUTPUT_PATH, 60, STOPSTEM);
         int numBlocks = spimi.algorithm(DEBUG);
 
-        System.out.println("Index created. Merging.");
+        System.out.println("LOG:    Index created. Merging...");
 
-        MergingM mergem = new MergingM(OUTPUT_PATH);
-        mergem.mergeBlocks(numBlocks);
-        System.exit(0);
+        //MergingM mergem = new MergingM(OUTPUT_PATH);
+        //mergem.mergeBlocks(numBlocks);
+        //System.exit(0);
 
         // Index merging
         Merging merge = new Merging(OUTPUT_PATH);
