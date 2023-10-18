@@ -1,5 +1,6 @@
 package it.unipi.aide.algorithms;
 
+import it.unipi.aide.model.Posting;
 import it.unipi.aide.model.TermInfo;
 import it.unipi.aide.model.Vocabulary;
 
@@ -10,6 +11,8 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 
 public class QueryManager {
 
@@ -23,6 +26,58 @@ public class QueryManager {
 
     public void makeQuery(){
         System.out.println(vocabulary);
+        System.out.println(getPostingsByTerm("bomb"));
+    }
+
+    private List<Posting> getPostingsByTerm(String term)
+    {
+        TermInfo toRetrieve = vocabulary.get(term);
+        if (toRetrieve == null) return null;
+
+        List<Posting> toRet =new ArrayList<>();
+
+        String docsPath = INPUT_PATH + "docIDsBlock";
+        String freqPath = INPUT_PATH + "frequenciesBlock";
+        try
+        {
+            FileChannel docsChannel = (FileChannel) Files.newByteChannel(Paths.get(docsPath),
+                    StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+            FileChannel freqChannel = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
+                    StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+
+            long toRead = 4L * toRetrieve.getNumPosting();
+
+            MappedByteBuffer docBuffer = docsChannel.map(FileChannel.MapMode.READ_WRITE, toRetrieve.getOffset(), toRead);
+            MappedByteBuffer freqBuffer = freqChannel.map(FileChannel.MapMode.READ_WRITE, toRetrieve.getOffset(), toRead);
+            byte[] docBytes = new byte[toRetrieve.getNumPosting() * 4];
+            byte[] freqBytes = new byte[toRetrieve.getNumPosting() * 4];
+            docBuffer.get(docBytes);
+            freqBuffer.get(freqBytes);
+
+            for (int i = 0; i < toRetrieve.getNumPosting(); i++) {
+                byte[] tempDocBytes = new byte[4];
+                byte[] tempFreqBytes = new byte[4];
+                System.arraycopy(docBytes, i*4, tempDocBytes, 0 ,4);
+                System.arraycopy(freqBytes, i*4, tempFreqBytes, 0 ,4);
+
+                toRet.add(new Posting(bytesToInt(tempDocBytes),bytesToInt(tempFreqBytes)));
+            }
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+
+        return toRet;
+    }
+
+
+    private int bytesToInt(byte[] b){
+        int toRet = 0;
+        for(int i = 0; i < 4; i++){
+            toRet = (toRet << 8) | (b[i] & 0xFF);
+        }
+        return toRet;
     }
 
     private void loadVocabulary() {
