@@ -1,0 +1,47 @@
+TODO LIST
+
+1. Controllare Preprocesser senza -ss
+2. File per il DocumentIndex
+
+
+# -----------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------
+
+# SPIMI-INVERT(token_stream) Token = É una coppia Term-DocID
+
+#     output file = NEWFILE()
+#     dictionary = NEWHASH()
+#     while (free memory available)
+#     do token <— next(token_stream)
+#         if term(token) NOT IN dictionary
+#             then postings_list = ADDToDICTIONARY (dictionary, term(token))
+#         else postings_list = GETPosTIngsLIsT(dictionary, term(token))
+#         if full (postings_list)
+#             then postings_list = DoUbLEPostINgsLIsT (dictionary, term(token))
+#         ADDToPosTINgsLIsT (postings list, doclD(token))
+#     sorted terms <— SORTTerMs(dictionary)
+#     WRITE-BLOCKToDIsk(sorted_terms, dictionary, output file)
+#     return output_file
+
+
+# ----------------GLI APPUNTI DI MATTE----------------
+# Supponiamo che preprocessare la query ritorni N termini
+# Vogliamo ora calcolare TFIDF tra query e documenti D contenenti almeno uno o tutti gli N termini
+# TFIDF = TFd,t * IDFt
+
+# TFd,t = Quante volte il termine t appare nel documento d
+# IDFt = log( Numero totale di documenti / Numero di documenti dove t appare almeno una volta)
+
+# Per calcolare TFd,t ci serve:
+# 1- Quante volte t appare in d
+
+# Per calcolare IDFt ci serve:
+# 1- Totale documenti nel Corpus
+# 2- Quanti documenti t appare almeno una volta
+
+# IDFt si calcola immediatamente per ogni termine guardando il vocabolario
+# TFf,t bisogna scorrere le posting list del termine
+
+# STATISTICA BF25 VA ANCORA FATTA
+# NEXTGEQ VA ANCORA FATTO
