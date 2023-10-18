@@ -3,7 +3,6 @@ package it.unipi.aide;
 import it.unipi.aide.algorithms.Merging;
 import it.unipi.aide.algorithms.MergingM;
 import it.unipi.aide.algorithms.SPIMI;
-import it.unipi.aide.utils.FileManager;
 
 public class CreateIndex
 {
@@ -15,6 +14,7 @@ public class CreateIndex
         String INPUT_PATH = null;
         String OUTPUT_PATH = null;
         String MODE = null;
+        int MAXMEM = 60;
 
         int i = 0;
         int maxArgs = args.length;
@@ -26,9 +26,12 @@ public class CreateIndex
             if (args[i].equals("-in")) {INPUT_PATH = args[i+1]; i += 2; continue;}
             if (args[i].equals("-out")) {OUTPUT_PATH = args[i+1]; i += 2; continue;}
             if (args[i].equals("-m")) {MODE = args[i+1]; i += 2; continue;}
-            else {i++; System.err.println("Input path not specified. Exiting.");}
+            if (args[i].equals("-mm")) {MAXMEM = Integer.parseInt(args[i+1]); i += 2; continue;}
 
+            else {i++; System.err.println("Input path not specified. Exiting.");}
         }
+
+        if (MAXMEM > 99 || MAXMEM < 0) MAXMEM = 60;
 
         if(INPUT_PATH == null)
         {
@@ -48,23 +51,17 @@ public class CreateIndex
             MODE = "TFIDF";
         }
 
-        /*
-         * TODO -> Functions to build index should go there
-         *  Avoid using static paths, relative paths are better
-         * */
-
         // Index building
-        SPIMI spimi = new SPIMI(INPUT_PATH, OUTPUT_PATH, 60, STOPSTEM);
+        SPIMI spimi = new SPIMI(INPUT_PATH, OUTPUT_PATH, MAXMEM, STOPSTEM);
         int numBlocks = spimi.algorithm(DEBUG);
 
         System.out.println("LOG:    Index created. Merging...");
 
-        //MergingM mergem = new MergingM(OUTPUT_PATH);
-        //mergem.mergeBlocks(numBlocks);
-        //System.exit(0);
-
         // Index merging
-        Merging merge = new Merging(OUTPUT_PATH);
-        merge.mergeBlocks(numBlocks);
+//        Merging merge = new Merging(OUTPUT_PATH, COMPRESSION, numBlocks);
+//        merge.mergeBlocks(DEBUG);
+
+        MergingM mergem = new MergingM(OUTPUT_PATH, COMPRESSION, numBlocks);
+        mergem.mergeBlocks(DEBUG);
     }
 }

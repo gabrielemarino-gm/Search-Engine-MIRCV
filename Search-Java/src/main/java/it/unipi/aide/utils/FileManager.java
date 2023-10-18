@@ -36,7 +36,7 @@ public class FileManager
     }
 
     /**
-     * Delete a directory
+     * Delete a directory and all content
      * @param path Path of the directory to remove
      * @return true upon success, false otherwise
      */
@@ -123,6 +123,10 @@ public class FileManager
         return false;
     }
 
+    /**
+     * Clear all the content from a folder
+     * @param path Path of the folder to clear
+     */
     public static void cleanFolder(String path)
     {
         File directory = new File(path);

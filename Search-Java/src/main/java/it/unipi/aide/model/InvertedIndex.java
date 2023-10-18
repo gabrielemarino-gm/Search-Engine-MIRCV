@@ -7,33 +7,42 @@ public class InvertedIndex
     private final TreeMap<String, List<Posting>> index = new TreeMap<>();
 
     /**
-     * Add a new Posting List in the index it not exits yet,
-     * otherwise just update the existing one
+     * Add a new Posting List in the index it doesn't exist one yet for that term,
+     *  otherwise just update the existing one
+     * @param doc DocID of the document
+     * @param term Term contained in that document
+     * @return true if a new Posting has been added, 0 otherwise
      */
-    public void add(int doc, String term)
+    public boolean add(int doc, String term)
     {
         List<Posting> postingList = index.get(term);
 
+        // No Posting List for that term, creating new
         if (postingList == null)
         {
-            // No Posting List for that term, creating new
             Posting newPosting = new Posting(doc);
             index.put(term, new ArrayList<>(Collections.singletonList(newPosting)));
+            return true;
         }
+
+        // Posting List exists, use that
         else
         {
-            // Posting List exists, use that
             Posting lastPosting = postingList.get(postingList.size() - 1);
+
             // Last posting for that term is about current document
             if (lastPosting.getDocId() == doc)
             {
                 lastPosting.increment();
+                return false;
             }
+
+            // Last posting is for another document, create a new posting
             else
             {
-                // Last posting is for another document, create a new posting
                 Posting newPosting = new Posting(doc);
                 postingList.add(newPosting);
+                return true;
             }
         }
     }
@@ -56,25 +65,6 @@ public class InvertedIndex
     public List<Posting> getPostingList(String t)
     {
         return index.get(t);
-    }
-
-    /**
-     * Debug method
-     */
-    public void printIndex()
-    {
-        System.out.println("Inverted Index:");
-        for (String term : index.keySet())
-        {
-            System.out.print("'" + term + "': ");
-            List<Posting> postingList = index.get(term);
-
-            for (Posting posting : postingList)
-            {
-                System.out.print(posting.toString() + " ");
-            }
-            System.out.println();
-        }
     }
 
     @Override

@@ -14,40 +14,45 @@ public class MergingM
 {
     private final String INPUT_PATH;
     private final String OUTPUT_PATH;
+    private final boolean COMPRESSION;
+    private final int BLOCKS_COUNT;
 
     long finalOffset = 0;
     long vFinalOffset = 0;
 
     private InvertedIndex invertedIndex = new InvertedIndex();
 
-    public MergingM(String outputPath)
+    public MergingM(String outputPath, boolean compression, int blocksCount)
     {
         this.INPUT_PATH = outputPath+ "partial/";
         this.OUTPUT_PATH = outputPath + "complete/";
+        this.BLOCKS_COUNT = blocksCount;
+        this.COMPRESSION = compression;
     }
 
     /**
      * Merge partial blocks into one unique block
-     * @param numFiles How many partial blocks there are
      */
-    public void mergeBlocks(int numFiles)
+    public void mergeBlocks(boolean debug)
     {
         // Check if the directory with the blocks results exists
         if(FileManager.checkDir(INPUT_PATH))
         {
+            FileManager.cleanFolder(OUTPUT_PATH);
+
             // Create a channel for each block, both for docId, frequencies and vocabulary fragments
-            FileChannel[] docIdFileChannel = new FileChannel[numFiles];
-            FileChannel[] frequenciesFileChannel = new FileChannel[numFiles];
-            FileChannel[] vocabulariesFileChannel = new FileChannel[numFiles];
+            FileChannel[] docIdFileChannel = new FileChannel[BLOCKS_COUNT];
+            FileChannel[] frequenciesFileChannel = new FileChannel[BLOCKS_COUNT];
+            FileChannel[] vocabulariesFileChannel = new FileChannel[BLOCKS_COUNT];
 
             // Create one offset for each block, both for docId, frequencies and vocabulary fragments
-            long[] offsetDocId = new long[numFiles];
-            long[] offsetFrequency = new long[numFiles];
-            long[] offsetVocabulary = new long[numFiles];
+            long[] offsetDocId = new long[BLOCKS_COUNT];
+            long[] offsetFrequency = new long[BLOCKS_COUNT];
+            long[] offsetVocabulary = new long[BLOCKS_COUNT];
 
-            long[] dimVocabularyFile = new long[numFiles];
+            long[] dimVocabularyFile = new long[BLOCKS_COUNT];
 
-            TermInfo[] vocs = new TermInfo[numFiles];
+            TermInfo[] vocs = new TermInfo[BLOCKS_COUNT];
 
             try
             {
@@ -68,7 +73,7 @@ public class MergingM
                         StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
 
                 // INIT PHASE
-                for (int indexBlock = 0; indexBlock < numFiles; indexBlock++)
+                for (int indexBlock = 0; indexBlock < BLOCKS_COUNT; indexBlock++)
                 {
                     String docPath = INPUT_PATH + "docIDsBlock-" + indexBlock;
                     String freqPath = INPUT_PATH + "frequenciesBlock-" + indexBlock;
@@ -95,40 +100,44 @@ public class MergingM
                     // Get the smallest term along all vocabularies
                     String smallestTerm = getSmallestTerm(vocs);
 
+                    // Create a TermInfo to merge those in different blocks
                     TermInfo finalTerm = new TermInfo(smallestTerm);
                     finalTerm.setOffset(finalOffset);
 
                     int finalFreq = 0;
                     int finalNPostings = 0;
 
-                    // for each block, initialize all the data structure of a term needed
-                    for (int indexBlock = 0; indexBlock < numFiles; indexBlock++)
+                    // For each block...
+                    for (int indexBlock = 0; indexBlock < BLOCKS_COUNT; indexBlock++)
                     {
-                        // If current term is equal the smallest, transfer docs and freq into final buffer
+                        // ...if current term is equal the smallest (and it's not null)...
                         if(vocs[indexBlock] != null && vocs[indexBlock].getTerm().equals(smallestTerm))
                         {
-                            // Trasfering docIDs
+                            // ...transfer docs and freq into final buffer...
                             transferBytes(docIdFileChannel[indexBlock], offsetDocId[indexBlock],
                                     finalDocIDChannel, finalOffset, vocs[indexBlock].getNumPosting());
-
-                            // Transfering Frequencies
                             transferBytes(frequenciesFileChannel[indexBlock], offsetFrequency[indexBlock],
                                     finalFreqChannel, finalOffset, vocs[indexBlock].getNumPosting());
 
-                            // Update the offset of the final file that contain the final inverted index
+                            // ...update final offset, nPosting and frequency for that term as we merge blocks...
                             finalOffset += 4L * vocs[indexBlock].getNumPosting();
-
-                            // Update the offset for the partial files
-                            offsetDocId[indexBlock] += 4L * vocs[indexBlock].getNumPosting();
-                            offsetFrequency[indexBlock] += 4L * vocs[indexBlock].getNumPosting();
-
-                            // Update the number of posting and the total frequency of that term
                             finalNPostings += vocs[indexBlock].getNumPosting();
                             finalFreq += vocs[indexBlock].getTotalFrequency();
 
-                            // if this block is finished, set its vocs to null and skip
+
+                            // Update the offsets for current block
+                            offsetDocId[indexBlock] += 4L * vocs[indexBlock].getNumPosting();
+                            offsetFrequency[indexBlock] += 4L * vocs[indexBlock].getNumPosting();
+
+                            /*
+                                If this block is finished, set its vocs to null and skip
+                                 This happen because last time we extracted a term for this
+                                 block, it was the last term in the list
+                                Null is used as break condition
+                             */
                             if(offsetVocabulary[indexBlock] >= dimVocabularyFile[indexBlock])
                             {
+                                System.err.println("LOG:    Block #" + indexBlock + " exhausted.");
                                 vocs[indexBlock] = null;
                                 continue;
                             }
@@ -143,20 +152,30 @@ public class MergingM
 
                     writeTermToDisk(finalVocChannel, finalTerm);
 
-                    // STOPPING CONDITION
-                    // if all the entry of vocs are null, we have finished
+                    /*
+                        STOPPING CONDITION
+                         if all the entry of vocs are null, we have finished
+                         as we exhausted all blocks
+                     */
                     boolean allNull = true;
                     for(TermInfo t: vocs)
                     {
-                        if (t != null )
+                        // If at least one is not null, just continue
+                        if(t != null )
+                        {
                             allNull = false;
-
-                        break;
+                            break;
+                        }
                     }
 
                     if(allNull)
                         break;
+
                 }
+
+                // Delete temporary blocks
+                FileManager.cleanFolder(INPUT_PATH);
+
             }
             catch (Exception e)
             {
@@ -169,6 +188,12 @@ public class MergingM
         }
     }
 
+    /**
+     * Write a TermInfo on the disk
+     * @param finalVocChannel Vocabulary FileChannel
+     * @param finalTerm Term to write
+     * @throws IOException
+     */
     private void writeTermToDisk(FileChannel finalVocChannel, TermInfo finalTerm) throws IOException
     {
         MappedByteBuffer tempBuffer = finalVocChannel.map(FileChannel.MapMode.READ_WRITE, vFinalOffset, TermInfo.SIZE);
@@ -184,6 +209,11 @@ public class MergingM
         vFinalOffset += TermInfo.SIZE;
     }
 
+    /**
+     * First term in lexicographic order between all terms
+     * @param vocs TermInfo array to pick the terms from
+     * @return Smallest term in lexicographic order
+     */
     private String getSmallestTerm(TermInfo[] vocs)
     {
         String toRet = null;
@@ -196,6 +226,13 @@ public class MergingM
         return toRet;
     }
 
+    /**
+     * Get next TermInfo from that channel
+     * @param fileChannel FileChannel to retrieve the Term from
+     * @param offsetVocabulary Offset at which the term is
+     * @return Next TermInfo in line
+     * @throws IOException
+     */
     private TermInfo getNextVoc(FileChannel fileChannel, long offsetVocabulary) throws IOException
     {
         MappedByteBuffer tempBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, offsetVocabulary, TermInfo.SIZE);
@@ -212,19 +249,27 @@ public class MergingM
         return new TermInfo(term, frequency, offset, nPosting);
     }
 
+    /**
+     * Copy a window of bytes from one channel to another
+     * @param fromChannel Source channel
+     * @param fromOffset Source starting offset
+     * @param toChannel Destination channel
+     * @param toOffset Destination starting offset
+     * @param nPostings How many elements (4 Bytes each) to copy
+     * @throws IOException
+     */
     private void transferBytes(FileChannel fromChannel, long fromOffset,
                                FileChannel toChannel, long toOffset, int nPostings) throws IOException
     {
-        // Buffer from offset for 4L*nPosting bytes
+        // Buffer from offset to offset + 4L*nPosting bytes
         MappedByteBuffer tempInBuff = fromChannel.map(FileChannel.MapMode.READ_WRITE,
                 fromOffset, 4L*nPostings);
-
-        byte[] tempBytes = new byte[4 * nPostings];
-        tempInBuff.get(tempBytes);
-
         MappedByteBuffer tempOutBuff = toChannel.map(FileChannel.MapMode.READ_WRITE,
                 toOffset, 4L*nPostings);
 
+        byte[] tempBytes = new byte[4 * nPostings];
+
+        tempInBuff.get(tempBytes);
         tempOutBuff.put(tempBytes);
     }
 }

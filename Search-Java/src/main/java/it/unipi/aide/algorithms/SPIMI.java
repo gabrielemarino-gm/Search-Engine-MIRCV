@@ -12,9 +12,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
-
 
 /**
  * Class that implement the SPIMI algorithm
@@ -36,6 +33,8 @@ public class SPIMI
     private int incrementalBlockNumber;
     private int numBlocksPosting;
 
+    private int docid = 0;
+
     /**
      * SPIMI constructor
      * @param inputPath Where the Corpus to process is located
@@ -55,12 +54,107 @@ public class SPIMI
         incrementalBlockNumber = 0;
         numBlocksPosting = 0;
 
-        System.out.println("LOG:    SPIMI Parameters");
+        System.out.println("LOG:        ---SPIMI---");
         System.out.println("LOG:        MAX_MEM = " + maxMem);
         System.out.println("LOG:        inputPath = " + inputPath);
         System.out.println("LOG:        outputPath = " + outputPath);
         System.out.println("LOG:        stemming = " + stemming);
+        System.out.println("LOG:        -----------");
     }
+
+    /**
+     * Executes the SPIMI algorithm as configured
+     * @param debug Enable debug mode
+     * @return the number of blocks created
+     */
+    public int algorithm(boolean debug)
+    {
+        System.out.println("Starting algorithm...");
+
+        // Starting cleaning the folder
+        FileManager.cleanFolder(outputPath);
+        Corpus corpus = new Corpus(inputPath);
+
+        // For each documents
+        for(String doc: corpus)
+        {
+            String[] docParts = doc.split("\t");
+
+            /*
+             * docid = Unique id assigned in incremental manner
+             * pid = Unique name of the document
+             */
+            String pid = docParts[0];
+            String text = docParts[1];
+            List<String> tokens = preprocesser.process(text);
+
+            ProcessedDocument document = new ProcessedDocument(pid, docid, tokens);
+            // TODO -> Create a Document Index (pid, docid, #words, ...)
+            docid++;
+
+            if(document.getTokens().isEmpty()) continue;
+
+            for (String t : document.getTokens())
+            {
+                /*
+                 * ADDING A TERM TO INVERTED INDEX AND VOCABULARY
+                 * Always add to the InvertedIndex
+                 * Increment NumPosting of that term only if a new PostingList
+                 * has been added in the InvertedIndex
+                 */
+                boolean newPosting = invertedIndex.add(document.getDocid(), t);
+                vocabulary.add(t, newPosting);
+                numBlocksPosting++;
+            }
+
+            if (getPercentOfMemoryUsed() > MAX_MEM)
+            {
+                System.out.println("LOG:    Writing block #" + incrementalBlockNumber);
+
+                if (writeBlockToDisk(debug))
+                {
+                    incrementalBlockNumber++;
+                    numBlocksPosting = 0;
+                    vocabulary = new Vocabulary();
+                    invertedIndex = new InvertedIndex();
+                }
+                else
+                {
+                    System.out.println("ERROR:  Not able to write the binary file");
+                    break;
+                }
+
+                // Wait that the garbage collector free the memory
+                System.out.println("LOG:    Wait for free memory. Actual mem occupation " + getPercentOfMemoryUsed() + "%");
+                System.gc(); // Force the GC.
+
+                while (getPercentOfMemoryUsed() > MAX_MEM-5)
+                    continue;
+
+                System.out.println("LOG:    Memory Free! " + getPercentOfMemoryUsed() + "%");
+
+            }
+
+            if (docid%1000000 == 0)
+                System.out.println("LOG:    Documents processed " + docid);
+        }
+
+
+        // We need to write the last block
+        if (writeBlockToDisk(debug))
+        {
+            System.out.println("LOG:    Writing block #" + incrementalBlockNumber);
+            incrementalBlockNumber++;
+        }
+        else
+        {
+            System.out.println("ERROR: Not able to write the binary file");
+        }
+
+        // There will be 'incrementalBlockNumber' blocks, but the last one has index 'incrementalBlockNumber - 1'
+        return incrementalBlockNumber;
+    }
+
 
     /**
      * Write partial Inverted Index on the disk
@@ -82,16 +176,16 @@ public class SPIMI
                         StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
 
                 FileChannel frequencyFileChannel = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
-                     StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+                        StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
 
                 FileChannel vocabularyFileChannel = (FileChannel) Files.newByteChannel(Paths.get(vocPath),
-                     StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE))
+                        StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE))
         {
             // Create the buffer where write the streams of bytes
             MappedByteBuffer docIdBuffer = docIdFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numBlocksPosting*4L);
             MappedByteBuffer frequencyBuffer = frequencyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numBlocksPosting*4L);
 
-
+            // Used to write TermInfo on the disk, one next to the other
             long vocOffset = 0;
             for (String t: vocabulary.getTerms())
             {
@@ -103,7 +197,7 @@ public class SPIMI
                 // + 4 byte for the frequency
                 // + 8 byte for the offset
                 // + 4 byte for the number of posting
-                MappedByteBuffer vocabularyBuffer = vocabularyFileChannel.map(FileChannel.MapMode.READ_WRITE, vocOffset, TermInfo.SIZE_TERM+4L+8L+4L);
+                MappedByteBuffer vocabularyBuffer = vocabularyFileChannel.map(FileChannel.MapMode.READ_WRITE, vocOffset, TermInfo.SIZE);
                 vocOffset += TermInfo.SIZE_TERM + 4 + 8 + 4;
 
                 // Write vocabulary entry
@@ -156,108 +250,9 @@ public class SPIMI
                 e.printStackTrace();
             }
         }
-
         return true;
     }
 
-
-    /**
-     * Executes the SPIMI algorithm as configured
-     * @param debug Enable debug mode
-     * @return the number of blocks created
-     */
-    public int algorithm(boolean debug)
-    {
-        System.out.println("Starting algorithm...");
-        /*
-        * TODO -> This should be a class variable, not a method variable
-        *   -
-        *  If i need to create and call SPIMI ond another corpus there will be
-        *  duplicate docid
-        */
-        int docid = 0;
-
-        // Starting cleaning the folder
-        FileManager.cleanFolder(outputPath);
-        Corpus corpus = new Corpus(inputPath);
-
-        // For each documents
-        for(String doc: corpus)
-        {
-            String[] docParts = doc.split("\t");
-
-            /*
-             * docid = Unique id assigned in incremental manner
-             * pid = Unique name of the document
-             */
-            String pid = docParts[0];
-            String text = docParts[1];
-            List<String> tokens = preprocesser.process(text);
-
-            ProcessedDocument document = new ProcessedDocument(pid, docid, tokens);
-            // TODO -> Create a Document Index (pid, docid, #words, ...)
-            docid++;
-
-            if(document.getTokens().isEmpty()) continue;
-
-            for (String t : document.getTokens())
-            {
-                // Add term to the vocabulary and to the inverted index.
-                // If the term already exists, the method add the docId to the posting list
-                vocabulary.add(t); // TODO Sistemare aggiornamento frequenza e numero posting
-                invertedIndex.add(document.getDocid(), t);
-                vocabulary.updateNumPosting(t, invertedIndex.getPostingList(t).size());
-                numBlocksPosting++;
-            }
-
-            if (getPercentOfMemoryUsed() > MAX_MEM)
-            // TODO -> Remember to swap this to memory threshold
-            //if (numBlocksPosting > 6400)
-            {
-                System.out.println("LOG:    Writing block #" + incrementalBlockNumber);
-
-                if (writeBlockToDisk(debug))
-                {
-                    incrementalBlockNumber++;
-                    numBlocksPosting = 0;
-                    vocabulary = new Vocabulary();
-                    invertedIndex = new InvertedIndex();
-                }
-                else
-                {
-                    System.out.println("ERROR: Not able to write the binary file");
-                    break;
-                }
-
-                // Wait that the garbage collector free the memory
-                System.out.println("LOG:    Wait for free memory. Actual mem occupation " + getPercentOfMemoryUsed() + "%");
-                System.gc(); // Force the GC.
-
-                while (getPercentOfMemoryUsed() > MAX_MEM-5)
-                    continue;
-
-                System.out.println("LOG:    Memory Free! " + getPercentOfMemoryUsed() + "%");
-
-            }
-
-            if (docid%1000000 == 0)
-                System.out.println("LOG:    Documets processed " + docid);
-        }
-
-        // We need to write the last block, that can stay in memory under the threshold
-        if (writeBlockToDisk(debug))
-        {
-            System.out.println("LOG:    Writing block #" + incrementalBlockNumber);
-            incrementalBlockNumber++;
-        }
-        else
-        {
-            System.out.println("ERROR: Not able to write the binary file");
-        }
-
-        // There will be 'incrementalBlockNumber' blocks, but the last one has index 'incrementalBlockNumber - 1'
-        return incrementalBlockNumber;
-    }
 
     /**
      * Support function to get used memory in %

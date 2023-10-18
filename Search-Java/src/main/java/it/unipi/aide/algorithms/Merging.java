@@ -20,20 +20,23 @@ public class Merging
 {
     private final String INPUT_PATH;
     private final String OUTPUT_PATH;
+    private final boolean COMPRESSION;
+    private final int numFiles;
 
     private InvertedIndex invertedIndex = new InvertedIndex();
 
-    public Merging(String outputPath)
+    public Merging(String outputPath, boolean compression, int numFiles)
     {
         this.INPUT_PATH = outputPath+ "partial/";
         this.OUTPUT_PATH = outputPath + "complete/";
+        this.numFiles = numFiles;
+        this.COMPRESSION = compression;
     }
 
     /**
      * Merge partial blocks into one unique block
-     * @param numFiles How many partial blocks there are
      */
-    public void mergeBlocks(int numFiles)
+    public void mergeBlocks(boolean debug)
     {
         // Check if the directory with the blocks results exists
         if(FileManager.checkDir(INPUT_PATH))
@@ -183,8 +186,10 @@ public class Merging
                 e.printStackTrace();
             }
 
-
             writeIndex(true);
+
+            FileManager.cleanFolder(INPUT_PATH);
+
         }
         else
         {

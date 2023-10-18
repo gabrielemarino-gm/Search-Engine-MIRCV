@@ -4,7 +4,6 @@ import it.unipi.aide.model.Posting;
 import it.unipi.aide.model.TermInfo;
 import it.unipi.aide.model.Vocabulary;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -26,9 +25,18 @@ public class QueryManager {
 
     public void makeQuery(){
         System.out.println(vocabulary);
-        System.out.println(getPostingsByTerm("bomb"));
+        System.out.println("[bomb]" + getPostingsByTerm("bomb"));
+        System.out.println("[manhattan]" + getPostingsByTerm("manhattan"));
+        System.out.println("[project]" + getPostingsByTerm("project"));
+        System.out.println("[rich]" + getPostingsByTerm("rich"));
+        System.out.println("[war]" + getPostingsByTerm("war"));
     }
 
+    /**
+     * Get the posting list from bin blocks
+     * @param term Term to retrieve posting list
+     * @return Posting List of given term
+     */
     private List<Posting> getPostingsByTerm(String term)
     {
         TermInfo toRetrieve = vocabulary.get(term);
@@ -60,7 +68,7 @@ public class QueryManager {
                 System.arraycopy(docBytes, i*4, tempDocBytes, 0 ,4);
                 System.arraycopy(freqBytes, i*4, tempFreqBytes, 0 ,4);
 
-                toRet.add(new Posting(bytesToInt(tempDocBytes),bytesToInt(tempFreqBytes)));
+                toRet.add(new Posting(bytesToInt(tempDocBytes), bytesToInt(tempFreqBytes)));
             }
         }
         catch (IOException e)
@@ -72,6 +80,11 @@ public class QueryManager {
     }
 
 
+    /**
+     * Convert 4 bytes into an integer
+     * @param b 4-bytes array
+     * @return Integer representation
+     */
     private int bytesToInt(byte[] b){
         int toRet = 0;
         for(int i = 0; i < 4; i++){
@@ -80,6 +93,9 @@ public class QueryManager {
         return toRet;
     }
 
+    /**
+     * Load the entire vocabulary from the disk
+     */
     private void loadVocabulary() {
         vocabulary = new Vocabulary();
 
@@ -99,6 +115,13 @@ public class QueryManager {
         }
     }
 
+    /**
+     * Get next TermInfo from that channel
+     * @param fileChannel FileChannel to retrieve the Term from
+     * @param offsetVocabulary Offset at which the term is
+     * @return Next TermInfo in line
+     * @throws IOException
+     */
     private TermInfo getNextVoc(FileChannel fileChannel, long offsetVocabulary) throws IOException{
         MappedByteBuffer tempBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, offsetVocabulary, TermInfo.SIZE);
 

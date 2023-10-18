@@ -7,10 +7,10 @@ public class Vocabulary
     private final TreeMap<String, TermInfo> vocab = new TreeMap<>();
 
     /**
-     * Add a new term in the vocabulary it not exits yet,
+     * Add a new term in the vocabulary it doesn't exist yet,
      * otherwise just update the existing one
      */
-    public void add(String term)
+    public void add(String term, boolean addPosting)
     {
         if (!vocab.containsKey(term))
         {
@@ -19,12 +19,10 @@ public class Vocabulary
         else
         {
             vocab.get(term).incrementTotalFrequency();
+            if(addPosting){
+                vocab.get(term).incrementNumPosting();
+            }
         }
-    }
-
-    public void updateNumPosting(String term, int np)
-    {
-        vocab.get(term).setNumPosting(np);
     }
 
     /**
@@ -43,11 +41,13 @@ public class Vocabulary
      * @param term Term to retrieve
      * @return TermInfo of given term
      */
-    public TermInfo get(String term) {
-        return vocab.getOrDefault(term, new TermInfo(term, 1,0,1));
+    public TermInfo get(String term)
+    {
+        return vocab.getOrDefault(term, new TermInfo(term));
     }
 
-    public void set(TermInfo terminfo){
+    public void set(TermInfo terminfo)
+    {
         vocab.put(terminfo.getTerm(), terminfo);
     }
 

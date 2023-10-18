@@ -7,51 +7,49 @@ public class TermInfo
 
     private String term;
     private int totalFrequency;
-    private long offset;
+    private long offset;    // Used only later in storing/retrieval phase
     private int numPosting;
-    private int numBlocks;
 
+    /**
+     * Create a new TermInfo (USE IN SPIMI ONLY)
+     * As we are adding this term for the first time, it will have
+     *  TF = 1 and nPostings = 1
+     * @param term Term name
+     */
+    public TermInfo(String term){
+        this.term = term;
+        this.totalFrequency = 1;
+        this.offset = 0;
+        this.numPosting = 1;
+    }
+
+    /**
+     * Create new TermInfo (USE IN MERGE ONLY)
+     * @param term Term name
+     * @param totalFrequency How many times it appears in the Corpus
+     * @param offset At which offset its PostingList begins
+     * @param numPosting How many Postings for that term
+     */
     public TermInfo(String term, int totalFrequency, long offset, int numPosting)
     {
         this.term = term;
         this.totalFrequency = totalFrequency;
         this.offset = offset;
         this.numPosting = numPosting;
-        this.numBlocks = 0;
     }
 
-    public TermInfo(String term){
-        this.term = term;
-        this.totalFrequency = 1;
-        this.offset = 0;
-        this.numPosting = 1;
-        this.numBlocks = 0;
-    }
+    public void incrementTotalFrequency() {this.totalFrequency++;}
+    public void incrementNumPosting() {this.numPosting++;}
 
-    public void incrementTotalFrequency()
-    {
-        this.totalFrequency++;
-    }
-
-    public void incrementNumPosting()
-    {
-        this.numPosting++;
-    }
-
-    public void incrementNumBlock()
-    {
-        this.numBlocks++;
-    }
     public int getTotalFrequency() {return totalFrequency;}
     public long getOffset() {return offset;}
     public int getNumPosting() {return numPosting;}
-    public int getNumBlocks() {return numBlocks;}
     public String getTerm() {return term;}
     public void setTerm(String t) {this.term = t;}
-    public void setNumBlocks(int n) {this.numBlocks = n;}
     public void setNumPosting(int n) {this.numPosting = n;}
     public void setTotalFrequency(int f) {this.totalFrequency = f;}
     public void setOffset(long o) {this.offset = o;}
+
     @Override
     public String toString()
     {

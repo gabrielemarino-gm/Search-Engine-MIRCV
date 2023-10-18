@@ -2,8 +2,6 @@ package it.unipi.aide;
 
 import it.unipi.aide.algorithms.QueryManager;
 
-import javax.management.Query;
-
 /**
  * This class is used by the user to make queries on the InvertedIndex
  */
