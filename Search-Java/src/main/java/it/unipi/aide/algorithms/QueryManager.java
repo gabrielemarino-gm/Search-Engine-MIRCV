@@ -1,8 +1,10 @@
 package it.unipi.aide.algorithms;
 
+import com.sun.corba.se.impl.orbutil.ORBUtility;
 import it.unipi.aide.model.Posting;
 import it.unipi.aide.model.TermInfo;
 import it.unipi.aide.model.Vocabulary;
+import it.unipi.aide.utils.Commons;
 
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
@@ -68,7 +70,7 @@ public class QueryManager {
                 System.arraycopy(docBytes, i*4, tempDocBytes, 0 ,4);
                 System.arraycopy(freqBytes, i*4, tempFreqBytes, 0 ,4);
 
-                toRet.add(new Posting(bytesToInt(tempDocBytes), bytesToInt(tempFreqBytes)));
+                toRet.add(new Posting(Commons.bytesToInt(tempDocBytes), Commons.bytesToInt(tempFreqBytes)));
             }
         }
         catch (IOException e)
@@ -76,20 +78,6 @@ public class QueryManager {
             e.printStackTrace();
         }
 
-        return toRet;
-    }
-
-
-    /**
-     * Convert 4 bytes into an integer
-     * @param b 4-bytes array
-     * @return Integer representation
-     */
-    private int bytesToInt(byte[] b){
-        int toRet = 0;
-        for(int i = 0; i < 4; i++){
-            toRet = (toRet << 8) | (b[i] & 0xFF);
-        }
         return toRet;
     }
 
