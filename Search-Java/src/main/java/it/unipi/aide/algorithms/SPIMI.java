@@ -271,10 +271,10 @@ public class SPIMI
 
 
         // Not enough PhysicalMemory
-//        if((occPhyMem/totalPhyMem*100) > 95) {
-//            System.out.println("Physical memory security limit");
-//            return true;
-//        }
+        if((occPhyMem/totalPhyMem*100) > 95) {
+            System.out.println("Physical memory security limit");
+            return true;
+        }
         // User threshold
 //        if((occPhyMem / totalPhyMem * 100) > threshold && !quit) {
 //            quit = true;
@@ -287,10 +287,10 @@ public class SPIMI
             return true;
         }
         // Not enough FreePhysical to fill with OccupiedVirtual
-        if (freePhyMem < occVirMemory){
-            System.out.println("Free physical memory security limit");
-            return true;
-        }
+//        if (freePhyMem < occVirMemory){
+//            System.out.println("Free physical memory security limit");
+//            return true;
+//        }
         return false;
     }
 
