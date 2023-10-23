@@ -11,7 +11,6 @@ import ca.rmen.porterstemmer.PorterStemmer;
  */
 public class Preprocesser
 {
-    private final String STOPWORD_FILE_PATH = "stopwords.txt";
 
     private final Pattern urlPattern;
     private final Pattern htmlPattern;
@@ -51,6 +50,7 @@ public class Preprocesser
            * Note: utility non-class files goes in resources folder
            */
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            String STOPWORD_FILE_PATH = "stopwords.txt";
             InputStream inputStream = classLoader.getResourceAsStream(STOPWORD_FILE_PATH);
 
             if(inputStream == null)
@@ -97,13 +97,13 @@ public class Preprocesser
      * @param tokens List of tokens
      * @return List of tokens without Stopwords
      */
-    private List<String> removeStopwords(List<String> tokens)
+    private ArrayList<String> removeStopwords(ArrayList<String> tokens)
     {
         /*
          *TODO: This may be enhanced by removing Stopwords from 'tokens' list without
          * creating a brand-new list
          */
-        List<String> filteredTokens = new ArrayList<>();
+        ArrayList<String> filteredTokens = new ArrayList<>();
         for (String token : tokens) {
             if (!stopwords.contains(token)) {
                 filteredTokens.add(token);
@@ -117,13 +117,13 @@ public class Preprocesser
      * @param words List of tokens
      * @return List of stemmed tokens
      */
-    private List<String> performStemming(List<String> words)
+    private ArrayList<String> performStemming(ArrayList<String> words)
     {
         /*
          *TODO: This may be enhanced by directly extract and put back
          * stemmed tokens in the same 'words' list
          */
-        List<String> stemmedWords = new ArrayList<>();
+        ArrayList<String> stemmedWords = new ArrayList<>();
         for (String word : words)
         {
             stemmedWords.add(stemmer.stemWord(word));
@@ -146,7 +146,7 @@ public class Preprocesser
 
         // STEP 3: Tokenization
         String[] termsArray = text.split(" ");
-        List<String> terms = Arrays.asList(termsArray);
+        ArrayList<String> terms = new ArrayList<>(Arrays.asList(termsArray));
 
         // STEP 4: Remove Stopwords and Stemming
         if (stemmstopActive)
