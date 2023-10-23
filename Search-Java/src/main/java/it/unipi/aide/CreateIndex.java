@@ -31,7 +31,7 @@ public class CreateIndex
             else {i++; System.err.println("Input path not specified. Exiting.");}
         }
 
-        if (MAXMEM > 60 || MAXMEM < 0) MAXMEM = 50;
+        if (MAXMEM > 80 || MAXMEM < 0) MAXMEM = 70;
 
         if(INPUT_PATH == null)
         {
