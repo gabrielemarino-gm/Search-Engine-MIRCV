@@ -51,16 +51,16 @@ public class CreateIndex
             MODE = "TFIDF";
         }
         // Index building
-        SPIMI spimi = new SPIMI(INPUT_PATH, OUTPUT_PATH, MAXMEM, STOPSTEM);
-        int numBlocks = spimi.algorithm(DEBUG);
+//        SPIMI spimi = new SPIMI(INPUT_PATH, OUTPUT_PATH, MAXMEM, STOPSTEM);
+//        int numBlocks = spimi.algorithm(DEBUG);
 
-        System.out.println("LOG:    Index created. Merging...");
+        System.out.println("LOG:\t\tIndex created. Merging...");
 
         // Index merging
 //        Merging merge = new Merging(OUTPUT_PATH, COMPRESSION, numBlocks);
 //        merge.mergeBlocks(DEBUG);
 
-        MergingM mergem = new MergingM(OUTPUT_PATH, COMPRESSION, numBlocks);
+        MergingM mergem = new MergingM(OUTPUT_PATH, COMPRESSION, 21);
         mergem.mergeBlocks(DEBUG);
     }
 }

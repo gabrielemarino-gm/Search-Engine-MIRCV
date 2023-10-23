@@ -35,6 +35,7 @@ public class MergingM
      */
     public void mergeBlocks(boolean debug)
     {
+        long nTerms = 0;
         // Check if the directory with the blocks results exists
         if(FileManager.checkDir(INPUT_PATH))
         {
@@ -137,7 +138,7 @@ public class MergingM
                              */
                             if(offsetVocabulary[indexBlock] >= dimVocabularyFile[indexBlock])
                             {
-                                System.err.println("LOG:    Block #" + indexBlock + " exhausted.");
+                                System.err.println("LOG:\t\tBlock #" + indexBlock + " exhausted.");
                                 vocs[indexBlock] = null;
                                 continue;
                             }
@@ -151,6 +152,10 @@ public class MergingM
                     finalTerm.setTotalFrequency(finalFreq);
 
                     writeTermToDisk(finalVocChannel, finalTerm);
+                    nTerms++;
+                    if(nTerms % 100_000 == 0){
+                        System.out.println(String.format("LOG:\t\t%d terms have been processed", nTerms));
+                    }
 
                     /*
                         STOPPING CONDITION
@@ -175,7 +180,7 @@ public class MergingM
 
                 // Delete temporary blocks
                 FileManager.cleanFolder(INPUT_PATH);
-
+                System.out.println(String.format("LOG:\t\tTotal terms in the Lexicon is %d", nTerms));
             }
             catch (Exception e)
             {
@@ -184,7 +189,7 @@ public class MergingM
         }
         else
         {
-            System.err.println("ERR:    Merge error, directory " + INPUT_PATH + " doesn't exists!");
+            System.err.println("ERR\t\tMerge error, directory " + INPUT_PATH + " doesn't exists!");
         }
     }
 

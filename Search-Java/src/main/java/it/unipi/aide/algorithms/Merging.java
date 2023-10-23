@@ -22,8 +22,14 @@ public class Merging
     private final String OUTPUT_PATH;
     private final boolean COMPRESSION;
     private final int numFiles;
+    private long partialOffset;
 
     private InvertedIndex invertedIndex = new InvertedIndex();
+
+    // Write in binary
+    private String docPath;
+    private String freqPath;
+    private String vocPath;
 
     public Merging(String outputPath, boolean compression, int numFiles)
     {
@@ -31,6 +37,11 @@ public class Merging
         this.OUTPUT_PATH = outputPath + "complete/";
         this.numFiles = numFiles;
         this.COMPRESSION = compression;
+        this.partialOffset = 0;
+
+        this.docPath = OUTPUT_PATH+"docIDsBlock";
+        this.freqPath = OUTPUT_PATH+"frequenciesBlock";
+        this.vocPath = OUTPUT_PATH+"vocabularyBlock";
     }
 
     /**
@@ -38,6 +49,8 @@ public class Merging
      */
     public void mergeBlocks(boolean debug)
     {
+        chechDir(true);
+
         // Check if the directory with the blocks results exists
         if(FileManager.checkDir(INPUT_PATH))
         {
@@ -173,6 +186,10 @@ public class Merging
                     // Now just add the merged posting list to the global inverted index
                     invertedIndex.addPostingList(minorTerm, mergePostingList);
 
+                    // Increment the number of total posting into the inverted index
+                    writePostingList(minorTerm, invertedIndex.getPostingList(minorTerm), true);
+
+
                     // Clean data structure
                     // delete the term merged from the mapOfTerm
                     mapOfTerm.remove(minorTerm);
@@ -186,8 +203,6 @@ public class Merging
                 e.printStackTrace();
             }
 
-            writeIndex(true);
-
             FileManager.cleanFolder(INPUT_PATH);
 
         }
@@ -197,18 +212,69 @@ public class Merging
         }
     }
 
-    private void writeIndex(boolean debug)
+    private void chechDir(boolean debug)
     {
+        if(!FileManager.checkFile(docPath)) FileManager.createFile(docPath);
+        if(!FileManager.checkFile(freqPath)) FileManager.createFile(freqPath);
+        if(!FileManager.createFile(vocPath)) FileManager.createFile(vocPath);
+
         if (debug)
         {
             FileManager.createDir(OUTPUT_PATH + "debug/");
+            FileManager.cleanFolder(OUTPUT_PATH + "debug/");
+            FileManager.createFile(OUTPUT_PATH + "debug/invertedIndex.txt");
+        }
+    }
+
+    private void writePostingList(String term, List<Posting> postingList, boolean debug)
+    {
+        int numPosting = postingList.size();
+
+        try (
+                // Open a FileChannel for docId, frequencies and vocabulary fragments
+                FileChannel docIdFileChannel = (FileChannel) Files.newByteChannel(Paths.get(docPath),
+                        StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+
+                FileChannel frequencyFileChannel = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
+                        StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE)
+
+                // FileChannel vocabularyFileChannel = (FileChannel) Files.newByteChannel(Paths.get(vocPath),
+                //        StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE)
+        )
+        {
+            // Create the buffer where write the streams of bytes
+            MappedByteBuffer docIdBuffer = docIdFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numPosting*4L);
+            MappedByteBuffer frequencyBuffer = frequencyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numPosting*4L);
+
+            // Write that all Posting to the disk
+            for (Posting p: postingList)
+            {
+                docIdBuffer.putInt(p.getDocId());
+                frequencyBuffer.putInt(p.getFrequency());
+                partialOffset += 4L;
+            }
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+
+        if (debug)
+        {
             try
             {
                 // Write inverted index to debug text file
                 BufferedWriter indexWriter = new BufferedWriter(
-                        new FileWriter(OUTPUT_PATH + "debug/invertedIndex.txt")
+                        new FileWriter(OUTPUT_PATH + "debug/invertedIndex.txt", true)
                 );
-                indexWriter.write(invertedIndex.toString());
+
+                indexWriter.write(term+ ": ");
+                for (Posting p: postingList)
+                {
+                    indexWriter.write(postingList.toString());
+                }
+
+                indexWriter.write("\n");
                 indexWriter.close();
             }
             catch (IOException e)

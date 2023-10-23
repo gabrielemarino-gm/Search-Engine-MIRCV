@@ -109,6 +109,7 @@ public class SPIMI
                 if(newPosting) numBlocksPosting++;
             }
 
+
             // Memory control
             if(memoryCheck(MAX_MEM))
             {
@@ -271,16 +272,16 @@ public class SPIMI
 
 
         // Not enough PhysicalMemory
-        if((occPhyMem/totalPhyMem*100) > 95) {
-            System.out.println("Physical memory security limit");
-            return true;
-        }
+//        if((occPhyMem/totalPhyMem*100) > 95) {
+//            System.out.println("Physical memory security limit");
+//            return true;
+//        } @@@@@@INUTILIZZABILE
         // User threshold
 //        if((occPhyMem / totalPhyMem * 100) > threshold && !quit) {
 //            quit = true;
 //            System.out.println("User threshold reached");
 //            return true;
-//        }
+//        } @@@@@@SI TRIGGERA SUBITO
         // Not enough FreeVirtual to fill with OccupiedVirtual
         if(((occVirMemory/maxVirMemory)*100) > 40) {
             System.out.println("Free virtual memory security limit");
@@ -306,7 +307,7 @@ public class SPIMI
         double maxVirMemory = Runtime.getRuntime().maxMemory() / Math.pow(10,6);
         double occVirMemory = totalVirMemory - freeVirMemory;
 
-        System.out.println(String.format("LOG:\t\tTotalVir: %.2f\tFreeVir: %.2f\tOccupiedVir: %.2f\tPercentVir: %.2f\n",
+        System.out.println(String.format("LOG:\t\tTotalVir: %.2f\tFreeVir: %.2f\tOccupiedVir: %.2f\tPercentVir: %.2f",
                 totalVirMemory,
                 freeVirMemory,
                 occVirMemory,
