@@ -60,6 +60,16 @@ public class Compressor {
         return temp;
     }
 
+
+    public static void VariableByteCompression(){
+        
+    }
+
+
+    public static void VariableByteDecompression(){
+
+    }
+
     /**
      * Support function to convert an Array of 4 bytes values, into an Array of integers
      * @param list Byte Array with size 4*N elements

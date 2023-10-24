@@ -115,10 +115,17 @@ public class MergingM
                         if(vocs[indexBlock] != null && vocs[indexBlock].getTerm().equals(smallestTerm))
                         {
                             // ...transfer docs and freq into final buffer...
-                            transferBytes(docIdFileChannel[indexBlock], offsetDocId[indexBlock],
-                                    finalDocIDChannel, finalOffset, vocs[indexBlock].getNumPosting());
-                            transferBytes(frequenciesFileChannel[indexBlock], offsetFrequency[indexBlock],
-                                    finalFreqChannel, finalOffset, vocs[indexBlock].getNumPosting());
+                            transferBytes(docIdFileChannel[indexBlock],
+                                    offsetDocId[indexBlock],
+                                    finalDocIDChannel,
+                                    finalOffset,
+                                    vocs[indexBlock].getNumPosting()
+                            );
+                            transferBytes(frequenciesFileChannel[indexBlock],
+                                    offsetFrequency[indexBlock],
+                                    finalFreqChannel,
+                                    finalOffset,
+                                    vocs[indexBlock].getNumPosting());
 
                             // ...update final offset, nPosting and frequency for that term as we merge blocks...
                             finalOffset += 4L * vocs[indexBlock].getNumPosting();
