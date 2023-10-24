@@ -1,6 +1,5 @@
 package it.unipi.aide.algorithms;
 
-import com.sun.corba.se.impl.orbutil.ORBUtility;
 import it.unipi.aide.model.Posting;
 import it.unipi.aide.model.TermInfo;
 import it.unipi.aide.model.Vocabulary;
@@ -39,12 +38,13 @@ public class QueryManager {
      * @param term Term to retrieve posting list
      * @return Posting List of given term
      */
-    private List<Posting> getPostingsByTerm(String term)
+    public List<Posting> getPostingsByTerm(String term)
     {
         TermInfo toRetrieve = vocabulary.get(term);
+
         if (toRetrieve == null) return null;
 
-        List<Posting> toRet =new ArrayList<>();
+        List<Posting> toRet = new ArrayList<>();
 
         String docsPath = INPUT_PATH + "docIDsBlock";
         String freqPath = INPUT_PATH + "frequenciesBlock";
@@ -96,7 +96,6 @@ public class QueryManager {
                 TermInfo nextTerm = getNextVoc(vocChannel, offset);
                 vocabulary.set(nextTerm);
             }
-
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -19,6 +19,17 @@ public class PostingList
     }
 
     /**
+     * Create a Posting List for given term and given documents list
+     * @param term Term to create the list for
+     * @param documentsList list of Posting to initialize posting list of Term
+     */
+    public PostingList(String term, List<Posting> documentsList)
+    {
+        this.term = term;
+        this.postingList = documentsList;
+    }
+
+    /**
      * Add a new Posting to the Posting List
      * @param p Posting to append
      */
@@ -44,10 +55,12 @@ public class PostingList
         postingList.sort(comparator);
     }
 
-    List<Posting> getPostings()
+    public List<Posting> getPostings()
     {
         return postingList;
     }
+
+    public String getTerm() { return term; }
 
     @Override
     public String toString() {
@@ -56,6 +69,4 @@ public class PostingList
                 ", postingList=" + postingList +
                 '}';
     }
-
-
 }
