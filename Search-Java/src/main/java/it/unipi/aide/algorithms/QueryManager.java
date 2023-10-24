@@ -24,7 +24,8 @@ public class QueryManager {
         loadVocabulary();
     }
 
-    public void makeQuery(){
+    public void makeQuery()
+    {
         System.out.println(vocabulary);
         System.out.println("[bomb]" + getPostingsByTerm("bomb"));
         System.out.println("[manhattan]" + getPostingsByTerm("manhattan"));

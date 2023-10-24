@@ -12,7 +12,8 @@ public class DAAT {
 
     private static final ArrayList<PostingList> queryPostingList = new ArrayList<>();
 
-    public static void main(String[] args) {
+    public static void main(String[] args)
+    {
         String queryTest = "England folklore tales tales";
         Preprocesser p = new Preprocesser(true);
         List<String> processedQuery = p.process(queryTest);

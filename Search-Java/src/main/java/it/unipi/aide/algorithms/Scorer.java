@@ -5,7 +5,8 @@ import it.unipi.aide.model.PostingList;
 
 import java.util.*;
 
-public class Scorer {
+public class Scorer
+{
 
     ArrayList<PostingList> queryPostingList;
 

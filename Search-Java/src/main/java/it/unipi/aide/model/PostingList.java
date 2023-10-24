@@ -23,7 +23,7 @@ public class PostingList
      * @param term Term to create the list for
      * @param documentsList list of Posting to initialize posting list of Term
      */
-    public PostingList(String term, List<Posting> documentsList)
+    public PostingList(String term,List<Posting> documentsList)
     {
         this.term = term;
         this.postingList = documentsList;
