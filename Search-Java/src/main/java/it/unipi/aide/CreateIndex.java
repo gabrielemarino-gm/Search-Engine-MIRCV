@@ -31,7 +31,7 @@ public class CreateIndex
             else {i++; System.err.println("Input path not specified. Exiting.");}
         }
 
-        if (MAXMEM > 60 || MAXMEM < 0) MAXMEM = 50;
+        if (MAXMEM > 80 || MAXMEM < 0) MAXMEM = 70;
 
         if(INPUT_PATH == null)
         {
@@ -54,7 +54,7 @@ public class CreateIndex
         SPIMI spimi = new SPIMI(INPUT_PATH, OUTPUT_PATH, MAXMEM, STOPSTEM);
         int numBlocks = spimi.algorithm(DEBUG);
 
-        System.out.println("LOG:    Index created. Merging...");
+        System.out.println("LOG:\t\tIndex created. Merging...");
 
         // Index merging
 //        Merging merge = new Merging(OUTPUT_PATH, COMPRESSION, numBlocks);

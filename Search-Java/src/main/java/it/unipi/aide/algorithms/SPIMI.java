@@ -1,10 +1,12 @@
 package it.unipi.aide.algorithms;
 
+import com.sun.management.OperatingSystemMXBean;
 import it.unipi.aide.model.*;
 import it.unipi.aide.utils.FileManager;
 import it.unipi.aide.utils.Preprocesser;
 
 import java.io.*;
+import java.lang.management.ManagementFactory;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -53,12 +55,12 @@ public class SPIMI
         incrementalBlockNumber = 0;
         numBlocksPosting = 0;
 
-        System.out.println("LOG:        ---SPIMI---");
+        System.out.println("LOG:        -----SPIMI-----");
         System.out.println("LOG:        MAX_MEM = " + maxMem);
         System.out.println("LOG:        inputPath = " + inputPath);
         System.out.println("LOG:        outputPath = " + outputPath);
         System.out.println("LOG:        stemming = " + stemming);
-        System.out.println("LOG:        -----------");
+        System.out.println("LOG:        ---------------");
     }
 
     /**
@@ -91,6 +93,7 @@ public class SPIMI
             // TODO -> Create a Document Index (pid, docid, #words, ...)
             docid++;
 
+            // current document has no tokens inside, skip
             if(document.getTokens().isEmpty()) continue;
 
             for (String t : document.getTokens())
@@ -103,41 +106,35 @@ public class SPIMI
                  */
                 boolean newPosting = invertedIndex.add(document.getDocid(), t);
                 vocabulary.add(t, newPosting);
-                numBlocksPosting++;
+                if(newPosting) numBlocksPosting++;
             }
 
-            if (getPercentOfMemoryUsedPhy() > MAX_MEM)
-            {
-                System.out.println("LOG:    Writing block #" + incrementalBlockNumber);
 
+            // Memory control
+            if(memoryCheck(MAX_MEM))
+            {
+                System.out.println("LOG:\t\tWriting block #" + incrementalBlockNumber);
                 if (writeBlockToDisk(debug))
                 {
                     incrementalBlockNumber++;
                     numBlocksPosting = 0;
+
                     vocabulary = new Vocabulary();
                     invertedIndex = new InvertedIndex();
+                    System.gc();
                 }
                 else
                 {
-                    System.out.println("ERROR:  Not able to write the binary file");
+                    System.err.println("ERROR:\t\tNot able to write the binary file");
                     break;
                 }
-
-                // Wait that the garbage collector free the memory
-                System.out.println("LOG:    Wait for free memory. Actual occupation: " + getPercentOfMemoryUsedPhy() + "%");
-                System.gc(); // Force the GC.
-
-                while (getPercentOfMemoryUsedPhy() > MAX_MEM-5)
-                    continue;
-
-                System.out.println("LOG:    Memory Free! Actual occupation: " + getPercentOfMemoryUsedPhy() + "%");
-
             }
+            // End memory control
 
             if (docid%100000 == 0)
             {
-                System.out.println(String.format("LOG:\t\tMax: %f\tFree: %f\tTotal: %f\tPercent: %f",Runtime.getRuntime().maxMemory()/Math.pow(10,6)/2,Runtime.getRuntime().freeMemory()/Math.pow(10,6),Runtime.getRuntime().totalMemory()/Math.pow(10,6),getPercentOfMemoryUsedPhy()));
-                System.out.println("LOG:    Documents processed " + docid);
+                printMemInfo();
+                System.out.println("LOG:\t\tDocuments processed " + docid);
             }
         }
 
@@ -145,12 +142,12 @@ public class SPIMI
         // We need to write the last block
         if (writeBlockToDisk(debug))
         {
-            System.out.println("LOG:    Writing block #" + incrementalBlockNumber);
+            System.out.println("LOG:\t\tWriting block #" + incrementalBlockNumber);
             incrementalBlockNumber++;
         }
         else
         {
-            System.out.println("ERROR: Not able to write the binary file");
+            System.out.println("ERROR:\t\tNot able to write the binary file");
         }
 
         // There will be 'incrementalBlockNumber' blocks, but the last one has index 'incrementalBlockNumber - 1'
@@ -181,28 +178,23 @@ public class SPIMI
                         StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
 
                 FileChannel vocabularyFileChannel = (FileChannel) Files.newByteChannel(Paths.get(vocPath),
-                        StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE))
+                        StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE)
+            )
         {
             // Create the buffer where write the streams of bytes
             MappedByteBuffer docIdBuffer = docIdFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numBlocksPosting*4L);
             MappedByteBuffer frequencyBuffer = frequencyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numBlocksPosting*4L);
+            MappedByteBuffer vocabularyBuffer = vocabularyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, vocabulary.getTerms().size()*TermInfo.SIZE);
 
             // Used to write TermInfo on the disk, one next to the other
-            long vocOffset = 0;
             long partialOffset = 0;
 
             for (String t: vocabulary.getTerms())
             {
                 // For each term I have to save into the vocabulary file.
                 TermInfo termInfo = vocabulary.get(t);
+                // Set the offset at which postings start
                 termInfo.setOffset(partialOffset);
-                // Allocate the buffer for write:
-                // + 64 byte for the term
-                // + 4 byte for the frequency
-                // + 8 byte for the offset
-                // + 4 byte for the number of posting
-                MappedByteBuffer vocabularyBuffer = vocabularyFileChannel.map(FileChannel.MapMode.READ_WRITE, vocOffset, TermInfo.SIZE);
-                vocOffset += TermInfo.SIZE_TERM + 4 + 8 + 4;
 
                 // Write vocabulary entry
                 String paddedTerm = String.format("%-64s", termInfo.getTerm()).substring(0, 64); // Pad with spaces up to 64 characters
@@ -232,23 +224,19 @@ public class SPIMI
         if (debug)
         {
             FileManager.createDir(outputPath + "debug/");
-            try
-            {
+            try(
                 // Write inverted index to debug text file
                 BufferedWriter indexWriter = new BufferedWriter(
                         new FileWriter(outputPath + "debug/Block-" + incrementalBlockNumber + ".txt")
                 );
-
-                indexWriter.write(invertedIndex.toString());
-                indexWriter.close();
-
-                // Wrdite vocabulary to debug text file
+                // Write vocabulary to debug text file
                 BufferedWriter vocabularyWriter = new BufferedWriter(
                         new FileWriter(outputPath + "debug/vocabulary-" + incrementalBlockNumber + ".txt")
-                );
-
+                )
+            )
+            {
+                indexWriter.write(invertedIndex.toString());
                 vocabularyWriter.write(vocabulary.toString());
-                vocabularyWriter.close();
             }
             catch (IOException e)
             {
@@ -258,17 +246,73 @@ public class SPIMI
         return true;
     }
 
+    private boolean quit = false;
+
     /**
      * Support function to get used memory in %
      * @return xx.x% of memory used
      */
-    private double getPercentOfMemoryUsedPhy(){
-        long freeMemory = Runtime.getRuntime().freeMemory();
-        long totalMemory = Runtime.getRuntime().totalMemory();
-        long maxMemory = Runtime.getRuntime().maxMemory()/2;
-        double percent = ((double) (totalMemory - freeMemory) / maxMemory) * 100.0;
+    private boolean memoryCheck(int threshold){
+        OperatingSystemMXBean os = ((OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean());
+        Runtime rt = Runtime.getRuntime();
 
-        return percent;
+        double freePhyMem = os.getFreePhysicalMemorySize() / Math.pow(10,6);
+        double totalPhyMem = os.getTotalPhysicalMemorySize() / Math.pow(10,6);
+        double occPhyMem = totalPhyMem - freePhyMem;
+
+        double freeVirMemory = rt.freeMemory() / Math.pow(10,6);
+        double totalVirMemory = rt.totalMemory() / Math.pow(10,6);
+        double maxVirMemory = rt.maxMemory() / Math.pow(10,6);
+
+        double occVirMemory = totalVirMemory - freeVirMemory;
+
+
+        // Not enough PhysicalMemory
+//        if((occPhyMem/totalPhyMem*100) > 95) {
+//            System.out.println("Physical memory security limit");
+//            return true;
+//        } @@@@@@INUTILIZZABILE
+        // User threshold
+//        if((occPhyMem / totalPhyMem * 100) > threshold && !quit) {
+//            quit = true;
+//            System.out.println("User threshold reached");
+//            return true;
+//        } @@@@@@SI TRIGGERA SUBITO
+        // Not enough FreeVirtual to fill with OccupiedVirtual
+        if(((occVirMemory/maxVirMemory)*100) > 40) {
+            System.out.println("Free virtual memory security limit");
+            return true;
+        }
+        // Not enough FreePhysical to fill with OccupiedVirtual
+//        if (freePhyMem < occVirMemory){
+//            System.out.println("Free physical memory security limit");
+//            return true;
+//        }
+        return false;
+    }
+
+    private void printMemInfo(){
+        OperatingSystemMXBean os = ((OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean());
+
+        double freePhyMem = os.getFreePhysicalMemorySize() / Math.pow(10,6);
+        double totalPhyMem = os.getTotalPhysicalMemorySize() / Math.pow(10,6);
+        double occPhyMem = totalPhyMem - freePhyMem;
+
+        double freeVirMemory = Runtime.getRuntime().freeMemory() / Math.pow(10,6);
+        double totalVirMemory = Runtime.getRuntime().totalMemory() / Math.pow(10,6);
+        double maxVirMemory = Runtime.getRuntime().maxMemory() / Math.pow(10,6);
+        double occVirMemory = totalVirMemory - freeVirMemory;
+
+        System.out.println(String.format("LOG:\t\tTotalVir: %.2f\tFreeVir: %.2f\tOccupiedVir: %.2f\tPercentVir: %.2f",
+                totalVirMemory,
+                freeVirMemory,
+                occVirMemory,
+                (occVirMemory/maxVirMemory)*100));
+        System.out.println(String.format("LOG:\t\tTotalPhy: %.2f\tFreePhy: %.2f\tOccupiedPhy: %.2f\tPercentPhy: %.2f",
+                totalPhyMem,
+                freePhyMem,
+                occPhyMem,
+                (occPhyMem/totalPhyMem*100)));
     }
 }
 

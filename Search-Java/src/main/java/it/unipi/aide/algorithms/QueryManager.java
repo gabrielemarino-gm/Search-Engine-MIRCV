@@ -5,6 +5,7 @@ import it.unipi.aide.model.TermInfo;
 import it.unipi.aide.model.Vocabulary;
 import it.unipi.aide.utils.Commons;
 
+import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -21,18 +22,33 @@ public class QueryManager {
 
     public QueryManager(String in_path){
         INPUT_PATH = in_path;
+        long time1 = System.currentTimeMillis();
         loadVocabulary();
+        long time2 = System.currentTimeMillis();
+        System.out.println(String.format("Vocabulary loading time: %.2f ms",(double)(time2-time1)));
     }
 
-    public void makeQuery()
-    {
-        System.out.println(vocabulary);
-        System.out.println("[bomb]" + getPostingsByTerm("bomb"));
+    public void makeQuery(){
+
+//        System.out.println(vocabulary);
+
+//        long time1 = System.currentTimeMillis();
+//        List<Posting> list1 = getPostingsByTerm("bomb");
+//        List<Posting> list2 = getPostingsByTerm("manhattan");
+//        List<Posting> list3 = getPostingsByTerm("project");
+//        List<Posting> list4 = getPostingsByTerm("rich");
+//        List<Posting> list5 = getPostingsByTerm("war");
+//        long time2 = System.currentTimeMillis();
+
+//        System.out.println(String.format("Retrieving 5 terms time: %.2f ms", (double)(time2-time1)));
+        System.out.println("[manhattan]" + getPostingsByTerm("bomb"));
         System.out.println("[manhattan]" + getPostingsByTerm("manhattan"));
         System.out.println("[project]" + getPostingsByTerm("project"));
         System.out.println("[rich]" + getPostingsByTerm("rich"));
         System.out.println("[war]" + getPostingsByTerm("war"));
+
     }
+
 
     /**
      * Get the posting list from bin blocks
