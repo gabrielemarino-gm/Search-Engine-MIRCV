@@ -51,6 +51,13 @@ public class Vocabulary
         vocab.put(terminfo.getTerm(), terminfo);
     }
 
+    /**
+     * Clear the vocabulary
+     */
+    public void clear(){
+        vocab.clear();
+    }
+
     @Override
     public String toString()
     {

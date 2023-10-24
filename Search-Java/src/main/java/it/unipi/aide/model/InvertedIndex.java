@@ -67,6 +67,13 @@ public class InvertedIndex
         return index.get(t);
     }
 
+    /**
+     * Clear the inverted index
+     */
+    public void clear(){
+        index.clear();
+    }
+
     @Override
     public String toString()
     {

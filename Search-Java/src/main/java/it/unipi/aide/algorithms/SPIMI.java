@@ -1,12 +1,10 @@
 package it.unipi.aide.algorithms;
 
-import com.sun.management.OperatingSystemMXBean;
 import it.unipi.aide.model.*;
 import it.unipi.aide.utils.FileManager;
 import it.unipi.aide.utils.Preprocesser;
 
 import java.io.*;
-import java.lang.management.ManagementFactory;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -24,7 +22,7 @@ import java.util.List;
  */
 public class SPIMI 
 {
-    private final int MAX_MEM;
+    private final boolean MAX_MEM;
     private final String inputPath;
     private final String outputPath;
 
@@ -43,9 +41,9 @@ public class SPIMI
      * @param maxMem Max memory allowed in %
      * @param stemming Enable stemming
      */
-    public SPIMI(String inputPath, String outputPath, int maxMem, boolean stemming) 
+    public SPIMI(String inputPath, String outputPath, boolean maxMem, boolean stemming)
     {
-        MAX_MEM = maxMem;
+        this.MAX_MEM = maxMem;
         this.inputPath = inputPath;
         this.outputPath = outputPath+"partial/";
 
@@ -111,7 +109,7 @@ public class SPIMI
 
 
             // Memory control
-            if(memoryCheck(MAX_MEM))
+            if(memoryCheck())
             {
                 System.out.println("LOG:\t\tWriting block #" + incrementalBlockNumber);
                 if (writeBlockToDisk(debug))
@@ -119,9 +117,9 @@ public class SPIMI
                     incrementalBlockNumber++;
                     numBlocksPosting = 0;
 
-                    vocabulary = new Vocabulary();
-                    invertedIndex = new InvertedIndex();
-                    System.gc();
+                    vocabulary.clear();
+                    invertedIndex.clear();
+//                    System.gc();
                 }
                 else
                 {
@@ -246,73 +244,48 @@ public class SPIMI
         return true;
     }
 
-    private boolean quit = false;
-
     /**
      * Support function to get used memory in %
      * @return xx.x% of memory used
      */
-    private boolean memoryCheck(int threshold){
-        OperatingSystemMXBean os = ((OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean());
+    private boolean memoryCheck(){
+
         Runtime rt = Runtime.getRuntime();
+        double maxVirMemory = rt.maxMemory() / Math.pow(10,6);          // Max memory possible (1.8Gb default)
+        // -----------------------------------
+        double totalVirMemory = rt.totalMemory() / Math.pow(10,6);      // Allocated
+        double freeVirMemory = rt.freeMemory() / Math.pow(10,6);        // Allocated and Free
+        double occVirMemory = totalVirMemory - freeVirMemory;           // Allocated and not-Free
 
-        double freePhyMem = os.getFreePhysicalMemorySize() / Math.pow(10,6);
-        double totalPhyMem = os.getTotalPhysicalMemorySize() / Math.pow(10,6);
-        double occPhyMem = totalPhyMem - freePhyMem;
+        // User-enabled threshold
+        if((occVirMemory > totalVirMemory * 90 / 100) && this.MAX_MEM) {
+            System.out.println("User threshold reached");
+            return true;
+        }
 
-        double freeVirMemory = rt.freeMemory() / Math.pow(10,6);
-        double totalVirMemory = rt.totalMemory() / Math.pow(10,6);
-        double maxVirMemory = rt.maxMemory() / Math.pow(10,6);
-
-        double occVirMemory = totalVirMemory - freeVirMemory;
-
-
-        // Not enough PhysicalMemory
-//        if((occPhyMem/totalPhyMem*100) > 95) {
-//            System.out.println("Physical memory security limit");
-//            return true;
-//        } @@@@@@INUTILIZZABILE
-        // User threshold
-//        if((occPhyMem / totalPhyMem * 100) > threshold && !quit) {
-//            quit = true;
-//            System.out.println("User threshold reached");
-//            return true;
-//        } @@@@@@SI TRIGGERA SUBITO
         // Not enough FreeVirtual to fill with OccupiedVirtual
-        if(((occVirMemory/maxVirMemory)*100) > 40) {
+        if(occVirMemory > maxVirMemory * 40 / 100) {
             System.out.println("Free virtual memory security limit");
             return true;
         }
-        // Not enough FreePhysical to fill with OccupiedVirtual
-//        if (freePhyMem < occVirMemory){
-//            System.out.println("Free physical memory security limit");
-//            return true;
-//        }
+
         return false;
     }
 
     private void printMemInfo(){
-        OperatingSystemMXBean os = ((OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean());
-
-        double freePhyMem = os.getFreePhysicalMemorySize() / Math.pow(10,6);
-        double totalPhyMem = os.getTotalPhysicalMemorySize() / Math.pow(10,6);
-        double occPhyMem = totalPhyMem - freePhyMem;
-
         double freeVirMemory = Runtime.getRuntime().freeMemory() / Math.pow(10,6);
         double totalVirMemory = Runtime.getRuntime().totalMemory() / Math.pow(10,6);
         double maxVirMemory = Runtime.getRuntime().maxMemory() / Math.pow(10,6);
         double occVirMemory = totalVirMemory - freeVirMemory;
+        double percentOccVirMemory = (occVirMemory/maxVirMemory) * 100;
 
-        System.out.println(String.format("LOG:\t\tTotalVir: %.2f\tFreeVir: %.2f\tOccupiedVir: %.2f\tPercentVir: %.2f",
+        System.out.println(String.format("LOG:\t\tMaxVir: %.2f\tTotalVir: %.2f\tFreeVir: %.2f\tOccupiedVir: %.2f\tPercentVir: %.2f",
+                maxVirMemory,
                 totalVirMemory,
                 freeVirMemory,
                 occVirMemory,
-                (occVirMemory/maxVirMemory)*100));
-        System.out.println(String.format("LOG:\t\tTotalPhy: %.2f\tFreePhy: %.2f\tOccupiedPhy: %.2f\tPercentPhy: %.2f",
-                totalPhyMem,
-                freePhyMem,
-                occPhyMem,
-                (occPhyMem/totalPhyMem*100)));
+                percentOccVirMemory
+        ));
     }
 }
 

@@ -14,7 +14,7 @@ public class CreateIndex
         String INPUT_PATH = null;
         String OUTPUT_PATH = null;
         String MODE = null;
-        int MAXMEM = 50;
+        boolean MAXMEM = false;
 
         int i = 0;
         int maxArgs = args.length;
@@ -26,12 +26,10 @@ public class CreateIndex
             if (args[i].equals("-in")) {INPUT_PATH = args[i+1]; i += 2; continue;}
             if (args[i].equals("-out")) {OUTPUT_PATH = args[i+1]; i += 2; continue;}
             if (args[i].equals("-m")) {MODE = args[i+1]; i += 2; continue;}
-            if (args[i].equals("-mm")) {MAXMEM = Integer.parseInt(args[i+1]); i += 2; continue;}
+            if (args[i].equals("-mm")) {MAXMEM = true; i += 1; continue;}
 
-            else {i++; System.err.println("Input path not specified. Exiting.");}
+            else {i++; System.err.println("Unknown command. Continuing.");}
         }
-
-        if (MAXMEM > 80 || MAXMEM < 0) MAXMEM = 70;
 
         if(INPUT_PATH == null)
         {
