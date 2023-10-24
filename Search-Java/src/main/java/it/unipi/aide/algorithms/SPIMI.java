@@ -121,7 +121,7 @@ public class SPIMI
 
                     vocabulary.clear();
                     invertedIndex.clear();
-//                    System.gc();
+                    System.gc();
                 }
                 else
                 {
@@ -263,13 +263,13 @@ public class SPIMI
 
         // User-enabled threshold
         if((occVirMemory > totalVirMemory * 90 / 100) && this.MAX_MEM) {
-            System.out.println("User threshold reached");
+//            System.out.println("User threshold reached");
             return true;
         }
 
         // Not enough FreeVirtual to fill with OccupiedVirtual
         if(occVirMemory > maxVirMemory * 40 / 100) {
-            System.out.println("Free virtual memory security limit");
+//            System.out.println("Free virtual memory security limit");
             return true;
         }
 
