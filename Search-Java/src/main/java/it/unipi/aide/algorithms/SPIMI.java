@@ -45,7 +45,7 @@ public class SPIMI
     {
         this.MAX_MEM = maxMem;
         this.inputPath = inputPath;
-        this.outputPath = outputPath+"partial/";
+        this.outputPath = outputPath;
 
         vocabulary = new Vocabulary();
         invertedIndex = new InvertedIndex();
@@ -73,6 +73,7 @@ public class SPIMI
         // Starting cleaning the folder
         FileManager.cleanFolder(outputPath);
         Corpus corpus = new Corpus(inputPath);
+        DocumentIndex documentIndex = new DocumentIndex(outputPath);
 
         // For each documents
         for(String doc: corpus)
@@ -87,8 +88,9 @@ public class SPIMI
             String text = docParts[1];
             List<String> tokens = preprocesser.process(text);
 
-            ProcessedDocument document = new ProcessedDocument(pid, docid, tokens);
-            // TODO -> Create a Document Index (pid, docid, #words, ...)
+            Document document = new Document(pid, docid, tokens);
+            documentIndex.add(document);
+
             docid++;
 
             // current document has no tokens inside, skip
@@ -136,12 +138,14 @@ public class SPIMI
             }
         }
 
-
         // We need to write the last block
         if (writeBlockToDisk(debug))
         {
             System.out.println("LOG:\t\tWriting block #" + incrementalBlockNumber);
             incrementalBlockNumber++;
+            // Manually free memory
+            vocabulary.clear();
+            invertedIndex.clear();
         }
         else
         {
@@ -159,9 +163,9 @@ public class SPIMI
      */
     public boolean writeBlockToDisk(boolean debug)
     {
-        String docPath = outputPath+"docIDsBlock-"+ incrementalBlockNumber;
-        String freqPath = outputPath+"frequenciesBlock-"+ incrementalBlockNumber;
-        String vocPath = outputPath+"vocabularyBlock-"+ incrementalBlockNumber;
+        String docPath = outputPath+"partial/docIDsBlock-"+ incrementalBlockNumber;
+        String freqPath = outputPath+"partial/frequenciesBlock-"+ incrementalBlockNumber;
+        String vocPath = outputPath+"partial/vocabularyBlock-"+ incrementalBlockNumber;
 
         if(!FileManager.checkFile(docPath)) FileManager.createFile(docPath);
         if(!FileManager.checkFile(freqPath)) FileManager.createFile(freqPath);
@@ -221,15 +225,15 @@ public class SPIMI
         // Debug version to write plain text
         if (debug)
         {
-            FileManager.createDir(outputPath + "debug/");
+            FileManager.createDir(outputPath + "partial/debug/");
             try(
                 // Write inverted index to debug text file
                 BufferedWriter indexWriter = new BufferedWriter(
-                        new FileWriter(outputPath + "debug/Block-" + incrementalBlockNumber + ".txt")
+                        new FileWriter(outputPath + "partial/debug/Block-" + incrementalBlockNumber + ".txt")
                 );
                 // Write vocabulary to debug text file
                 BufferedWriter vocabularyWriter = new BufferedWriter(
-                        new FileWriter(outputPath + "debug/vocabulary-" + incrementalBlockNumber + ".txt")
+                        new FileWriter(outputPath + "partial/debug/vocabulary-" + incrementalBlockNumber + ".txt")
                 )
             )
             {

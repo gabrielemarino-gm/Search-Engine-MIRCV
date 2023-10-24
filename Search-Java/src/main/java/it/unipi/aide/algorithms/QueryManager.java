@@ -1,11 +1,11 @@
 package it.unipi.aide.algorithms;
 
+import it.unipi.aide.model.DocumentIndex;
 import it.unipi.aide.model.Posting;
 import it.unipi.aide.model.TermInfo;
 import it.unipi.aide.model.Vocabulary;
 import it.unipi.aide.utils.Commons;
 
-import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -19,10 +19,12 @@ public class QueryManager {
 
     private final String INPUT_PATH;
     private Vocabulary vocabulary;
+    private DocumentIndex documentIndex;
 
     public QueryManager(String in_path){
         INPUT_PATH = in_path;
         long time1 = System.currentTimeMillis();
+        documentIndex =  new DocumentIndex(INPUT_PATH+"../");
         loadVocabulary();
         long time2 = System.currentTimeMillis();
         System.out.println(String.format("Vocabulary loading time: %.2f ms",(double)(time2-time1)));
@@ -41,11 +43,14 @@ public class QueryManager {
 //        long time2 = System.currentTimeMillis();
 
 //        System.out.println(String.format("Retrieving 5 terms time: %.2f ms", (double)(time2-time1)));
-        System.out.println("[manhattan]" + getPostingsByTerm("bomb"));
-        System.out.println("[manhattan]" + getPostingsByTerm("manhattan"));
-        System.out.println("[project]" + getPostingsByTerm("project"));
-        System.out.println("[rich]" + getPostingsByTerm("rich"));
-        System.out.println("[war]" + getPostingsByTerm("war"));
+//        System.out.println("[manhattan]" + getPostingsByTerm("bomb"));
+//        System.out.println("[manhattan]" + getPostingsByTerm("manhattan"));
+//        System.out.println("[project]" + getPostingsByTerm("project"));
+//        System.out.println("[rich]" + getPostingsByTerm("rich"));
+//        System.out.println("[war]" + getPostingsByTerm("war"));
+//        for(int i = 0; i<10;i++){ // 10 documenti di supermini
+//            System.out.println(documentIndex.get(i));
+//        }
 
     }
 
