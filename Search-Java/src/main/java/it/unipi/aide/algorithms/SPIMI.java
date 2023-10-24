@@ -184,9 +184,9 @@ public class SPIMI
             // Create the buffer where write the streams of bytes
             MappedByteBuffer docIdBuffer = docIdFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numBlocksPosting*4L);
             MappedByteBuffer frequencyBuffer = frequencyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numBlocksPosting*4L);
+            MappedByteBuffer vocabularyBuffer = vocabularyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, vocabulary.getTerms().size()*TermInfo.SIZE);
 
             // Used to write TermInfo on the disk, one next to the other
-            long vocOffset = 0;
             long partialOffset = 0;
 
             for (String t: vocabulary.getTerms())
@@ -195,10 +195,6 @@ public class SPIMI
                 TermInfo termInfo = vocabulary.get(t);
                 // Set the offset at which postings start
                 termInfo.setOffset(partialOffset);
-
-                // Allocate the buffer for write a termInfo
-                MappedByteBuffer vocabularyBuffer = vocabularyFileChannel.map(FileChannel.MapMode.READ_WRITE, vocOffset, TermInfo.SIZE);
-                vocOffset += TermInfo.SIZE;
 
                 // Write vocabulary entry
                 String paddedTerm = String.format("%-64s", termInfo.getTerm()).substring(0, 64); // Pad with spaces up to 64 characters

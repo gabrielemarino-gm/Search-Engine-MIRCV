@@ -33,20 +33,20 @@ public class QueryManager {
 
 //        System.out.println(vocabulary);
 
-        long time1 = System.currentTimeMillis();
-        List<Posting> list1 = getPostingsByTerm("bomb");
-        List<Posting> list2 = getPostingsByTerm("manhattan");
-        List<Posting> list3 = getPostingsByTerm("project");
-        List<Posting> list4 = getPostingsByTerm("rich");
-        List<Posting> list5 = getPostingsByTerm("war");
-        long time2 = System.currentTimeMillis();
+//        long time1 = System.currentTimeMillis();
+//        List<Posting> list1 = getPostingsByTerm("bomb");
+//        List<Posting> list2 = getPostingsByTerm("manhattan");
+//        List<Posting> list3 = getPostingsByTerm("project");
+//        List<Posting> list4 = getPostingsByTerm("rich");
+//        List<Posting> list5 = getPostingsByTerm("war");
+//        long time2 = System.currentTimeMillis();
 
-        System.out.println(String.format("Retrieving 5 terms time: %.2f ms", (double)(time2-time1)));
-//        System.out.println("[manhattan]" + getPostingsByTerm("bomb"));
-//        System.out.println("[manhattan]" + getPostingsByTerm("manhattan"));
-//        System.out.println("[project]" + getPostingsByTerm("project"));
-//        System.out.println("[rich]" + getPostingsByTerm("rich"));
-//        System.out.println("[war]" + getPostingsByTerm("war"));
+//        System.out.println(String.format("Retrieving 5 terms time: %.2f ms", (double)(time2-time1)));
+        System.out.println("[manhattan]" + getPostingsByTerm("bomb"));
+        System.out.println("[manhattan]" + getPostingsByTerm("manhattan"));
+        System.out.println("[project]" + getPostingsByTerm("project"));
+        System.out.println("[rich]" + getPostingsByTerm("rich"));
+        System.out.println("[war]" + getPostingsByTerm("war"));
 
     }
 
