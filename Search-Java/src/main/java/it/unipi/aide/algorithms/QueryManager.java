@@ -29,24 +29,26 @@ public class QueryManager {
 
     public void makeQuery(){
 
-//        System.out.println(vocabulary);
+        System.out.println(vocabulary);
+        TermInfo term = vocabulary.get("bomb");
+        System.out.println(String.format("[%s]\t\t Postings: %d\tDocID Bytes: %d\t Freq Bytes: %d",term.getTerm(), term.getNumPosting(), term.getBytesOccupiedDocid(),term.getBytesOccupiedFreq()));
 //
-//        System.out.println("[bomb]" + getPostingsByTerm("bomb"));
-//        System.out.println("[manhattan]" + getPostingsByTerm("manhattan"));
-//        System.out.println("[project]" + getPostingsByTerm("project"));
-//        System.out.println("[rich]" + getPostingsByTerm("rich"));
-//        System.out.println("[war]" + getPostingsByTerm("war"));
+        System.out.println("[bomb]" + getPostingsByTerm("bomb"));
+        System.out.println("[manhattan]" + getPostingsByTerm("manhattan"));
+        System.out.println("[project]" + getPostingsByTerm("project"));
+        System.out.println("[rich]" + getPostingsByTerm("rich"));
+        System.out.println("[war]" + getPostingsByTerm("war"));
 //
-//        for(int i = 0; i<10;i++){ // 10 documenti di supermini
+//        for(int i = 500; i<520;i++){ // 10 documenti di supermini
 //            System.out.println(documentIndex.get(i));
 //        }
 
-        System.out.println(String.format("Document Count: %d\nTerms Count: %d\nAVDL: %d",
-                CollectionInformation.getTotalDocuments(),
-                CollectionInformation.getTotalTerms(),
-                CollectionInformation.getAverageDocumentLength()
-                )
-        );
+//        System.out.println(String.format("Document Count: %d\nTerms Count: %d\nAVDL: %d",
+//                CollectionInformation.getTotalDocuments(),
+//                CollectionInformation.getTotalTerms(),
+//                CollectionInformation.getAverageDocumentLength()
+//                )
+//        );
 
     }
 

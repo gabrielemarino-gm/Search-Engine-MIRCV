@@ -131,9 +131,10 @@ public class MergingM
                         {
                             // Compression differs from no compression on different final offset
                             if(COMPRESSION){
-                                // ...accumulates bytes from different blocks...
+                                // ...accumulates bytes from different blocks , for all blocks...
                                 docsAcc.add(extractBytes(docIdFileChannel[indexBlock],offsetDocId[indexBlock],vocs[indexBlock].getNumPosting()));
                                 freqAcc.add(extractBytes(frequenciesFileChannel[indexBlock],offsetFrequency[indexBlock],vocs[indexBlock].getNumPosting()));
+
                             }
                             else {
                                 // ...transfer docs and freq into final buffer...
@@ -174,13 +175,12 @@ public class MergingM
                             // Vocabulary shift
                             vocs[indexBlock] = getNextVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
                             offsetVocabulary[indexBlock] += TermInfo.SIZE_PRE_MERGING;
-
                         }
                     }
 
                     if(COMPRESSION)
                     {
-                        // ... term ended, bytes are accumulated, compress the vectors ...
+                        // ... current term is ended, bytes are accumulated, compress the vectors ...
                         int totalBytesSummed = docsAcc.stream().mapToInt(vec -> vec.length).sum();
                         byte[] concatenatedDocsBytes = new byte[totalBytesSummed];
                         byte[] concatenatedFreqBytes = new byte[totalBytesSummed];
@@ -190,6 +190,7 @@ public class MergingM
                             System.arraycopy(v,0, concatenatedDocsBytes, os, v.length);
                             os += v.length;
                         }
+
                         os = 0;
                         for(byte[] v: freqAcc){
                             System.arraycopy(v,0, concatenatedFreqBytes, os, v.length);
@@ -199,11 +200,21 @@ public class MergingM
                         byte[] compressedDocs = Compressor.VariableByteCompression(concatenatedDocsBytes);
                         byte[] compressedFreq = Compressor.UnaryCompression(concatenatedFreqBytes);
 
+                        finalTerm.setBytesOccupiedDocid(compressedDocs.length);
+                        finalTerm.setBytesOccupiedFreq(compressedFreq.length);
+                    }
+                    else
+                    {
+                        // Without compression, bytes occupied are 4L for each number
+                        finalTerm.setBytesOccupiedDocid(finalNPostings * 4L);
+                        finalTerm.setBytesOccupiedFreq(finalFreq * 4L);
                     }
 
+                    // Vocabulary offset unchanged, finalTerm also
                     finalTerm.setNumPosting(finalNPostings);
                     finalTerm.setTotalFrequency(finalFreq);
-                    // Vocabulary offset unchanged, finalTerm also
+
+                    // Write accumulated term on the disk
                     writeTermToDisk(finalVocChannel, finalTerm);
 
                     nTerms++;
