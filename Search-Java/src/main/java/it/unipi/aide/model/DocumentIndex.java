@@ -2,12 +2,9 @@ package it.unipi.aide.model;
 
 import it.unipi.aide.utils.FileManager;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.CharBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -39,14 +36,17 @@ public class DocumentIndex {
             MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, OFFSET, Document.SIZE);
             OFFSET += Document.SIZE;
 
-            String padded = String.format("%-64s", document.getPid()).substring(0, 64);
+            StringBuilder pattern = new StringBuilder("%-").append(Document.PID_SIZE).append("s");
+            String padded = String.format(pattern.toString(), document.getPid()).substring(0, Document.PID_SIZE);
 
             buffer.put(padded.getBytes());
             buffer.putInt(document.getDocid());
             buffer.putInt(document.getTokenCount());
 
         }
-        catch (IOException e){e.printStackTrace();}
+        catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -61,14 +61,12 @@ public class DocumentIndex {
 
         try(
                 FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(PATH),
-                        StandardOpenOption.READ,
-                        StandardOpenOption.WRITE,
-                        StandardOpenOption.CREATE)
+                        StandardOpenOption.READ)
         )
         {
-            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, docid*Document.SIZE, Document.SIZE);
+            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, docid*Document.SIZE, Document.SIZE);
 
-            byte[] termBytes = new byte[64];
+            byte[] termBytes = new byte[Document.PID_SIZE];
             buffer.get(termBytes);
 
             tempPid = new String(termBytes).trim();
@@ -77,9 +75,20 @@ public class DocumentIndex {
 
             return new Document(tempPid, tempDocid, tempTokenCount);
         }
-        catch (IOException e){e.printStackTrace();}
+        catch (IOException e){
+            e.printStackTrace();
+        }
 
         return null;
     }
-
 }
+
+/*
+ * La seguente e' una classe fantasma:
+ *  non contiene nessun tipo di lista in quanto i Documenti sono scritti in append al file apposito
+ *
+ * In fase di inserimento infatti vengono inseriti in maniera incrementale uno dietro l'altro
+ *
+ * In fase di estrazione, sfruttando il fatto che ogni Documenti si trova all'offset docID*Document.SIZE
+ *  sono estratti dal file direttamente a quella posizione
+ */

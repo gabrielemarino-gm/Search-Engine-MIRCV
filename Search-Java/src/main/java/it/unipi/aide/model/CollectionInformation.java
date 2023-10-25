@@ -99,3 +99,14 @@ public class CollectionInformation {
         }
     }
 }
+
+/*
+ * Tale classe contiene le informazioni globali dell'intera collezione, generate in fase di SPIMI/Merging
+ *
+ * Tali valori sono scritti su file non appena settati, e recuperati dallo stesso quando richiesti
+ *  Si noti che se tali documenti non dovessero essere presenti, viene ritornto il valore 1, per evitare eventuali
+ *  errori di divisione per 0 qualora fossero presenti divisioni utilizzando tali valori
+ *
+ * L'utilizzo principale che se ne fa e' la ricerca binaria dei vocaboli e il calcolo dello score BM25 e TFIDF
+ *
+ */

@@ -69,6 +69,14 @@ public class TermInfo
     {
         return String.format("[%s](%d,%d,%d)", term, totalFrequency, numPosting, offset);
     }
-
-
 }
+
+/*
+ * Tale classe rappresenta un termine del vocabolario.
+ *  Essa include tutte le informazioni utili su tale termine da utilizzare in fase di calcolo dello score, nonche
+ *  altre informazioni per recuperare le posting list di tale termine dal file principale
+ *
+ * Si noti come spiegato in Merge.java che per via dello spazio occupato da ogni posting list con o senza compressione,
+ *  sono specificati due campi che aiutano a recuperare le liste nel caso in cui fosse stata utilizzata la compressione
+ *
+ */

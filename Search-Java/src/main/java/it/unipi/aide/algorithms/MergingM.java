@@ -368,3 +368,39 @@ public class MergingM
         return tempBytes;
     }
 }
+
+/*
+ * La seguente classe si occupa di riunire i blocchi parziali creati dall'algoritmo SPIMI.
+ *  Tale algoritmo sfrutta il fatto che i document ID di un blocco i, non possono essere maggiori
+ *  di un blocco i+1, il merge consiste di unire le posting list dei blocchi con lo stesso termine,
+ *  semplicemente accodandole, dai blocchi piu piccoli a quelli piu grandi
+ *
+ * In particolare: all'inizio vengono caricati tutti i primi termini dei vocabolari parziali di ogni blocco
+ *  Tra questi viene estratto il termine lessicograficamente piu piccolo, e viene usato per accodare le Liste:
+ *  se un vocabolario non contiene quel termine, allora esso ha un termine maggiore e puo essere semplicemente skippato,
+ *  se invece contiene quel termine, viene estratta la posting list parziale, e accodata al file dei posting finale.
+ *  Inoltre, tale vocabolario e' incrementato al termine successivo: se non esiste, sara' settato a null.
+ *
+ * Si continua cosi finche tutti i vocabolari parziali sono null, ossia quando abbiamo finito tutti i termini in tutti i vocabolari.
+ *  Durante il merging vengono aggiornati anche i termini finali, sommando frequenze totali  e numero di posting delle liste parziali.
+ *
+ * L'algoritmo presenta una leggera differenza se si decide di utilizzare la Compressione:
+ *  Senza compressione, una posting list occupera' 4byte per ogni elemento della lista
+ *  ie. Se una lista ha 5 Posting, tale lista occupera' 5*4=20byte
+ *  Con compressione, le liste parziali sono accumulate in un vettore di byte.
+ *  Alla fine di ogni termine, tale vettore conterra' sempre 4*numero di Posting per quel termine
+ *  ie. Esattamente come prima, avro un vettore di 20byte
+ *  A questo punto pero, la compressione ha la possibilita di generare un vettore con meno di 20byte, occupando meno spazio
+ *
+ * Si noti che effettuare tale operazione, aumenta sensibilmente il tempo di esecuzione dell'algoritmo
+ *
+ * In entrambi i casi sono aggiornati il numero di byte occupati dai DocId e Frequenze
+ *
+ * Alla fine dell'algoritmo, viene aggiornato il valore globale di CollectionInformation:
+ *  Total (unique) Terms nella collezione
+ *
+ * Non viene fatto uso della classe Vocabolario, in quanto si assume che i termini siano tutti ordinati lessicograficamente
+ *  nei vari blocchi, e potento aggiornare le informazioni di ogni termine on-the-fly, non e' necessario mantenere tali
+ *  strutture in memoria
+ */
+

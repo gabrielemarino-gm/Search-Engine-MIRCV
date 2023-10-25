@@ -147,5 +147,35 @@ public class QueryManager {
     }
 }
 
+/*
+ * Tale classe si occupa di ricevere le query dall'utente, effettuare il preprocessing della stessa ed utilizzare i
+ *  token generati per trovare i documenti migliori.
+ *  L'approccio seguito e' Document At A Time.
+ *
+ * La ricerca di ogni termine nel vocabolario viene effettuata tramite ricerca binaria O(log n):
+ *  si riceve un token, si guarda il termine presente a meta' dizionario: se il termine trovato ha ordine lessicografico
+ *  maggiore del token, allora il termine per quel token si trova nella prima meta' del dizionario, altrimenti si trovera'
+ *  nella seconda meta' del dizionario. Il processo e' ripetuto finche non si trova il termine o finche non si arriva alla
+ *  condizione di stop (DA DEFINIRE), e quindi tale termine non e' presente nell'InvertedIndex.
+ *
+ * Il comportamento da tenere se un termine non esiste e' (DA DEFINIRE).
+ *
+ * Tale classe prevede l'aggiunta di una struttura di tipo cache per mantenere in memoria i TermInfo piu recenti
+ *  Approccio simile a LIFO:
+ *  - Prima di effettare la ricerca binaria, si controlla se tale termine e' presente nella cache
+ *  - Se fosse presente, va utilizzato e rimesso "in cima"
+ *  - Se non fosse presente, va effettuata la ricerca binaria e poi messo "in cima" alla cache
+ *  Supponendo di avere una Coda di massimo 1000 elementi, all'aggiunta del 1001 esimo elemento, esso verra messo "in cima"
+ *   mentre l'elemento ultimo sara' rimosso (l'ultimo elemento equivale a quello cercato meno frequentemente)
+ *
+ * Tale approccio permette di risparmiare il tempo di lettura da file dei termini, ma allo stesso tempo evita di tenere
+ *  tutto il dizionario in memoria (utile nel caso si voglia utilizzare tale motore di ricerca su un dispositivo con poca
+ *  memoria)
+ *
+ * Tale meccanismo di Cache puo essere esteso anche a query intere
+ *  La Cache di cui discusso pocanzi, mantiene in memoria fino a X TermInfo
+ *  La Cache di cui discusso ora, mantiene in memoria fino a Y coppie di <Lista di Token, Top K PID retrieved>
+ *   Non ha senso calcolare di nuovo gli score di una query gia calcolata di recente da qualcun'altro
+ */
 
 

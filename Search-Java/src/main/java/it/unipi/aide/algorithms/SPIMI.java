@@ -309,3 +309,27 @@ public class SPIMI
     }
 }
 
+/*
+ * La seguente classe si occupa esclusivamente di creare blocchi parziali di Inverted Index, a partire dal Corpus intero.
+ *  La creazione di piu blocchi e' necessaria, in quanto una macchina non ha memoria infinita.
+ *
+ * In particolare: per ogni documento del Corpus, viene effettuato un preprocessing (comprensivo di Stemming, rimozione delle Stopwords,
+ *  rimozione di tag HTML e URL, lowercasing, eccetera).
+ *  Il documento e' quindi ridotto ad una lista di Token, che saranno usati per aggiornare i Posting per quel documento.
+ *  La struttura del Vocabolario e dell'Inverted Index, gestiscono internamente l'aggiunta di nuovi Posting o Termini.
+ *  Al raggiungimento di un certo limite di memoria libera, le strutture parziali saranno scritte su disco e liberate per continuare
+ *  lo stesso processo con la prossima partizione del Corpus.
+ *
+ * Si noti che viene creato anche un Document Index, contenente informazioni per ogni documento
+ *  Tale struttura non richiede il partizionamento, in quanto ogni documento e' semplicemente scritto in modalita "append"
+ *  alla fine dell'apposito file
+ *
+ * Quando il Corpus viene esaurito, vengono scritte due delle informazioni globali utilizzate in seguito:
+ *  Document Average Length e Total Documents nella collezione
+ *  Anche questa scrittura puo essere fatta direttamente su file, ed e' gestita automaticamente dell'apposita classe
+ *
+ * Al termine dell'algoritmo di SPIMI, inizia il Merging dei blocchi
+ * NB: Il Merging, seppur implementato in una classe diversa, fa parte di SPIMI, ma per questioni di divisione del lavoro tra membri
+ *  del gruppo e' stata creata (temporaneamente o permanentemente) una classe diversa
+ */
+

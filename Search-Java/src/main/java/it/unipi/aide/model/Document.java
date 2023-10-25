@@ -7,7 +7,8 @@ import java.util.List;
  */
 public class Document
 {
-    public static final long SIZE = 64L + 4L + 4L;
+    public static final int PID_SIZE = 64;
+    public static final long SIZE = PID_SIZE + 4L + 4L;
 
     private String pid;
     private int docid;
@@ -55,3 +56,12 @@ public class Document
                 '}';
     }
 }
+
+/*
+ * La seguente classe rappresenta un documento della collezione gia preprocessato e inserito nel Document Index
+ *  Contiene le informazioni principali ai fini della ricerca e del calcolo degli score:
+ *  - tokenCount
+ *
+ * Ai fini della programmazione ad oggetti, contiene anche una lista di token, in quanto tale classe e' istanziata
+ *  alla fine della fase di preprocessing
+ */

@@ -71,3 +71,10 @@ public class Vocabulary
         return result.toString();
     }
 }
+
+/*
+ * Tale classe rappresenta il vocabolario di tutti i termini presenti nel Corpus o in partizioni di esso
+ *  Eventuali occorrenze multiple di ogni termine nello stesso o in diversi documenti, e' gestita automaticamente
+ *  consentendo quindi di tarare il calcolo del numero dei Posting e di TF per quel termine nella partizione
+ *
+ */

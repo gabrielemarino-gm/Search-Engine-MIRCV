@@ -136,3 +136,15 @@ public class Compressor {
         arr[0] = (byte)(arr[0] >>> 1);
     }
 }
+
+/*
+ * Tale classe implementa i vari metodi di compressione utilizzati in Merging.Java, e varie funzioni di utilita
+ *
+ * La compressione Unaria e' fatta creando un "mega array" di tanti byte quanti sono necessari a comprimere tutti i numeri
+ *  dopodiche, vengono shiftati verso sinistra 1 e 0 a seconda della rappresentazione unaria del numero sotto analisi
+ * La decompressione Unaria e' fatta in maniera analoga shiftando verso destra e contando gli 1 e 0 per determinare
+ *  il valore del numero compresso
+ *
+ * La compressione VariableByte e' da farsi
+ * La decompressione VariableByte e' da farsi
+ */
