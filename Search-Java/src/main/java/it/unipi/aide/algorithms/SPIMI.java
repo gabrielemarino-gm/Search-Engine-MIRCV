@@ -23,8 +23,8 @@ import java.util.List;
 public class SPIMI 
 {
     private final boolean MAX_MEM;
-    private final String inputPath;
-    private final String outputPath;
+    private final String INPUT_PATH;
+    private final String WORK_DIR_PATH;
 
     private Vocabulary vocabulary;
     private InvertedIndex invertedIndex;
@@ -37,15 +37,15 @@ public class SPIMI
     /**
      * SPIMI constructor
      * @param inputPath Where the Corpus to process is located
-     * @param outputPath Where to output partial results
+     * @param workDirPath Where to output partial results
      * @param maxMem Max memory allowed in %
      * @param stemming Enable stemming
      */
-    public SPIMI(String inputPath, String outputPath, boolean maxMem, boolean stemming)
+    public SPIMI(String inputPath, String workDirPath, boolean maxMem, boolean stemming)
     {
         this.MAX_MEM = maxMem;
-        this.inputPath = inputPath;
-        this.outputPath = outputPath;
+        this.INPUT_PATH = inputPath;
+        this.WORK_DIR_PATH = workDirPath;
 
         vocabulary = new Vocabulary();
         invertedIndex = new InvertedIndex();
@@ -53,12 +53,13 @@ public class SPIMI
         incrementalBlockNumber = 0;
         numBlocksPosting = 0;
 
-        System.out.println("LOG:        -----SPIMI-----");
-        System.out.println("LOG:        MAX_MEM = " + maxMem);
-        System.out.println("LOG:        inputPath = " + inputPath);
-        System.out.println("LOG:        outputPath = " + outputPath);
-        System.out.println("LOG:        stemming = " + stemming);
-        System.out.println("LOG:        ---------------");
+        System.out.println(String.format(
+                "-----SPIMI-----\nMAX_MEM = %b\nINPUT_PATH = %s\nWORK_DIR_PATH = %s\nSTEMMING = %b\n---------------",
+                MAX_MEM,
+                INPUT_PATH,
+                WORK_DIR_PATH,
+                stemming
+        ));
     }
 
     /**
@@ -68,12 +69,12 @@ public class SPIMI
      */
     public int algorithm(boolean debug)
     {
-        System.out.println("Starting algorithm...");
+        System.out.println("Starting SPIMI algorithm...");
 
         // Starting cleaning the folder
-        FileManager.cleanFolder(outputPath);
-        Corpus corpus = new Corpus(inputPath);
-        DocumentIndex documentIndex = new DocumentIndex(outputPath);
+        FileManager.cleanFolder(WORK_DIR_PATH);
+        Corpus corpus = new Corpus(INPUT_PATH);
+        DocumentIndex documentIndex = new DocumentIndex(WORK_DIR_PATH);
 
         // For each documents
         for(String doc: corpus)
@@ -133,7 +134,7 @@ public class SPIMI
 
             if (docid%100000 == 0)
             {
-                printMemInfo();
+//                printMemInfo();
                 System.out.println("LOG:\t\tDocuments processed " + docid);
             }
         }
@@ -156,16 +157,15 @@ public class SPIMI
         return incrementalBlockNumber;
     }
 
-
     /**
      * Write partial Inverted Index on the disk
      * @return true upon success, false otherwise
      */
     public boolean writeBlockToDisk(boolean debug)
     {
-        String docPath = outputPath+"partial/docIDsBlock-"+ incrementalBlockNumber;
-        String freqPath = outputPath+"partial/frequenciesBlock-"+ incrementalBlockNumber;
-        String vocPath = outputPath+"partial/vocabularyBlock-"+ incrementalBlockNumber;
+        String docPath = WORK_DIR_PATH +"partial/docIDsBlock-"+ incrementalBlockNumber;
+        String freqPath = WORK_DIR_PATH +"partial/frequenciesBlock-"+ incrementalBlockNumber;
+        String vocPath = WORK_DIR_PATH +"partial/vocabularyBlock-"+ incrementalBlockNumber;
 
         if(!FileManager.checkFile(docPath)) FileManager.createFile(docPath);
         if(!FileManager.checkFile(freqPath)) FileManager.createFile(freqPath);
@@ -186,7 +186,7 @@ public class SPIMI
             // Create the buffer where write the streams of bytes
             MappedByteBuffer docIdBuffer = docIdFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numBlocksPosting*4L);
             MappedByteBuffer frequencyBuffer = frequencyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numBlocksPosting*4L);
-            MappedByteBuffer vocabularyBuffer = vocabularyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, vocabulary.getTerms().size()*TermInfo.SIZE);
+            MappedByteBuffer vocabularyBuffer = vocabularyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, vocabulary.getTerms().size()*TermInfo.SIZE_PRE_MERGING);
 
             // Used to write TermInfo on the disk, one next to the other
             long partialOffset = 0;
@@ -199,7 +199,8 @@ public class SPIMI
                 termInfo.setOffset(partialOffset);
 
                 // Write vocabulary entry
-                String paddedTerm = String.format("%-64s", termInfo.getTerm()).substring(0, 64); // Pad with spaces up to 64 characters
+                StringBuilder pattern = new StringBuilder("%-").append(TermInfo.SIZE_TERM).append("s");
+                String paddedTerm = String.format(pattern.toString(), termInfo.getTerm()).substring(0, TermInfo.SIZE_TERM); // Pad with spaces up to 64 characters
 
                 // Write
                 vocabularyBuffer.put(paddedTerm.getBytes());
@@ -225,15 +226,15 @@ public class SPIMI
         // Debug version to write plain text
         if (debug)
         {
-            FileManager.createDir(outputPath + "partial/debug/");
+            FileManager.createDir(WORK_DIR_PATH + "partial/debug/");
             try(
                 // Write inverted index to debug text file
                 BufferedWriter indexWriter = new BufferedWriter(
-                        new FileWriter(outputPath + "partial/debug/Block-" + incrementalBlockNumber + ".txt")
+                        new FileWriter(WORK_DIR_PATH + "partial/debug/Block-" + incrementalBlockNumber + ".txt")
                 );
                 // Write vocabulary to debug text file
                 BufferedWriter vocabularyWriter = new BufferedWriter(
-                        new FileWriter(outputPath + "partial/debug/vocabulary-" + incrementalBlockNumber + ".txt")
+                        new FileWriter(WORK_DIR_PATH + "partial/debug/vocabulary-" + incrementalBlockNumber + ".txt")
                 )
             )
             {

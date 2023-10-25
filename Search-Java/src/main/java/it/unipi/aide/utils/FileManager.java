@@ -131,6 +131,12 @@ public class FileManager
     {
         File directory = new File(path);
 
+        // If directory doesn't exist, it creates one and leave
+        if(!directory.exists()){
+            createDir(path);
+            return;
+        }
+
         String[] entries = directory.list();
         if (entries != null)
         {

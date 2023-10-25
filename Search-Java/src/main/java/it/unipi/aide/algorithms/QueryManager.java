@@ -17,37 +17,27 @@ import java.util.List;
 
 public class QueryManager {
 
-    private final String INPUT_PATH;
+    private final String WORK_DIR_PATH;
     private Vocabulary vocabulary;
     private DocumentIndex documentIndex;
 
     public QueryManager(String in_path){
-        INPUT_PATH = in_path;
-        long time1 = System.currentTimeMillis();
-        documentIndex =  new DocumentIndex(INPUT_PATH+"../");
+        WORK_DIR_PATH = in_path;
+        documentIndex =  new DocumentIndex(WORK_DIR_PATH);
+
         loadVocabulary();
-        long time2 = System.currentTimeMillis();
-        System.out.println(String.format("Vocabulary loading time: %.2f ms",(double)(time2-time1)));
     }
 
     public void makeQuery(){
 
 //        System.out.println(vocabulary);
-
-//        long time1 = System.currentTimeMillis();
-//        List<Posting> list1 = getPostingsByTerm("bomb");
-//        List<Posting> list2 = getPostingsByTerm("manhattan");
-//        List<Posting> list3 = getPostingsByTerm("project");
-//        List<Posting> list4 = getPostingsByTerm("rich");
-//        List<Posting> list5 = getPostingsByTerm("war");
-//        long time2 = System.currentTimeMillis();
-
-//        System.out.println(String.format("Retrieving 5 terms time: %.2f ms", (double)(time2-time1)));
-//        System.out.println("[manhattan]" + getPostingsByTerm("bomb"));
+//
+//        System.out.println("[bomb]" + getPostingsByTerm("bomb"));
 //        System.out.println("[manhattan]" + getPostingsByTerm("manhattan"));
 //        System.out.println("[project]" + getPostingsByTerm("project"));
 //        System.out.println("[rich]" + getPostingsByTerm("rich"));
 //        System.out.println("[war]" + getPostingsByTerm("war"));
+//
 //        for(int i = 0; i<10;i++){ // 10 documenti di supermini
 //            System.out.println(documentIndex.get(i));
 //        }
@@ -68,8 +58,8 @@ public class QueryManager {
 
         List<Posting> toRet = new ArrayList<>();
 
-        String docsPath = INPUT_PATH + "docIDsBlock";
-        String freqPath = INPUT_PATH + "frequenciesBlock";
+        String docsPath = WORK_DIR_PATH + "docIDsBlock";
+        String freqPath = WORK_DIR_PATH + "frequenciesBlock";
         try
         {
             FileChannel docsChannel = (FileChannel) Files.newByteChannel(Paths.get(docsPath),
@@ -109,12 +99,12 @@ public class QueryManager {
     private void loadVocabulary() {
         vocabulary = new Vocabulary();
 
-        String vocPath = INPUT_PATH + "vocabularyBlock";
+        String vocPath = WORK_DIR_PATH + "vocabularyBlock";
         try {
             FileChannel vocChannel = (FileChannel) Files.newByteChannel(Paths.get(vocPath),
                     StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
 
-            for(long offset = 0; offset < vocChannel.size(); offset+= TermInfo.SIZE){
+            for(long offset = 0; offset < vocChannel.size(); offset += TermInfo.SIZE_POST_MERGING){
                 TermInfo nextTerm = getNextVoc(vocChannel, offset);
                 vocabulary.set(nextTerm);
             }
@@ -132,18 +122,20 @@ public class QueryManager {
      * @throws IOException
      */
     private TermInfo getNextVoc(FileChannel fileChannel, long offsetVocabulary) throws IOException{
-        MappedByteBuffer tempBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, offsetVocabulary, TermInfo.SIZE);
+        MappedByteBuffer tempBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, offsetVocabulary, TermInfo.SIZE_POST_MERGING);
 
-        byte[] termBytes = new byte[64];
+        byte[] termBytes = new byte[TermInfo.SIZE_TERM];
         tempBuffer.get(termBytes);
 
         int frequency = tempBuffer.getInt();
         long offset = tempBuffer.getLong();
+        long docidBytes = tempBuffer.getLong();
+        long freqBytes = tempBuffer.getLong();
         int nPosting = tempBuffer.getInt();
 
         String term = new String(termBytes).trim();
 
-        return new TermInfo(term, frequency, offset, nPosting);
+        return new TermInfo(term, frequency, offset, docidBytes, freqBytes, nPosting);
     }
 }
 

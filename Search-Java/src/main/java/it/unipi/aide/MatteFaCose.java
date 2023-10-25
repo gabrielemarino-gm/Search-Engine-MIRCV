@@ -1,23 +1,18 @@
 package it.unipi.aide;
 
 import it.unipi.aide.model.Posting;
-import it.unipi.aide.model.PostingList;
 import it.unipi.aide.model.TermInfo;
 import it.unipi.aide.model.Vocabulary;
 import it.unipi.aide.utils.Commons;
-import it.unipi.aide.utils.Compressor;
 
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import com.sun.management.OperatingSystemMXBean;
-import java.nio.ByteBuffer;
+
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class MatteFaCose {
@@ -26,43 +21,35 @@ public class MatteFaCose {
     private static final String INPUT_PATH = "data/out/complete/";
 
         public static void main(String[] argv){
-//        loadVocabulary();
-//
-//        List<Posting> pl = getPostingsByTerm("viru");
-//        System.out.println(pl);
-//        ByteBuffer bb = ByteBuffer.allocate(pl.size()*4);
-//        for(Posting p : pl) {
-//            bb.putInt(p.getFrequency());
-//        }
-//
-//        byte[] compressed = Compressor.UnaryCompression(bb.array());
-////        for(byte b: compressed) System.out.println(String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0'));
-//        int[] decompressed = Compressor.UnaryDecompression(compressed);
-//        for(int i: decompressed) System.out.println(i);
 
-            boolean talk = true;
-            ArrayList<Integer> t = new ArrayList<>();
-            for(int i = 0; i <80_000_000; i++){
-                t.add(i);
-                if(i % 10_000_000 == 0){
-                    System.out.println(String.format("--VIR--\nMax: %.2f Mb\nTotal: %.2f Mb\nFree: %.2f Mb",Runtime.getRuntime().maxMemory()/Math.pow(10,6),Runtime.getRuntime().totalMemory()/Math.pow(10,6),Runtime.getRuntime().freeMemory()/Math.pow(10,6)));
-                    OperatingSystemMXBean os = (OperatingSystemMXBean)ManagementFactory.getOperatingSystemMXBean();
-                    double totalMem = os.getTotalPhysicalMemorySize()/Math.pow(10,6);
-                    double freeMem = os.getFreePhysicalMemorySize()/Math.pow(10,6);
-                    double occMem = totalMem - freeMem;
+            long a = System.currentTimeMillis();
+            byte[] test1 = new byte[] {10, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30};
+            byte[] test2 = new byte[] {50, 100, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30};
+            byte[] test3 = new byte[] {10, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30};
+            byte[] test4 = new byte[] {50, 100, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30};
+            byte[] test5 = new byte[] {10, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30};
+            byte[] test6 = new byte[] {50, 100, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30};
 
-                    System.out.println(String.format("--PHY--\nTotal: %.2f Mb\nFree: %.2f Mb\nOccupied: %.2f Mb\n-------",totalMem,freeMem,occMem));
-                }
-                if((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) > Runtime.getRuntime().maxMemory() * 5/10){
-//                    if(talk){
-                        talk = false;
-                        System.out.println("Cleaning array");
-                        t = new ArrayList<>();
-                        System.gc();
-//                    }
-                }
-                if(Runtime.getRuntime().totalMemory() > Runtime.getRuntime().maxMemory()*8/10) System.exit(9);
+            List<byte[]> summer = new ArrayList<>();
+
+            summer.add(test1);
+            summer.add(test2);
+            summer.add(test3);
+            summer.add(test4);
+            summer.add(test5);
+            summer.add(test6);
+
+            int len = summer.stream().mapToInt(elem -> elem.length).sum();
+
+            byte[] summ = new byte[len];
+            int os = 0;
+            for(byte[] v: summer){
+                System.arraycopy(v,0,summ,os,v.length);
+                os += v.length;
             }
+            System.out.println(System.currentTimeMillis() - a);
+
+
     }
 
     /**
@@ -76,7 +63,7 @@ public class MatteFaCose {
             FileChannel vocChannel = (FileChannel) Files.newByteChannel(Paths.get(vocPath),
                     StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
 
-            for(long offset = 0; offset < vocChannel.size(); offset+= TermInfo.SIZE){
+            for(long offset = 0; offset < vocChannel.size(); offset+= TermInfo.SIZE_PRE_MERGING){
                 TermInfo nextTerm = getNextVoc(vocChannel, offset);
                 vocabulary.set(nextTerm);
             }
@@ -95,7 +82,7 @@ public class MatteFaCose {
      * @throws IOException
      */
     private static TermInfo getNextVoc(FileChannel fileChannel, long offsetVocabulary) throws IOException{
-        MappedByteBuffer tempBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, offsetVocabulary, TermInfo.SIZE);
+        MappedByteBuffer tempBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, offsetVocabulary, TermInfo.SIZE_PRE_MERGING);
 
         byte[] termBytes = new byte[64];
         tempBuffer.get(termBytes);
