@@ -32,6 +32,8 @@ public class SPIMI
     private int incrementalBlockNumber;
     private int numBlocksPosting;
 
+    private CollectionInformation ci;
+
     private int docid = 0;
 
     /**
@@ -52,6 +54,8 @@ public class SPIMI
         preprocesser = new Preprocesser(stemming);
         incrementalBlockNumber = 0;
         numBlocksPosting = 0;
+
+        ci = new CollectionInformation(WORK_DIR_PATH);
 
         System.out.println(String.format(
                 "-----SPIMI-----\nMAX_MEM = %b\nINPUT_PATH = %s\nWORK_DIR_PATH = %s\nSTEMMING = %b\n---------------",
@@ -76,6 +80,9 @@ public class SPIMI
         Corpus corpus = new Corpus(INPUT_PATH);
         DocumentIndex documentIndex = new DocumentIndex(WORK_DIR_PATH);
 
+        // Terms in all documents
+        long termSum = 0;
+
         // For each documents
         for(String doc: corpus)
         {
@@ -88,6 +95,9 @@ public class SPIMI
             String pid = docParts[0];
             String text = docParts[1];
             List<String> tokens = preprocesser.process(text);
+
+            // To update AvarageDocumentLenght
+            termSum += tokens.size();
 
             Document document = new Document(pid, docid, tokens);
             documentIndex.add(document);
@@ -152,6 +162,11 @@ public class SPIMI
         {
             System.out.println("ERROR:\t\tNot able to write the binary file");
         }
+
+        // Write CollectionDocument number and AvarageDocumentLenght
+        CollectionInformation.setTotalDocuments(docid);
+        CollectionInformation.setAverageDocumentLength(termSum / docid);
+
 
         // There will be 'incrementalBlockNumber' blocks, but the last one has index 'incrementalBlockNumber - 1'
         return incrementalBlockNumber;

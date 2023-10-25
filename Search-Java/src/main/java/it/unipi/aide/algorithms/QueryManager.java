@@ -1,9 +1,6 @@
 package it.unipi.aide.algorithms;
 
-import it.unipi.aide.model.DocumentIndex;
-import it.unipi.aide.model.Posting;
-import it.unipi.aide.model.TermInfo;
-import it.unipi.aide.model.Vocabulary;
+import it.unipi.aide.model.*;
 import it.unipi.aide.utils.Commons;
 
 import java.io.IOException;
@@ -20,10 +17,12 @@ public class QueryManager {
     private final String WORK_DIR_PATH;
     private Vocabulary vocabulary;
     private DocumentIndex documentIndex;
+    private CollectionInformation ci;
 
     public QueryManager(String in_path){
         WORK_DIR_PATH = in_path;
         documentIndex =  new DocumentIndex(WORK_DIR_PATH);
+        ci = new CollectionInformation(WORK_DIR_PATH);
 
         loadVocabulary();
     }
@@ -41,6 +40,13 @@ public class QueryManager {
 //        for(int i = 0; i<10;i++){ // 10 documenti di supermini
 //            System.out.println(documentIndex.get(i));
 //        }
+
+        System.out.println(String.format("Document Count: %d\nTerms Count: %d\nAVDL: %d",
+                CollectionInformation.getTotalDocuments(),
+                CollectionInformation.getTotalTerms(),
+                CollectionInformation.getAverageDocumentLength()
+                )
+        );
 
     }
 

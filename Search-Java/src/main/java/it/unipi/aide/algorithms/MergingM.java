@@ -20,6 +20,8 @@ public class MergingM
     private final boolean COMPRESSION;
     private final int BLOCKS_COUNT;
 
+    private CollectionInformation ci;
+
     long finalOffset = 0;
     long vFinalOffset = 0;
 
@@ -39,6 +41,7 @@ public class MergingM
         ));
 
         this.PARTIALS_PATH = WORK_DIR_PATH+"partial/";
+        ci = new CollectionInformation(WORK_DIR_PATH);
     }
 
     /**
@@ -64,24 +67,24 @@ public class MergingM
 
             TermInfo[] vocs = new TermInfo[BLOCKS_COUNT];
 
-            try
+            String FdocPath = WORK_DIR_PATH + "docIDsBlock";
+            String FfreqPath = WORK_DIR_PATH + "frequenciesBlock";
+            String FvocPath = WORK_DIR_PATH + "vocabularyBlock";
+
+            if(!FileManager.checkDir(FdocPath)) FileManager.createFile(FdocPath);
+            if(!FileManager.checkDir(FfreqPath)) FileManager.createFile(FfreqPath);
+            if(!FileManager.checkDir(FvocPath)) FileManager.createFile(FvocPath);
+
+            try (
+                    // Open FileChannels to each file
+                    FileChannel finalDocIDChannel = (FileChannel) Files.newByteChannel(Paths.get(FdocPath),
+                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+                    FileChannel finalFreqChannel = (FileChannel) Files.newByteChannel(Paths.get(FfreqPath),
+                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+                    FileChannel finalVocChannel = (FileChannel) Files.newByteChannel(Paths.get(FvocPath),
+                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+                    )
             {
-                String FdocPath = WORK_DIR_PATH + "docIDsBlock";
-                String FfreqPath = WORK_DIR_PATH + "frequenciesBlock";
-                String FvocPath = WORK_DIR_PATH + "vocabularyBlock";
-
-                if(!FileManager.checkDir(FdocPath)) FileManager.createFile(FdocPath);
-                if(!FileManager.checkDir(FfreqPath)) FileManager.createFile(FfreqPath);
-                if(!FileManager.checkDir(FvocPath)) FileManager.createFile(FvocPath);
-
-                // Open FileChannels to each file
-                FileChannel finalDocIDChannel = (FileChannel) Files.newByteChannel(Paths.get(FdocPath),
-                        StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
-                FileChannel finalFreqChannel = (FileChannel) Files.newByteChannel(Paths.get(FfreqPath),
-                        StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
-                FileChannel finalVocChannel = (FileChannel) Files.newByteChannel(Paths.get(FvocPath),
-                        StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
-
                 // INIT PHASE
                 for (int indexBlock = 0; indexBlock < BLOCKS_COUNT; indexBlock++)
                 {
@@ -91,11 +94,11 @@ public class MergingM
 
                     // Open FileChannels to each file
                     docIdFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(docPath),
-                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+                            StandardOpenOption.READ);
                     frequenciesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
-                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+                            StandardOpenOption.READ);
                     vocabulariesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(vocPath),
-                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+                            StandardOpenOption.READ);
 
                     dimVocabularyFile[indexBlock] = vocabulariesFileChannel[indexBlock].size();
 
@@ -233,6 +236,7 @@ public class MergingM
                 // Delete temporary blocks
                 FileManager.deleteDir(PARTIALS_PATH);
                 System.out.println(String.format("LOG:\t\tTotal terms in the Lexicon is %d", nTerms));
+                CollectionInformation.setTotalTerms(nTerms);
             }
             catch (Exception e)
             {
@@ -295,7 +299,7 @@ public class MergingM
      */
     private TermInfo getNextVoc(FileChannel fileChannel, long offsetVocabulary) throws IOException
     {
-        MappedByteBuffer tempBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, offsetVocabulary, TermInfo.SIZE_PRE_MERGING);
+        MappedByteBuffer tempBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, offsetVocabulary, TermInfo.SIZE_PRE_MERGING);
 
         byte[] termBytes = new byte[TermInfo.SIZE_TERM];
         tempBuffer.get(termBytes);
@@ -322,7 +326,7 @@ public class MergingM
                                FileChannel toChannel, long toOffset, int nPostings) throws IOException
     {
         // Buffer from offset to offset + 4L*nPosting bytes
-        MappedByteBuffer tempInBuff = fromChannel.map(FileChannel.MapMode.READ_WRITE,
+        MappedByteBuffer tempInBuff = fromChannel.map(FileChannel.MapMode.READ_ONLY,
                 fromOffset, 4L*nPostings);
         MappedByteBuffer tempOutBuff = toChannel.map(FileChannel.MapMode.READ_WRITE,
                 toOffset, 4L*nPostings);
@@ -344,7 +348,7 @@ public class MergingM
     private byte[] extractBytes(FileChannel fromChannel, long offset, int nPosting) throws IOException
     {
         // Buffer to extract bytes from
-        MappedByteBuffer tempBuff = fromChannel.map(FileChannel.MapMode.READ_WRITE,
+        MappedByteBuffer tempBuff = fromChannel.map(FileChannel.MapMode.READ_ONLY,
                 offset, 4L*nPosting);
         // Where to place those bytes
         byte[] tempBytes = new byte[4 * nPosting];
