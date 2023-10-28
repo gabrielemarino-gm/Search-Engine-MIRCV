@@ -7,7 +7,7 @@ import java.util.List;
 public class Compressor {
 
     /**
-     * Converts an array of bytes in an array of Unary Compressed bytes
+     * Compress an array of bytes in an array of Unary Compressed bytes
      * @param fromBytes Array of bytes to compress
      * @return Array of bytes representing the compressed numbers
      */
@@ -29,7 +29,7 @@ public class Compressor {
     }
 
     /**
-     * Converts an Array of bytes into an Array of Integers, using Unary Decompression
+     * Decompress an Array of bytes into an Array of Integers, using Unary Decompression
      * @param fromBytes Array of bytes to decompress
      * @return Array of integer decompressed
      */
@@ -58,6 +58,27 @@ public class Compressor {
                 temp[i] = toRet.get(i);
             }
         return temp;
+    }
+
+    /**
+     * Compress an Array of bytes into an Array of Variable Byte compressed numbers
+     * @param fromBytes Array of bytes to compress
+     * @return Array of bytes representing the compression
+     */
+    public static byte[] VariableByteCompression(byte[] fromBytes){
+        int[] ints = toIntArray(fromBytes);
+
+        return new byte[0];
+    }
+
+    /**
+     * Decompress an Array of bytes into an array of integer, using Variable Byte Decompression
+     * @param fromBytes Array of Bytes to convert
+     * @return Array of integers converted
+     */
+    public static int[] VariableByteDecompression(byte[] fromBytes){
+
+        return new int[0];
     }
 
     /**
@@ -115,3 +136,15 @@ public class Compressor {
         arr[0] = (byte)(arr[0] >>> 1);
     }
 }
+
+/*
+ * Tale classe implementa i vari metodi di compressione utilizzati in Merging.Java, e varie funzioni di utilita
+ *
+ * La compressione Unaria e' fatta creando un "mega array" di tanti byte quanti sono necessari a comprimere tutti i numeri
+ *  dopodiche, vengono shiftati verso sinistra 1 e 0 a seconda della rappresentazione unaria del numero sotto analisi
+ * La decompressione Unaria e' fatta in maniera analoga shiftando verso destra e contando gli 1 e 0 per determinare
+ *  il valore del numero compresso
+ *
+ * La compressione VariableByte e' da farsi
+ * La decompressione VariableByte e' da farsi
+ */

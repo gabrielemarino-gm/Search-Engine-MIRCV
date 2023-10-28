@@ -131,6 +131,12 @@ public class FileManager
     {
         File directory = new File(path);
 
+        // If directory doesn't exist, it creates one and leave
+        if(!directory.exists()){
+            createDir(path);
+            return;
+        }
+
         String[] entries = directory.list();
         if (entries != null)
         {
@@ -151,3 +157,9 @@ public class FileManager
         }
     }
 }
+
+/*
+ * Tale classe e' per la gestione della creazione, controllo e rimozione di file, senza dover implementare ogni volta da 0 le cose
+ *  Si tratta di gestioni semplici come la creazione di folder, file, pulizia di folder o rimozione di esse.
+ * 
+ */

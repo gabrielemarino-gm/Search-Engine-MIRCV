@@ -1,13 +1,10 @@
 package it.unipi.aide.model;
 
-import javax.print.Doc;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 public class Corpus implements Iterable<String>{
     private String INPUT_PATH;
@@ -64,5 +61,14 @@ public class Corpus implements Iterable<String>{
             return toRet;
         }
     }
-
 }
+
+/*
+ * Tale classe rappresenta un Corpus
+ *
+ * In fase di creazione viene aperto un BufferReader verso un path specificato
+ *  La classe quindi implementa l'interfaccia Iterator, e tramite il corretto uso nei for-each, si possono scorrere
+ *  le righe del documento da processare come se fosse un array di stringhe
+ *
+ * la funzione next() restituira semplicemente la prossima riga, finche hasNext() e' true.
+ */

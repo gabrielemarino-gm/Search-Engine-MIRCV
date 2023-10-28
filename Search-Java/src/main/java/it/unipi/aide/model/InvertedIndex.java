@@ -90,6 +90,14 @@ public class InvertedIndex
         result.append("]");
         return result.toString();
     }
-
-
 }
+
+/*
+ * Tale classe rappresenta l'Inverted Index
+ *
+ * Ogni volta che un termine viene aggiunto, vengono gestiti automaticamente i casi in cui il termine non ci fosse,
+ *  fosse gia presente, oppure fosse gia presente e con lo stesso docid del documento corrente.
+ *
+ * Viene implementata anche una funzione clear() per liberare la memoria in fase di SPIMI in maniera sicura
+ *
+ */
