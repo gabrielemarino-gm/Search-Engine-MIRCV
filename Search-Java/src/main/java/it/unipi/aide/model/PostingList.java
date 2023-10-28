@@ -9,6 +9,9 @@ public class PostingList
     private final String term;
     private List<Posting> postingList = new ArrayList<>();
 
+    /* Useful in DAAT: it allows us to traverse the posting list with a pointer-like logic. */
+    private int pointerIndex;
+
     /**
      * Create a new empty Posting List for given term
      * @param term Term to create the list for
@@ -16,6 +19,7 @@ public class PostingList
     public PostingList(String term)
     {
         this.term = term;
+        this.pointerIndex = -1;
     }
 
     /**
@@ -27,8 +31,18 @@ public class PostingList
     {
         this.term = term;
         this.postingList = documentsList;
+        this.pointerIndex = 0;
     }
 
+    public void setPointerIndex(int newIndex) {
+        pointerIndex = newIndex;
+    }
+
+    public int getPointerIndex() {
+        return pointerIndex;
+    }
+
+    /* todo tocheck: is it safe to assume the posting we are adding have the greatest docid of the entire posting list? */
     /**
      * Add a new Posting to the Posting List
      * @param p Posting to append
@@ -68,5 +82,12 @@ public class PostingList
                 "term='" + term + '\'' +
                 ", postingList=" + postingList +
                 '}';
+    }
+
+    public int getPointer() {
+        return pointerIndex;
+    }
+
+    public void setPointer(int i) {
     }
 }
