@@ -18,14 +18,14 @@ import java.util.List;
 
 public class DAAT {
 
-    private int k;
+    private int K;
     private CollectionInformation ci;
     String WORK_DIR_PATH;
 
     HashMap<String, TermInfo> terms = new HashMap<>();
 
     public DAAT(String in_path, int k){
-        this.k = k;
+        this.K = k;
         WORK_DIR_PATH = in_path;
         this.ci = new CollectionInformation(WORK_DIR_PATH);
     }
@@ -46,13 +46,17 @@ public class DAAT {
         boolean stop = false;
 
         while(!stop){
+            // Hypothesis that all the Posting Lists are empty
             stop = true;
             int firstDoc = getSmallestDocid(postingLists);
             ScoredDocument toAdd = new ScoredDocument(firstDoc, 0);
             for(PostingList pl : postingLists){
+                // If at least one Posting List has elements, Hypothesis became false
                 if (pl.getCurrent() != null) {
                     stop = false;
+                    // If Posting List of current term has docId equals to the smallest under consideration, calculate its score
                     if (pl.getCurrent().getDocId() == firstDoc) {
+                        // TODO -> Scoring functions apart and well distinct
                         toAdd.setScore(
                                 (1 + Math.log(pl.getCurrent().getFrequency())) * Math.log(CollectionInformation.getTotalDocuments() / terms.get(pl.getTerm()).getNumPosting())
                         );
@@ -70,7 +74,8 @@ public class DAAT {
             else return 0;
         });
 
-        return scoredDocuments.subList(0, k);
+        // Return top-k documents
+        return scoredDocuments.subList(0, K);
     }
 
     private int getSmallestDocid(List<PostingList> postingLists){
