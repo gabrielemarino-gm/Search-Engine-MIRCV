@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+import it.unipi.aide.utils.ConfigReader;
 
 public class MatteFaCose {
 
@@ -23,8 +24,7 @@ public class MatteFaCose {
 
         public static void main(String[] argv){
 
-            Corpus a = new Corpus(INPUT_PATH);
-
+            System.out.println(ConfigReader.getRawCollectionPath());
     }
 
     /**

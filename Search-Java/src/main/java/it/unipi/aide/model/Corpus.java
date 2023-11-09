@@ -6,7 +6,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Iterator;
 
-public class Corpus implements Iterable<String>{
+public class Corpus implements Iterable<String>
+{
     private String INPUT_PATH;
 
     public Corpus(String in_path) {
@@ -23,24 +24,29 @@ public class Corpus implements Iterable<String>{
     {
         private BufferedReader br = null;
 
-        private DocIterator(){
-            try{
+        private DocIterator()
+        {
+            try
+            {
                 br = new BufferedReader(new FileReader(INPUT_PATH));
             }
-            catch (FileNotFoundException e){
+            catch (FileNotFoundException e)
+            {
                 System.err.println("Input File Not Found");
                 System.exit(1);
             }
         }
 
         @Override
-        public boolean hasNext(){
+        public boolean hasNext()
+        {
             boolean toRet = false;
 
             try
             {
                 toRet = br.ready();
-            } catch (IOException e)
+            }
+            catch (IOException e)
             {
                 e.printStackTrace();
             }
@@ -48,13 +54,15 @@ public class Corpus implements Iterable<String>{
         }
 
         @Override
-        public String next(){
+        public String next()
+        {
             String toRet = null;
 
             try
             {
                 toRet = br.readLine();
-            } catch (IOException e)
+            }
+            catch (IOException e)
             {
                 e.printStackTrace();
             }
