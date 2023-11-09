@@ -1,6 +1,5 @@
 package it.unipi.aide;
 
-import it.unipi.aide.algorithms.Merging;
 import it.unipi.aide.algorithms.MergingM;
 import it.unipi.aide.algorithms.SPIMI;
 

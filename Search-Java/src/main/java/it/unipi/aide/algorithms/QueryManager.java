@@ -1,7 +1,6 @@
 package it.unipi.aide.algorithms;
 
 import it.unipi.aide.model.*;
-import it.unipi.aide.utils.Commons;
 import it.unipi.aide.utils.Preprocesser;
 
 import java.io.IOException;
@@ -10,7 +9,6 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.List;
 
 public class QueryManager {
@@ -19,14 +17,14 @@ public class QueryManager {
     private Vocabulary vocabulary;
     private DocumentIndex documentIndex;
     private CollectionInformation ci; // This class should load configurations from a  file, not manually set
-    private DAATM daat;
+    private DAAT daat;
 
 
     public QueryManager(String in_path){
         WORK_DIR_PATH = in_path;
         documentIndex =  new DocumentIndex(WORK_DIR_PATH);
         ci = new CollectionInformation(WORK_DIR_PATH);
-        daat = new DAATM(WORK_DIR_PATH, 5);
+        daat = new DAAT(WORK_DIR_PATH, 5);
     }
 
     public void makeQuery(String phrase){

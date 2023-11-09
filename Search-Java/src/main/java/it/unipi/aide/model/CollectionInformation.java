@@ -16,10 +16,14 @@ import java.nio.file.StandardOpenOption;
 public class CollectionInformation {
 
     private static String PATH;
-
     private static long TOTAL_DOCUMENTS = 0;            // 0
     private static long TOTAL_TERMS = 0;                // 1
     private static long AVERAGE_DOCUMENT_LENGTH = 0;    // 2
+
+
+    static {
+
+    }
 
     public CollectionInformation(String path) {PATH = path + "CollectionInformation";}
 
