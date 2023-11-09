@@ -1,5 +1,6 @@
 package it.unipi.aide;
 
+import it.unipi.aide.model.Corpus;
 import it.unipi.aide.model.Posting;
 import it.unipi.aide.model.TermInfo;
 import it.unipi.aide.model.Vocabulary;
@@ -22,33 +23,7 @@ public class MatteFaCose {
 
         public static void main(String[] argv){
 
-            long a = System.currentTimeMillis();
-            byte[] test1 = new byte[] {10, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30};
-            byte[] test2 = new byte[] {50, 100, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30};
-            byte[] test3 = new byte[] {10, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30};
-            byte[] test4 = new byte[] {50, 100, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30};
-            byte[] test5 = new byte[] {10, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30};
-            byte[] test6 = new byte[] {50, 100, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30, 20, 30};
-
-            List<byte[]> summer = new ArrayList<>();
-
-            summer.add(test1);
-            summer.add(test2);
-            summer.add(test3);
-            summer.add(test4);
-            summer.add(test5);
-            summer.add(test6);
-
-            int len = summer.stream().mapToInt(elem -> elem.length).sum();
-
-            byte[] summ = new byte[len];
-            int os = 0;
-            for(byte[] v: summer){
-                System.arraycopy(v,0,summ,os,v.length);
-                os += v.length;
-            }
-            System.out.println(System.currentTimeMillis() - a);
-
+            Corpus a = new Corpus(INPUT_PATH);
 
     }
 

@@ -2,6 +2,7 @@ package it.unipi.aide.algorithms;
 
 import it.unipi.aide.model.*;
 import it.unipi.aide.utils.Commons;
+import it.unipi.aide.utils.Preprocesser;
 
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
@@ -17,89 +18,135 @@ public class QueryManager {
     private final String WORK_DIR_PATH;
     private Vocabulary vocabulary;
     private DocumentIndex documentIndex;
-    private CollectionInformation ci;
+    private CollectionInformation ci; // This class should load configurations from a  file, not manually set
+    private DAATM daat;
+
 
     public QueryManager(String in_path){
         WORK_DIR_PATH = in_path;
         documentIndex =  new DocumentIndex(WORK_DIR_PATH);
         ci = new CollectionInformation(WORK_DIR_PATH);
-
-        loadVocabulary();
+        daat = new DAATM(WORK_DIR_PATH, 5);
     }
 
-    public void makeQuery(){
+    public void makeQuery(String phrase){
 
-        System.out.println(vocabulary);
-        TermInfo term = vocabulary.get("bomb");
-        System.out.println(String.format("[%s]\t\t Postings: %d\tDocID Bytes: %d\t Freq Bytes: %d",term.getTerm(), term.getNumPosting(), term.getBytesOccupiedDocid(),term.getBytesOccupiedFreq()));
-//
-        System.out.println("[bomb]" + getPostingsByTerm("bomb"));
-        System.out.println("[manhattan]" + getPostingsByTerm("manhattan"));
-        System.out.println("[project]" + getPostingsByTerm("project"));
-        System.out.println("[rich]" + getPostingsByTerm("rich"));
-        System.out.println("[war]" + getPostingsByTerm("war"));
-//
-//        for(int i = 500; i<520;i++){ // 10 documenti di supermini
-//            System.out.println(documentIndex.get(i));
-//        }
+//        TermInfo term = vocabulary.get("bomb");
+//        System.out.println(String.format("[%s]\t\t Postings: %d\tDocID Bytes: %d\t Freq Bytes: %d",term.getTerm(), term.getNumPosting(), term.getBytesOccupiedDocid(),term.getBytesOccupiedFreq()));
 
-//        System.out.println(String.format("Document Count: %d\nTerms Count: %d\nAVDL: %d",
-//                CollectionInformation.getTotalDocuments(),
-//                CollectionInformation.getTotalTerms(),
-//                CollectionInformation.getAverageDocumentLength()
+
+        List<String> tokens = new Preprocesser(true).process(phrase);
+        List<ScoredDocument> top_k = daat.executeDAAT(tokens);
+
+        for(ScoredDocument d : top_k) System.out.println(String.format("PID: %s\tScore: %f", d.getDocID(), d.getScore()));
+    }
+
+//    private TermInfo binarySearch(String term)
+//    {
+//        try(
+//                FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(WORK_DIR_PATH + "vocabularyBlock"),
+//                        StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
 //                )
-//        );
+//        {
+//            long WIN_DOWN = 0;
+//            long WIN_UP = CollectionInformation.getTotalTerms();
+//            while (true)
+//            {
+//                long MID_POINT = (WIN_UP - WIN_DOWN)/ 2 + WIN_DOWN;
+//                if(MID_POINT == 0) return null;
+//                TermInfo middleTerm = getTerm(channel, MID_POINT);
+//
+//                int comp = middleTerm.getTerm().compareTo(term);
+//                if (comp == 0)
+//                {
+//                    // Found
+//                    return middleTerm;
+//                }
+//                else if (comp > 0)
+//                {
+//                    // Right half
+//                    WIN_UP = MID_POINT;
+//                }
+//                else
+//                {
+//                    // Second half
+//                    WIN_DOWN = MID_POINT;
+//                }
+//
+//            }
+//
+//        }
+//        catch (IOException e)
+//        {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
 
-    }
-
+//    private TermInfo getTerm(FileChannel channel, long from) throws IOException
+//    {
+//        MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY,from * TermInfo.SIZE_POST_MERGING, TermInfo.SIZE_POST_MERGING);
+//
+//        byte[] termBytes = new byte[TermInfo.SIZE_TERM];
+//        buffer.get(termBytes);
+//
+//        String term = new String(termBytes).trim();
+//        int totFreq = buffer.getInt();
+//        long off = buffer.getLong();
+//        long docBytes = buffer.getLong();
+//        long freqBytes = buffer.getLong();
+//        int nPost = buffer.getInt();
+//
+//        return new TermInfo(term, totFreq, off, docBytes, freqBytes, nPost);
+//    }
 
     /**
      * Get the posting list from bin blocks
      * @param term Term to retrieve posting list
      * @return Posting List of given term
      */
-    public List<Posting> getPostingsByTerm(String term)
-    {
-        TermInfo toRetrieve = vocabulary.get(term);
-
-        if (toRetrieve == null) return null;
-
-        List<Posting> toRet = new ArrayList<>();
-
-        String docsPath = WORK_DIR_PATH + "docIDsBlock";
-        String freqPath = WORK_DIR_PATH + "frequenciesBlock";
-        try
-        {
-            FileChannel docsChannel = (FileChannel) Files.newByteChannel(Paths.get(docsPath),
-                    StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
-            FileChannel freqChannel = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
-                    StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
-
-            long toRead = 4L * toRetrieve.getNumPosting();
-
-            MappedByteBuffer docBuffer = docsChannel.map(FileChannel.MapMode.READ_WRITE, toRetrieve.getOffset(), toRead);
-            MappedByteBuffer freqBuffer = freqChannel.map(FileChannel.MapMode.READ_WRITE, toRetrieve.getOffset(), toRead);
-            byte[] docBytes = new byte[toRetrieve.getNumPosting() * 4];
-            byte[] freqBytes = new byte[toRetrieve.getNumPosting() * 4];
-            docBuffer.get(docBytes);
-            freqBuffer.get(freqBytes);
-
-            for (int i = 0; i < toRetrieve.getNumPosting(); i++) {
-                byte[] tempDocBytes = new byte[4];
-                byte[] tempFreqBytes = new byte[4];
-                System.arraycopy(docBytes, i*4, tempDocBytes, 0 ,4);
-                System.arraycopy(freqBytes, i*4, tempFreqBytes, 0 ,4);
-
-                toRet.add(new Posting(Commons.bytesToInt(tempDocBytes), Commons.bytesToInt(tempFreqBytes)));
-            }
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-
-        return toRet;
-    }
+//    public List<Posting> getPostingsByTerm(String term)
+//    {
+//        TermInfo toRetrieve = binarySearch(term);
+//
+//        if (toRetrieve == null) return null;
+//
+//        List<Posting> toRet = new ArrayList<>();
+//
+//        String docsPath = WORK_DIR_PATH + "docIDsBlock";
+//        String freqPath = WORK_DIR_PATH + "frequenciesBlock";
+//        try
+//        {
+//            FileChannel docsChannel = (FileChannel) Files.newByteChannel(Paths.get(docsPath),
+//                    StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+//            FileChannel freqChannel = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
+//                    StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+//
+//            long toRead = 4L * toRetrieve.getNumPosting();
+//
+//            MappedByteBuffer docBuffer = docsChannel.map(FileChannel.MapMode.READ_WRITE, toRetrieve.getOffset(), toRead);
+//            MappedByteBuffer freqBuffer = freqChannel.map(FileChannel.MapMode.READ_WRITE, toRetrieve.getOffset(), toRead);
+//            byte[] docBytes = new byte[toRetrieve.getNumPosting() * 4];
+//            byte[] freqBytes = new byte[toRetrieve.getNumPosting() * 4];
+//            docBuffer.get(docBytes);
+//            freqBuffer.get(freqBytes);
+//
+//            for (int i = 0; i < toRetrieve.getNumPosting(); i++) {
+//                byte[] tempDocBytes = new byte[4];
+//                byte[] tempFreqBytes = new byte[4];
+//                System.arraycopy(docBytes, i*4, tempDocBytes, 0 ,4);
+//                System.arraycopy(freqBytes, i*4, tempFreqBytes, 0 ,4);
+//
+//                toRet.add(new Posting(Commons.bytesToInt(tempDocBytes), Commons.bytesToInt(tempFreqBytes)));
+//            }
+//        }
+//        catch (IOException e)
+//        {
+//            e.printStackTrace();
+//        }
+//
+//        return toRet;
+//    }
 
     /**
      * Load the entire vocabulary from the disk

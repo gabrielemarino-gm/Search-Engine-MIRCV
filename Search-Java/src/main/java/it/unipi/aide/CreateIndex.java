@@ -25,7 +25,7 @@ public class CreateIndex
             if (args[i].equals("-ss")) {STOPSTEM = true; i += 1; continue;}
             if (args[i].equals("-in")) {INPUT_PATH = args[i+1]; i += 2; continue;}
             if (args[i].equals("-out")) {OUTPUT_PATH = args[i+1]; i += 2; continue;}
-            if (args[i].equals("-m")) {MODE = args[i+1]; i += 2; continue;}
+            if (args[i].equals("-m")) {MODE = args[i+1]; i += 2; continue;} // TODO -> To remove, useless
             if (args[i].equals("-mm")) {MAXMEM = true; i += 1; continue;}
 
             else {i++; System.err.println("Unknown command. Continuing.");}

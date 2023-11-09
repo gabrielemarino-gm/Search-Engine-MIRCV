@@ -12,6 +12,6 @@ public class QueryHandler
         String INPUT_PATH = "data/out/";
 
         QueryManager queryManager = new QueryManager(INPUT_PATH);
-        queryManager.makeQuery();
+        queryManager.makeQuery("Sleeping cat");
     }
 }

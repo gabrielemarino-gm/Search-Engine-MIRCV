@@ -2,9 +2,10 @@ package it.unipi.aide.model;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
-public class PostingList
+public class PostingList implements Iterator<Posting>
 {
     private final String term;
     private List<Posting> postingList = new ArrayList<>();
@@ -90,4 +91,34 @@ public class PostingList
 
     public void setPointer(int i) {
     }
+
+
+    /* getCurrent is used to memorize the first element
+    *  next is invoked only when we want to shift our list
+    *   as we don't need current anymore
+    *  hasNext is used to check if the list has remaining
+    *   Postings or not
+    */
+
+    private Posting current = null;
+    public Posting getCurrent() {
+        if(current == null && hasNext())
+            current = next();
+
+        return current;
+    }
+    public boolean hasNext() {
+        return !postingList.isEmpty();
+    }
+
+    public Posting next() {
+        if(hasNext()) {
+            current = postingList.remove(0);
+        } else
+        {
+            current = null;
+        }
+        return current;
+    }
+
 }

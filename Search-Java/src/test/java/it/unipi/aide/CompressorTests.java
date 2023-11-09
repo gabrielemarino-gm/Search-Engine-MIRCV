@@ -1,6 +1,5 @@
 package it.unipi.aide;
 
-import com.sun.istack.internal.Nullable;
 import it.unipi.aide.utils.Compressor;
 
 import org.junit.Before;
