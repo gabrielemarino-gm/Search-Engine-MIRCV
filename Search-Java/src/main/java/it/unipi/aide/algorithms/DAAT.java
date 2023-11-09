@@ -16,7 +16,6 @@ import java.util.List;
 public class DAAT {
 
     private int K;
-    private CollectionInformation ci;
     String WORK_DIR_PATH;
 
     HashMap<String, TermInfo> terms = new HashMap<>();
@@ -24,7 +23,6 @@ public class DAAT {
     public DAAT(String in_path, int k){
         this.K = k;
         WORK_DIR_PATH = in_path;
-        this.ci = new CollectionInformation(WORK_DIR_PATH);
     }
 
     public List<ScoredDocument> executeDAAT(List<String> queryTerms){
@@ -55,7 +53,7 @@ public class DAAT {
                     if (pl.getCurrent().getDocId() == firstDoc) {
                         // TODO -> Scoring functions apart and well distinct
                         toAdd.setScore(
-                                (1 + Math.log(pl.getCurrent().getFrequency())) * Math.log(CollectionInformation.getTotalDocuments() / terms.get(pl.getTerm()).getNumPosting())
+                                (1 + Math.log(pl.getCurrent().getFrequency())) * Math.log((double) CollectionInformation.getTotalDocuments() / terms.get(pl.getTerm()).getNumPosting())
                         );
                         pl.next();
                     }

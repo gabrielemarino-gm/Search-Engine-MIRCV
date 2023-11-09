@@ -1,9 +1,10 @@
 package it.unipi.aide.model;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 public class Corpus implements Iterable<String>
@@ -28,11 +29,28 @@ public class Corpus implements Iterable<String>
         {
             try
             {
-                br = new BufferedReader(new FileReader(INPUT_PATH));
+                if(INPUT_PATH.contains(".tsv"))
+                {
+                    br = new BufferedReader(new FileReader(INPUT_PATH));
+                }
+                else
+                {
+                    TarArchiveInputStream tarInput = new TarArchiveInputStream(
+                            new GzipCompressorInputStream(
+                                    new FileInputStream(INPUT_PATH)));
+
+                            tarInput.getNextTarEntry();
+                            br = new BufferedReader(new InputStreamReader(tarInput, StandardCharsets.UTF_8));
+                }
             }
             catch (FileNotFoundException e)
             {
                 System.err.println("Input File Not Found");
+                System.exit(1);
+            }
+            catch (IOException ioe)
+            {
+                System.err.println("Error while reading the input file");
                 System.exit(1);
             }
         }
