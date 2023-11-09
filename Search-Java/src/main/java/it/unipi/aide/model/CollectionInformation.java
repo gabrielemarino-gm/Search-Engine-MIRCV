@@ -22,7 +22,7 @@ public class CollectionInformation {
 
 
     static {
-
+        // TODO -> Change this to be initialized from Configuration class
     }
 
     public CollectionInformation(String path) {PATH = path + "CollectionInformation";}

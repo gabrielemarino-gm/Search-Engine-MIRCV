@@ -1,9 +1,6 @@
 package it.unipi.aide.algorithms;
 
-import it.unipi.aide.model.CollectionInformation;
-import it.unipi.aide.model.Posting;
-import it.unipi.aide.model.PostingList;
-import it.unipi.aide.model.TermInfo;
+import it.unipi.aide.model.*;
 import it.unipi.aide.utils.Commons;
 
 import java.io.IOException;
