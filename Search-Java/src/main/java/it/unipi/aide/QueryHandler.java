@@ -20,7 +20,7 @@ public class QueryHandler
         DAAT daat = new DAAT("data/out/", 5);
 
         List<String> tokens = new Preprocesser(true).process("Sleeping cat");
-        
+
         List<ScoredDocument> top_k = daat.executeDAAT(tokens);
 
         for(ScoredDocument d : top_k) System.out.println(String.format("PID: %s\tScore: %f", d.getDocID(), d.getScore()));

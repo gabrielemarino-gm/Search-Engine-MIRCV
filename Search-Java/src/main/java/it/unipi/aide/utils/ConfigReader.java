@@ -3,6 +3,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class ConfigReader
@@ -31,9 +32,7 @@ public class ConfigReader
         {
             // Read the json file
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            File file = new File(classLoader.getResource("config.json").getFile());
-            System.out.println(file.getAbsolutePath());
-            JsonNode rootNode = objectMapper.readTree(file.getAbsolutePath());
+            JsonNode rootNode = objectMapper.readTree(classLoader.getResourceAsStream("config.json"));
 
             // Get the values
             rawCollectionPath = rootNode.get("rawCollectionPath").asText();
@@ -56,6 +55,10 @@ public class ConfigReader
         catch (IOException e)
         {
             e.printStackTrace();
+        }
+        catch (NullPointerException fnf)
+        {
+            System.out.println("config.json Not Found");
         }
     }
 
