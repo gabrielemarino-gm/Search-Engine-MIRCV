@@ -1,5 +1,7 @@
 package it.unipi.aide.model;
 
+import it.unipi.aide.utils.ConfigReader;
+
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -22,10 +24,8 @@ public class CollectionInformation {
 
 
     static {
-
+        PATH = ConfigReader.getCollectionStatisticsPath();
     }
-
-    public CollectionInformation(String path) {PATH = path + "CollectionInformation";}
 
     /**
      * Those are used to set global values and also write them on a file directly
@@ -61,7 +61,6 @@ public class CollectionInformation {
             AVERAGE_DOCUMENT_LENGTH = readFromFile(2);
         return AVERAGE_DOCUMENT_LENGTH;
     }
-
 
     /**
      * Write a statistic on a file

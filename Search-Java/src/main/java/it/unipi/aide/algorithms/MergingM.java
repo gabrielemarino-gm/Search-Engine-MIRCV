@@ -20,8 +20,6 @@ public class MergingM
     private final boolean COMPRESSION;
     private final int BLOCKS_COUNT;
 
-    private CollectionInformation ci;
-
     long finalOffset = 0;
     long vFinalOffset = 0;
 
@@ -41,7 +39,6 @@ public class MergingM
         ));
 
         this.PARTIALS_PATH = WORK_DIR_PATH+"partial/";
-        ci = new CollectionInformation(WORK_DIR_PATH);
     }
 
     /**

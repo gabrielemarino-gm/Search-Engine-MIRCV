@@ -1,0 +1,17 @@
+{
+  "rawCollectionPath" : "data/source/collection.tsv",
+  "compressedCollectionPath" : "data/source/collection.tar.gz",
+  "stopwordsPath" : "stopwords.txt",
+  "documentIndexPath" : "data/out/documentIndex",
+  "vocabularyPath" : "data/out/vocabulary",
+  "invertedIndexFreqs" : "data/out/frequencies",
+  "invertedIndexDocs" : "data/out/partial/docidBlock-",
+  "partialVocabularyDir" : "data/out/partial/frequenciesBlock-",
+  "frequencyFileName" : "",
+  "docidsFileName" : "",
+  "vocabularyFileName" : "",
+  "frequencyDir" : "",
+  "docidsDir" : "",
+  "collectionStatisticsPath" : "data/out/collectionStatistics",
+  "blockDescriptorsPath" : "data/out/blockDescriptors"
+}

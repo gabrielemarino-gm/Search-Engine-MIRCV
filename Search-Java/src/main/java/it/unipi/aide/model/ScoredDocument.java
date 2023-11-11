@@ -1,4 +1,4 @@
-package it.unipi.aide.algorithms;
+package it.unipi.aide.model;
 
 public class ScoredDocument {
 
@@ -10,19 +10,11 @@ public class ScoredDocument {
         this.score = score;
     }
 
-    public int getDocID() {
-        return this.docId;
-    }
-
-    public double getScore() {
-        return this.score;
-    }
-
-    public void setScore(double newScore) {
-        this.score += newScore;
-    }
-
+    public int getDocID() { return this.docId; }
+    public double getScore() { return this.score; }
+    public void setScore(double newScore) { this.score += newScore; }
     public String toString() {
+
         return "<docid: " + docId + ", score: " + score + ";\n";
     }
 }
