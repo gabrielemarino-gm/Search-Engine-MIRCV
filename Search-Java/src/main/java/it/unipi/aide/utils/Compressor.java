@@ -65,20 +65,79 @@ public class Compressor {
      * @param fromBytes Array of bytes to compress
      * @return Array of bytes representing the compression
      */
-    public static byte[] VariableByteCompression(byte[] fromBytes){
-        int[] ints = toIntArray(fromBytes);
+    public static byte[] VariableByteCompression(byte[] fromBytes) {
 
-        return new byte[0];
+        int[] numbers = toIntArray(fromBytes);
+        List<Byte> compressedBytes = new ArrayList<>();
+
+        for (int number : numbers) {
+            byte[] compressed = compressIntToVariableByte(number);
+            for (byte b : compressed) {
+                compressedBytes.add(b);
+            }
+        }
+
+        byte[] byteArray = new byte[compressedBytes.size()];
+        for (int i = 0; i < compressedBytes.size(); i++) {
+            byteArray[i] = compressedBytes.get(i);
+        }
+
+        return byteArray;
+    }
+
+    /**
+     * Compress a single integer number using Variable Byte representation
+     * @param number integer to convert
+     * @return Array of bytes forming the conversion
+     */
+    public static byte[] compressIntToVariableByte(int number) {
+
+        ArrayList<Byte> compressedBytes = new ArrayList<>();
+
+        while (number >= 128) {
+            compressedBytes.add((byte) (number % 128 + 128));
+            number /= 128;
+        }
+        compressedBytes.add((byte) number);
+
+        byte[] result = new byte[compressedBytes.size()];
+        for (int i = 0; i < compressedBytes.size(); i++) {
+            result[i] = compressedBytes.get(i);
+        }
+
+        return result;
     }
 
     /**
      * Decompress an Array of bytes into an array of integer, using Variable Byte Decompression
-     * @param fromBytes Array of Bytes to convert
+     * @param bytes Array of Bytes to convert
      * @return Array of integers converted
      */
-    public static int[] VariableByteDecompression(byte[] fromBytes){
+    public static int[] VariableByteDecompression(byte[] bytes) {
+        List<Integer> integers = new ArrayList<>();
+        int index = 0;
 
-        return new int[0];
+        while (index < bytes.length) {
+            int value = 0;
+            int shift = 0;
+
+            while ((bytes[index] & 0x80) != 0) {
+                value |= (bytes[index] & 0x7F) << shift;
+                shift += 7;
+                index++;
+            }
+
+            value |= bytes[index] << shift;
+            integers.add(value);
+            index++;
+        }
+
+        int[] result = new int[integers.size()];
+        for (int i = 0; i < integers.size(); i++) {
+            result[i] = integers.get(i);
+        }
+
+        return result;
     }
 
     /**
@@ -86,12 +145,14 @@ public class Compressor {
      * @param list Byte Array with size 4*N elements
      * @return Integers Array of E elements
      */
-    private static int[] toIntArray(byte[] list){
-        int[] ints = new int[list.length/4];
-        for(int j = 0; j < list.length; j += 4){
-            for(int i = 0; i < 4; i++){
-                ints[j/4] = list[i+j];
+    private static int[] toIntArray(byte[] list) {
+        int[] ints = new int[list.length / 4];
+        for (int j = 0; j < list.length; j += 4) {
+            int value = 0;
+            for (int i = 0; i < 4; i++) {
+                value = (value << 8) | (list[j + i] & 0xFF);
             }
+            ints[j / 4] = value;
         }
         return ints;
     }
