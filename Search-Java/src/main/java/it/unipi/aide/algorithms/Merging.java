@@ -117,7 +117,7 @@ public class Merging
 
                         // Stating to read inside the vocabulary the length of the first posting list
                         vocabulariesBuffers[indexBlock] = vocabulariesFileChannel[indexBlock].map(FileChannel.MapMode.READ_WRITE,
-                                offsetVocabulary[indexBlock], 64L + 4L + 8L + 4L);
+                                offsetVocabulary[indexBlock], TermInfo.SIZE_PRE_MERGING);
 
                         byte[] termBytes = new byte[64];
                         vocabulariesBuffers[indexBlock].get(termBytes);
@@ -137,7 +137,7 @@ public class Merging
                             mapOfTerm.put(term, 1);
                         }
 
-                        termsToMerge[indexBlock] = new TermInfo(term, frequency, offset, nPosting);
+                        termsToMerge[indexBlock] = new TermInfo(term, frequency, offset, offset, nPosting);
                         postingList[indexBlock] = new PostingList(new String(termBytes).trim());
 
                         // Need to read nPosting integers, i.e. the entire posting list for that term

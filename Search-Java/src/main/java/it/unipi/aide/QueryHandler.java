@@ -17,7 +17,7 @@ public class QueryHandler
     {
         String INPUT_PATH = "data/out/";
 
-        DAAT daat = new DAAT("data/out/", 5);
+        DAAT daat = new DAAT( 5);
 
         List<String> tokens = new Preprocesser(true).process("Sleeping cat");
 

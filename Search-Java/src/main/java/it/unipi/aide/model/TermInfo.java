@@ -4,12 +4,13 @@ public class TermInfo
 {
     public final static int SIZE_TERM = 46;
     public final static long SIZE_PRE_MERGING = SIZE_TERM +4L + 8L + 4L;
-    public final static long SIZE_POST_MERGING = SIZE_TERM + 4L + 8L + 4L + 8L + 8L;
+    public final static long SIZE_POST_MERGING = SIZE_TERM + 4L + 8L + 8L + 4L + 8L + 8L;
 
 
     private String term;
     private int totalFrequency;
-    private long offset;    // Used only later in storing/retrieval phase
+    private long docidOffset;
+    private long freqOffset;
     private long bytesOccupiedDocid;
     private long bytesOccupiedFreq;
     private int numPosting;
@@ -23,7 +24,8 @@ public class TermInfo
     public TermInfo(String term){
         this.term = term;
         this.totalFrequency = 1;
-        this.offset = 0;
+        this.docidOffset = 0;
+        this.freqOffset = 0;
         this.numPosting = 1;
     }
 
@@ -31,18 +33,27 @@ public class TermInfo
      * Create new TermInfo (USE IN MERGE ONLY FOR READ)
      * @param term Term name
      * @param totalFrequency How many times it appears in the Corpus
-     * @param offset At which offset its PostingList begins
+     * @param docOffset At which offset its PostingList begins (DocIDs)
+     * @param freqOffset At which offset its PostingList begins (Frequencies)
      * @param numPosting How many Postings for that term
      */
-    public TermInfo(String term, int totalFrequency, long offset, int numPosting)
+    public TermInfo(String term, int totalFrequency,
+                    long docOffset, long freqOffset,
+                    int numPosting)
     {
         this.term = term;
         this.totalFrequency = totalFrequency;
-        this.offset = offset;
+        this.docidOffset = docOffset;
+        this.freqOffset = freqOffset;
         this.numPosting = numPosting;
     }
-    public TermInfo(String term, int totalFrequency, long offset, long docidBytes, long freqBytes, int numPosting){
-        this(term, totalFrequency, offset, numPosting);
+
+    public TermInfo(String term, int totalFrequency,
+                    long docidOffset, long freqOffset,
+                    long docidBytes, long freqBytes,
+                    int numPosting)
+    {
+        this(term, totalFrequency, docidOffset, freqOffset, numPosting);
         bytesOccupiedDocid = docidBytes;
         bytesOccupiedFreq = freqBytes;
     }
@@ -51,14 +62,15 @@ public class TermInfo
     public void incrementNumPosting() {this.numPosting++;}
 
     public int getTotalFrequency() {return totalFrequency;}
-    public long getOffset() {return offset;}
+    public long getDocidOffset() {return docidOffset;}
+    public long getFreqOffset() {return freqOffset;}
     public int getNumPosting() {return numPosting;}
     public String getTerm() {return term;}
     public void setTerm(String t) {this.term = t;}
     public void setNumPosting(int n) {this.numPosting = n;}
     public void setTotalFrequency(int f) {this.totalFrequency = f;}
-    public void setOffset(long o) {this.offset = o;}
-
+    public void setDocidOffset(long o) {this.docidOffset = o;}
+    public void setFreqOffset(long o) {this.freqOffset = o;}
     public void setBytesOccupiedDocid(long bytesOccupiedDocid) {this.bytesOccupiedDocid = bytesOccupiedDocid;}
     public void setBytesOccupiedFreq(long bytesOccupiedFreq) {this.bytesOccupiedFreq = bytesOccupiedFreq;}
     public long getBytesOccupiedDocid() {return bytesOccupiedDocid;}
@@ -67,7 +79,7 @@ public class TermInfo
     @Override
     public String toString()
     {
-        return String.format("[%s](%d,%d,%d)", term, totalFrequency, numPosting, offset);
+        return String.format("[%s](%d, %d, %d, %d, %d, %d)", term, totalFrequency, numPosting, docidOffset, freqOffset, bytesOccupiedDocid, bytesOccupiedFreq);
     }
 }
 

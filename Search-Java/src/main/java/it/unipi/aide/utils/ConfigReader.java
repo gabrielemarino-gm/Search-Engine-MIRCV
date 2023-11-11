@@ -8,21 +8,22 @@ import java.io.IOException;
 
 public class ConfigReader
 {
+    private static String workingDir;
+    private static String debugDir;
     private static String rawCollectionPath;
     private static String compressedCollectionPath;
     private static String stopwordsPath;
-    private static String documentIndexPath;
-    private static String vocabularyPath;
-    private static String invertedIndexFreqs;
-    private static String invertedIndexDocs;
-    private static String partialVocabularyDir;
-    private static String frequencyFileName;
-    private static String docidsFileName;
-    private static String vocabularyFileName;
-    private static String frequencyDir;
-    private static String docidsDir;
     private static String collectionStatisticsPath;
+    private static String documentIndexPath;
     private static String blockDescriptorsPath;
+    private static String vocabularyPath;
+    private static String docidPath;
+    private static String frequencyPath;
+    private static String partialPath;
+    private static String partialVocabularyPath;
+    private static String partialDocsPath;
+    private static String partialFrequenciesPath;
+
 
     static
     {
@@ -35,22 +36,26 @@ public class ConfigReader
             JsonNode rootNode = objectMapper.readTree(classLoader.getResourceAsStream("config.json"));
 
             // Get the values
+            workingDir = rootNode.get("workingDir").asText();
+            debugDir = rootNode.get("debugDir").asText();
+
             rawCollectionPath = rootNode.get("rawCollectionPath").asText();
             compressedCollectionPath = rootNode.get("compressedCollectionPath").asText();
+
             stopwordsPath = rootNode.get("stopwordsPath").asText();
-            documentIndexPath = rootNode.get("documentIndexPath").asText();
-            vocabularyPath = rootNode.get("vocabularyPath").asText();
-            invertedIndexFreqs = rootNode.get("invertedIndexFreqs").asText();
-            invertedIndexDocs = rootNode.get("invertedIndexDocs").asText();
-            partialVocabularyDir = rootNode.get("partialVocabularyDir").asText();
-            frequencyFileName = rootNode.get("frequencyFileName").asText();
-            docidsFileName = rootNode.get("docidsFileName").asText();
-            vocabularyFileName = rootNode.get("vocabularyFileName").asText();
-            frequencyDir = rootNode.get("frequencyDir").asText();
-            docidsDir = rootNode.get("docidsDir").asText();
+
             collectionStatisticsPath = rootNode.get("collectionStatisticsPath").asText();
+            documentIndexPath = rootNode.get("documentIndexPath").asText();
             blockDescriptorsPath = rootNode.get("blockDescriptorsPath").asText();
 
+            vocabularyPath = rootNode.get("vocabularyPath").asText();
+            docidPath = rootNode.get("docidPath").asText();
+            frequencyPath = rootNode.get("frequencyPath").asText();
+
+            partialPath = rootNode.get("partialPath").asText();
+            partialVocabularyPath = rootNode.get("partialVocabularyPath").asText();
+            partialDocsPath = rootNode.get("partialDocsPath").asText();
+            partialFrequenciesPath = rootNode.get("partialFrequenciesPath").asText();
         }
         catch (IOException e)
         {
@@ -62,64 +67,31 @@ public class ConfigReader
         }
     }
 
-    public static String getRawCollectionPath() {
-        return rawCollectionPath;
-    }
+    public static String getWorkingDir() { return workingDir; }
+    public static String getDebugDir() { return debugDir; }
+    public static String getRawCollectionPath() { return rawCollectionPath; }
 
-    public static String getCompressedCollectionPath() {
-        return compressedCollectionPath;
-    }
+    public static String getCompressedCollectionPath() { return compressedCollectionPath; }
 
-    public static String getStopwordsPath() {
-        return stopwordsPath;
-    }
+    public static String getStopwordsPath() { return stopwordsPath;}
 
-    public static String getDocumentIndexPath() {
-        return documentIndexPath;
-    }
+    public static String getCollectionStatisticsPath() { return collectionStatisticsPath; }
+    public static String getDocumentIndexPath() { return documentIndexPath; }
 
-    public static String getVocabularyPath() {
-        return vocabularyPath;
-    }
+    public static String getBlockDescriptorsPath() { return blockDescriptorsPath; }
+    public static String getVocabularyPath() { return vocabularyPath; }
 
-    public static String getInvertedIndexFreqs() {
-        return invertedIndexFreqs;
-    }
+    public static String getDocidPath() { return docidPath; }
 
-    public static String getInvertedIndexDocs() {
-        return invertedIndexDocs;
-    }
+    public static String getFrequencyPath() { return frequencyPath; }
 
-    public static String getPartialVocabularyDir() {
-        return partialVocabularyDir;
-    }
+    public static String getPartialPath() { return partialPath; }
 
-    public static String getFrequencyFileName() {
-        return frequencyFileName;
-    }
+    public static String getPartialVocabularyPath() { return partialVocabularyPath; }
 
-    public static String getDocidsFileName() {
-        return docidsFileName;
-    }
+    public static String getPartialDocsPath() { return partialDocsPath; }
 
-    public static String getVocabularyFileName() {
-        return vocabularyFileName;
-    }
+    public static String getPartialFrequenciesPath() { return partialFrequenciesPath; }
 
-    public static String getFrequencyDir() {
-        return frequencyDir;
-    }
-
-    public static String getDocidsDir() {
-        return docidsDir;
-    }
-
-    public static String getCollectionStatisticsPath() {
-        return collectionStatisticsPath;
-    }
-
-    public static String getBlockDescriptorsPath() {
-        return blockDescriptorsPath;
-    }
 
 }

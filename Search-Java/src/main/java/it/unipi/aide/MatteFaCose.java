@@ -1,16 +1,15 @@
 package it.unipi.aide;
 
-import it.unipi.aide.model.Vocabulary;
-import it.unipi.aide.utils.ConfigReader;
+import it.unipi.aide.algorithms.DAAT;
+
 
 public class MatteFaCose {
 
-    private static Vocabulary vocabulary;
-    private static final String INPUT_PATH = "data/out/complete/";
 
         public static void main(String[] argv) {
+            DAAT daat = new DAAT(10);
 
-            System.out.println(ConfigReader.getRawCollectionPath());
+            daat.testRetrievalCompression();
         }
 
 }

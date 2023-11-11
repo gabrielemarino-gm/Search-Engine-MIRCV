@@ -2,6 +2,8 @@ package it.unipi.aide.algorithms;
 
 import it.unipi.aide.model.*;
 import it.unipi.aide.utils.Commons;
+import it.unipi.aide.utils.Compressor;
+import it.unipi.aide.utils.ConfigReader;
 
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
@@ -16,19 +18,35 @@ import java.util.List;
 public class DAAT {
 
     private int K;
-    String WORK_DIR_PATH;
+    boolean COMPRESSION;
 
     HashMap<String, TermInfo> terms = new HashMap<>();
 
-    public DAAT(String in_path, int k){
+    public DAAT(int k){
         this.K = k;
-        WORK_DIR_PATH = in_path;
+        COMPRESSION = true;
+    }
+
+    public void testRetrievalCompression(){
+        TermInfo toRetrieve1 = binarySearch("bomb");
+        TermInfo toRetrieve2 = binarySearch("atom");
+
+        System.out.println(toRetrieve1);
+        System.out.println(toRetrieve2);
+
+        PostingList pl1 = new PostingList("bomb", getPostingsByTerm(toRetrieve1));
+        PostingList pl2 = new PostingList("atom", getPostingsByTerm(toRetrieve2));
+
+        System.out.println(pl1);
+        System.out.println(pl2);
+
     }
 
     public List<ScoredDocument> executeDAAT(List<String> queryTerms){
         // Retrieve the posting lists of the query terms
         List<PostingList> postingLists= new ArrayList<>();
         for(String t : queryTerms){
+            /* TODO -> Search inside a cache before performing binary search */
             TermInfo toRetrieve = binarySearch(t);
             terms.put(t, toRetrieve);
             postingLists.add(new PostingList(t, getPostingsByTerm(toRetrieve)));
@@ -87,7 +105,7 @@ public class DAAT {
     private TermInfo binarySearch(String term)
     {
         try(
-                FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(WORK_DIR_PATH + "vocabularyBlock"),
+                FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(ConfigReader.getVocabularyPath()),
                         StandardOpenOption.READ);
         )
         {
@@ -135,12 +153,13 @@ public class DAAT {
 
         String term = new String(termBytes).trim();
         int totFreq = buffer.getInt();
-        long off = buffer.getLong();
+        long docOff = buffer.getLong();
+        long freqOff = buffer.getLong();
         long docBytes = buffer.getLong();
         long freqBytes = buffer.getLong();
         int nPost = buffer.getInt();
 
-        return new TermInfo(term, totFreq, off, docBytes, freqBytes, nPost);
+        return new TermInfo(term, totFreq, docOff, freqOff, docBytes, freqBytes, nPost);
     }
 
     private List<Posting> getPostingsByTerm(TermInfo toRetrieve)
@@ -149,8 +168,8 @@ public class DAAT {
 
         List<Posting> toRet = new ArrayList<>();
 
-        String docsPath = WORK_DIR_PATH + "docIDsBlock";
-        String freqPath = WORK_DIR_PATH + "frequenciesBlock";
+        String docsPath = ConfigReader.getDocidPath();
+        String freqPath = ConfigReader.getFrequencyPath();
         try
         {
             FileChannel docsChannel = (FileChannel) Files.newByteChannel(Paths.get(docsPath),
@@ -158,22 +177,33 @@ public class DAAT {
             FileChannel freqChannel = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
                     StandardOpenOption.READ);
 
-            long toRead = 4L * toRetrieve.getNumPosting();
+            MappedByteBuffer docBuffer = docsChannel.map(FileChannel.MapMode.READ_ONLY, toRetrieve.getDocidOffset(), toRetrieve.getBytesOccupiedDocid());
+            MappedByteBuffer freqBuffer = freqChannel.map(FileChannel.MapMode.READ_ONLY, toRetrieve.getFreqOffset(), toRetrieve.getBytesOccupiedFreq());
 
-            MappedByteBuffer docBuffer = docsChannel.map(FileChannel.MapMode.READ_ONLY, toRetrieve.getOffset(), toRead);
-            MappedByteBuffer freqBuffer = freqChannel.map(FileChannel.MapMode.READ_ONLY, toRetrieve.getOffset(), toRead);
-            byte[] docBytes = new byte[toRetrieve.getNumPosting() * 4];
-            byte[] freqBytes = new byte[toRetrieve.getNumPosting() * 4];
+            byte[] docBytes = new byte[(int)toRetrieve.getBytesOccupiedDocid()];
+            byte[] freqBytes = new byte[(int)toRetrieve.getBytesOccupiedFreq()];
+
             docBuffer.get(docBytes);
             freqBuffer.get(freqBytes);
 
-            for (int i = 0; i < toRetrieve.getNumPosting(); i++) {
-                byte[] tempDocBytes = new byte[4];
-                byte[] tempFreqBytes = new byte[4];
-                System.arraycopy(docBytes, i*4, tempDocBytes, 0 ,4);
-                System.arraycopy(freqBytes, i*4, tempFreqBytes, 0 ,4);
+            if (!COMPRESSION) {
+                for (int i = 0; i < toRetrieve.getNumPosting(); i++) {
+                    byte[] tempDocBytes = new byte[4];
+                    byte[] tempFreqBytes = new byte[4];
+                    System.arraycopy(docBytes, i * 4, tempDocBytes, 0, 4);
+                    System.arraycopy(freqBytes, i * 4, tempFreqBytes, 0, 4);
 
-                toRet.add(new Posting(Commons.bytesToInt(tempDocBytes), Commons.bytesToInt(tempFreqBytes)));
+                    toRet.add(new Posting(Commons.bytesToInt(tempDocBytes), Commons.bytesToInt(tempFreqBytes)));
+                }
+            }
+            else
+            {
+                int[] decompressedDocBytes = Compressor.VariableByteDecompression(docBytes);
+                int[] decompressedFreqBytes = Compressor.UnaryDecompression(freqBytes);
+
+                for (int i = 0; i < toRetrieve.getNumPosting(); i++) {
+                    toRet.add(new Posting(decompressedDocBytes[i], decompressedFreqBytes[i]));
+                }
             }
         }
         catch (IOException e)

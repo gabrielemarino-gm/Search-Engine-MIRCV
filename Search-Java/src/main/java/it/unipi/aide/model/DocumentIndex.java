@@ -1,5 +1,6 @@
 package it.unipi.aide.model;
 
+import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
 
 import java.io.IOException;
@@ -16,8 +17,8 @@ public class DocumentIndex {
     private static long OFFSET = 0;
     private final String PATH;
 
-    public DocumentIndex(String path){
-        this.PATH = path+"documentIndex";
+    public DocumentIndex(){
+        this.PATH = ConfigReader.getDocumentIndexPath();
         if(!FileManager.checkFile(PATH)) FileManager.createFile(PATH);
     }
 

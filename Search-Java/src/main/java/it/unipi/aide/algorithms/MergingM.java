@@ -2,6 +2,7 @@ package it.unipi.aide.algorithms;
 
 import it.unipi.aide.model.*;
 import it.unipi.aide.utils.Compressor;
+import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
 
 import java.io.IOException;
@@ -15,30 +16,26 @@ import java.util.List;
 
 public class MergingM
 {
-    private final String WORK_DIR_PATH;
-    private final String PARTIALS_PATH;
     private final boolean COMPRESSION;
     private final int BLOCKS_COUNT;
 
-    long finalOffset = 0;
+    long finalDocidOffset = 0;
+    long finalFreqOffset = 0;
     long vFinalOffset = 0;
 
     private InvertedIndex invertedIndex = new InvertedIndex();
 
-    public MergingM(String outputPath, boolean compression, int blocksCount)
-    {
-        this.WORK_DIR_PATH = outputPath;
+    public MergingM(boolean compression, int blocksCount)
+    {;
         this.BLOCKS_COUNT = blocksCount;
         this.COMPRESSION = compression;
 
         System.out.println(String.format(
-                "-----MERGING-----\nWORK_DIR_PATH = %s\nCOMPRESSION = %b\nBLOCKS_TO_COMPRESS = %d\n-----------------",
-                WORK_DIR_PATH,
+                "-----MERGING-----\nCOMPRESSION = %b\nBLOCKS_TO_COMPRESS = %d\n-----------------",
                 COMPRESSION,
                 BLOCKS_COUNT
         ));
 
-        this.PARTIALS_PATH = WORK_DIR_PATH+"partial/";
     }
 
     /**
@@ -48,7 +45,7 @@ public class MergingM
     {
         long nTerms = 0;
         // Check if the directory with the blocks results exists
-        if(FileManager.checkDir(PARTIALS_PATH))
+        if(FileManager.checkDir(ConfigReader.getPartialPath()))
         {
             // Create a channel for each block, both for docId, frequencies and vocabulary fragments
             FileChannel[] docIdFileChannel = new FileChannel[BLOCKS_COUNT];
@@ -64,9 +61,9 @@ public class MergingM
 
             TermInfo[] vocs = new TermInfo[BLOCKS_COUNT];
 
-            String FdocPath = WORK_DIR_PATH + "docIDsBlock";
-            String FfreqPath = WORK_DIR_PATH + "frequenciesBlock";
-            String FvocPath = WORK_DIR_PATH + "vocabularyBlock";
+            String FdocPath = ConfigReader.getDocidPath();
+            String FfreqPath = ConfigReader.getFrequencyPath();
+            String FvocPath = ConfigReader.getVocabularyPath();
 
             if(!FileManager.checkDir(FdocPath)) FileManager.createFile(FdocPath);
             if(!FileManager.checkDir(FfreqPath)) FileManager.createFile(FfreqPath);
@@ -85,9 +82,9 @@ public class MergingM
                 // INIT PHASE
                 for (int indexBlock = 0; indexBlock < BLOCKS_COUNT; indexBlock++)
                 {
-                    String docPath = PARTIALS_PATH + "docIDsBlock-" + indexBlock;
-                    String freqPath = PARTIALS_PATH + "frequenciesBlock-" + indexBlock;
-                    String vocPath = PARTIALS_PATH + "vocabularyBlock-" + indexBlock;
+                    String docPath = ConfigReader.getPartialDocsPath() + indexBlock;
+                    String freqPath = ConfigReader.getPartialFrequenciesPath() + indexBlock;
+                    String vocPath = ConfigReader.getPartialVocabularyPath() + indexBlock;
 
                     // Open FileChannels to each file
                     docIdFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(docPath),
@@ -112,7 +109,8 @@ public class MergingM
 
                     // Create a TermInfo to merge those in different blocks
                     TermInfo finalTerm = new TermInfo(smallestTerm);
-                    finalTerm.setOffset(finalOffset);
+                    finalTerm.setDocidOffset(finalDocidOffset);
+                    finalTerm.setFreqOffset(finalFreqOffset);
 
                     int finalFreq = 0;
                     int finalNPostings = 0;
@@ -138,17 +136,18 @@ public class MergingM
                                 transferBytes(docIdFileChannel[indexBlock],
                                         offsetDocId[indexBlock],
                                         finalDocIDChannel,
-                                        finalOffset,
+                                        finalDocidOffset,
                                         vocs[indexBlock].getNumPosting()
                                 );
                                 transferBytes(frequenciesFileChannel[indexBlock],
                                         offsetFrequency[indexBlock],
                                         finalFreqChannel,
-                                        finalOffset,
+                                        finalFreqOffset,
                                         vocs[indexBlock].getNumPosting());
 
                                 // ...update final offset, nPosting and frequency for that term as we merge blocks...
-                                finalOffset += 4L * vocs[indexBlock].getNumPosting();
+                                finalDocidOffset += 4L * vocs[indexBlock].getNumPosting();
+                                finalFreqOffset += 4L * vocs[indexBlock].getNumPosting();
                             }
 
                             // NumPostings and TotalTermFrequency unchanged
@@ -194,17 +193,30 @@ public class MergingM
                             os += v.length;
                         }
 
+                        // ... compress the entire vectors ...
+                        /* TODO -> If we have to divide into blocks, we have to do it here
+                         *          and create blocks with correct information inside
+                         *          and update TermInfo accordingly
+                         */
                         byte[] compressedDocs = Compressor.VariableByteCompression(concatenatedDocsBytes);
                         byte[] compressedFreq = Compressor.UnaryCompression(concatenatedFreqBytes);
 
+                        // ... and write them on the disk
+                        writeCompressedToFile(finalDocIDChannel, compressedDocs, finalFreqChannel, compressedFreq);
+
+                        // Update final offsets
                         finalTerm.setBytesOccupiedDocid(compressedDocs.length);
                         finalTerm.setBytesOccupiedFreq(compressedFreq.length);
+
+                        finalDocidOffset += finalTerm.getBytesOccupiedDocid();
+                        finalFreqOffset += finalTerm.getBytesOccupiedFreq();
                     }
                     else
                     {
                         // Without compression, bytes occupied are 4L for each number
                         finalTerm.setBytesOccupiedDocid(finalNPostings * 4L);
                         finalTerm.setBytesOccupiedFreq(finalFreq * 4L);
+
                     }
 
                     // Vocabulary offset unchanged, finalTerm also
@@ -242,7 +254,7 @@ public class MergingM
                 }
 
                 // Delete temporary blocks
-                FileManager.deleteDir(PARTIALS_PATH);
+//                FileManager.deleteDir(ConfigReader.getPartialPath());
                 System.out.println(String.format("LOG:\t\tTotal terms in the Lexicon is %d", nTerms));
                 CollectionInformation.setTotalTerms(nTerms);
             }
@@ -253,8 +265,25 @@ public class MergingM
         }
         else
         {
-            System.err.println("ERR\t\tMerge error, directory " + PARTIALS_PATH + " doesn't exists!");
+            System.err.println("ERR\t\tMerge error, directory " + ConfigReader.getPartialPath() + " doesn't exists!");
         }
+    }
+
+    /**
+     * Write compressed bytes to the disk
+     *
+     * @param finalDocIDChannel FileChannel to write DocIDs to
+     * @param compressedDocs    Compressed DocIDs
+     * @param finalFreqChannel FileChannel to write Frequencies to
+     * @param compressedFreq    Compressed Frequencies
+     */
+    private void writeCompressedToFile(FileChannel finalDocIDChannel, byte[] compressedDocs, FileChannel finalFreqChannel, byte[] compressedFreq) throws IOException
+    {
+        MappedByteBuffer docBuffer = finalDocIDChannel.map(FileChannel.MapMode.READ_WRITE, finalDocidOffset, compressedDocs.length);
+        docBuffer.put(compressedDocs);
+
+        MappedByteBuffer freqBuffer = finalFreqChannel.map(FileChannel.MapMode.READ_WRITE, finalFreqOffset, compressedFreq.length);
+        freqBuffer.put(compressedFreq);
     }
 
     /**
@@ -273,7 +302,8 @@ public class MergingM
         // Write
         tempBuffer.put(paddedTerm.getBytes());
         tempBuffer.putInt(finalTerm.getTotalFrequency());
-        tempBuffer.putLong(finalTerm.getOffset());
+        tempBuffer.putLong(finalTerm.getDocidOffset());
+        tempBuffer.putLong(finalTerm.getFreqOffset());
         tempBuffer.putLong(finalTerm.getBytesOccupiedDocid());
         tempBuffer.putLong(finalTerm.getBytesOccupiedFreq());
         tempBuffer.putInt(finalTerm.getNumPosting());
@@ -318,7 +348,7 @@ public class MergingM
 
         String term = new String(termBytes).trim();
 
-        return new TermInfo(term, frequency, offset, nPosting);
+        return new TermInfo(term, frequency, offset, offset, nPosting);
     }
 
     /**

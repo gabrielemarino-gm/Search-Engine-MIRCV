@@ -1,6 +1,7 @@
 package it.unipi.aide.algorithms;
 
 import it.unipi.aide.model.*;
+import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
 import it.unipi.aide.utils.Preprocesser;
 
@@ -22,10 +23,7 @@ import java.util.List;
  */
 public class SPIMI 
 {
-    private final boolean MAX_MEM;
     private final String INPUT_PATH;
-    private final String WORK_DIR_PATH;
-
     private Vocabulary vocabulary;
     private InvertedIndex invertedIndex;
     private final Preprocesser preprocesser;
@@ -38,16 +36,13 @@ public class SPIMI
 
     /**
      * SPIMI constructor
+     *
      * @param inputPath Where the Corpus to process is located
-     * @param workDirPath Where to output partial results
-     * @param maxMem Max memory allowed in %
-     * @param stemming Enable stemming
+     * @param stemming    Enable/Disable Stemming & Stopwords removal
      */
-    public SPIMI(String inputPath, String workDirPath, boolean maxMem, boolean stemming)
+    public SPIMI(String inputPath, boolean stemming)
     {
-        this.MAX_MEM = maxMem;
         this.INPUT_PATH = inputPath;
-        this.WORK_DIR_PATH = workDirPath;
 
         vocabulary = new Vocabulary();
         invertedIndex = new InvertedIndex();
@@ -55,13 +50,9 @@ public class SPIMI
         incrementalBlockNumber = 0;
         numBlocksPosting = 0;
 
-        ci = new CollectionInformation(WORK_DIR_PATH);
-
         System.out.println(String.format(
-                "-----SPIMI-----\nMAX_MEM = %b\nINPUT_PATH = %s\nWORK_DIR_PATH = %s\nSTEMMING = %b\n---------------",
-                MAX_MEM,
+                "-----SPIMI-----\nINPUT_PATH = %s\nSTEMMING = %b\n---------------",
                 INPUT_PATH,
-                WORK_DIR_PATH,
                 stemming
         ));
     }
@@ -76,9 +67,10 @@ public class SPIMI
         System.out.println("Starting SPIMI algorithm...");
 
         // Starting cleaning the folder
-        FileManager.cleanFolder(WORK_DIR_PATH);
+        FileManager.cleanFolder(ConfigReader.getWorkingDir());
+
         Corpus corpus = new Corpus(INPUT_PATH);
-        DocumentIndex documentIndex = new DocumentIndex(WORK_DIR_PATH);
+        DocumentIndex documentIndex = new DocumentIndex();
 
         // Terms in all documents
         long termSum = 0;
@@ -178,9 +170,9 @@ public class SPIMI
      */
     public boolean writeBlockToDisk(boolean debug)
     {
-        String docPath = WORK_DIR_PATH +"partial/docIDsBlock-"+ incrementalBlockNumber;
-        String freqPath = WORK_DIR_PATH +"partial/frequenciesBlock-"+ incrementalBlockNumber;
-        String vocPath = WORK_DIR_PATH +"partial/vocabularyBlock-"+ incrementalBlockNumber;
+        String docPath = ConfigReader.getPartialDocsPath() + incrementalBlockNumber;
+        String freqPath = ConfigReader.getPartialFrequenciesPath() + incrementalBlockNumber;
+        String vocPath = ConfigReader.getPartialVocabularyPath() + incrementalBlockNumber;
 
         if(!FileManager.checkFile(docPath)) FileManager.createFile(docPath);
         if(!FileManager.checkFile(freqPath)) FileManager.createFile(freqPath);
@@ -211,7 +203,7 @@ public class SPIMI
                 // For each term I have to save into the vocabulary file.
                 TermInfo termInfo = vocabulary.get(t);
                 // Set the offset at which postings start
-                termInfo.setOffset(partialOffset);
+                termInfo.setDocidOffset(partialOffset);
 
                 // Write vocabulary entry
                 StringBuilder pattern = new StringBuilder("%-").append(TermInfo.SIZE_TERM).append("s");
@@ -220,7 +212,7 @@ public class SPIMI
                 // Write
                 vocabularyBuffer.put(paddedTerm.getBytes());
                 vocabularyBuffer.putInt(termInfo.getTotalFrequency());
-                vocabularyBuffer.putLong(termInfo.getOffset());
+                vocabularyBuffer.putLong(termInfo.getDocidOffset());
                 vocabularyBuffer.putInt(termInfo.getNumPosting());
 
                 // Write the other 2 files for DocId and Frequency
@@ -241,15 +233,15 @@ public class SPIMI
         // Debug version to write plain text
         if (debug)
         {
-            FileManager.createDir(WORK_DIR_PATH + "partial/debug/");
+            FileManager.createDir(ConfigReader.getDebugDir());
             try(
                 // Write inverted index to debug text file
                 BufferedWriter indexWriter = new BufferedWriter(
-                        new FileWriter(WORK_DIR_PATH + "partial/debug/Block-" + incrementalBlockNumber + ".txt")
+                        new FileWriter((ConfigReader.getDebugDir() + "Block-" + incrementalBlockNumber + ".txt"))
                 );
                 // Write vocabulary to debug text file
                 BufferedWriter vocabularyWriter = new BufferedWriter(
-                        new FileWriter(WORK_DIR_PATH + "partial/debug/vocabulary-" + incrementalBlockNumber + ".txt")
+                        new FileWriter((ConfigReader.getDebugDir() + "Vocabulary-" + incrementalBlockNumber + ".txt"))
                 )
             )
             {
@@ -278,7 +270,7 @@ public class SPIMI
         double occVirMemory = totalVirMemory - freeVirMemory;           // Allocated and not-Free
 
         // User-enabled threshold
-        if((occVirMemory > totalVirMemory * 90 / 100) && this.MAX_MEM) {
+        if((occVirMemory > totalVirMemory * 91 / 100)) {
 //            System.out.println("User threshold reached");
             return true;
         }
