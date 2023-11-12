@@ -4,12 +4,13 @@ public class TermInfo
 {
     public final static int SIZE_TERM = 46;
     public final static long SIZE_PRE_MERGING = SIZE_TERM  + 4L + 4L + 8L;
-    public final static long SIZE_POST_MERGING = SIZE_TERM + 4L + 4L + 8L;
+    public final static long SIZE_POST_MERGING = SIZE_TERM + 4L + 4L + 4L + 8L;
 
 
     private String term;
     private int totalFrequency;
     private int numPosting;
+    private int numBlocks; // Only post-merging
     private long offset;
 
     // Before merging is where docids and frequencies stats
@@ -43,22 +44,30 @@ public class TermInfo
         this.numPosting = numPosting;
         this.offset = offset;
     }
+    public TermInfo(String term, int totalFrequency,
+                    int numPosting, int nBlocks, long offset)
+    {
+        this(term, totalFrequency, numPosting, offset);
+        this.numBlocks = nBlocks;
+    }
 
     public void incrementTotalFrequency() {this.totalFrequency++;}
     public void incrementNumPosting() {this.numPosting++;}
 
     public int getTotalFrequency() {return totalFrequency;}
+    public int getNumBlocks() {return numBlocks;}
     public long getOffset() {return offset;}
     public int getNumPosting() {return numPosting;}
     public String getTerm() {return term;}
     public void setNumPosting(int n) {this.numPosting = n;}
     public void setTotalFrequency(int f) {this.totalFrequency = f;}
+    public void setNumBlocks(int n) {this.numBlocks = n;}
     public void setOffset(long o) {this.offset = o;}
 
     @Override
     public String toString()
     {
-        return String.format("[%s](%d, %d, %s)", term, totalFrequency, numPosting, offset);
+        return String.format("[%s](%d, %d, %d, %d)", term, totalFrequency, numPosting, numBlocks, offset);
     }
 }
 

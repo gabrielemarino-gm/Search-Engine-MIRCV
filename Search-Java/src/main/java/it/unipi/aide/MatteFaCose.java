@@ -1,15 +1,10 @@
 package it.unipi.aide;
 
 import it.unipi.aide.algorithms.DAAT;
-import it.unipi.aide.model.TermInfo;
-import it.unipi.aide.utils.ConfigReader;
+import it.unipi.aide.model.ScoredDocument;
+import it.unipi.aide.utils.Preprocesser;
 
-import java.io.IOException;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.util.List;
 
 public class MatteFaCose {
 
@@ -18,39 +13,15 @@ public class MatteFaCose {
 
 //        testing();
 
+        Preprocesser preprocesser = new Preprocesser(true);
         DAAT daat = new DAAT(10);
 
-        daat.testRetrievalCompression();
+        List<String> tokens = preprocesser.process("Sleeping cat");
 
-    }
-
-    private static void testing() {
-        try
-                (
-                        FileChannel fc = (FileChannel) Files.newByteChannel(Paths.get(ConfigReader.getVocabularyPath()),
-                                StandardOpenOption.READ)
-                        )
-        {
-            for(int i = 0; i < fc.size(); i += (int)TermInfo.SIZE_POST_MERGING)
-            {
-                MappedByteBuffer buffer = fc.map(FileChannel.MapMode.READ_ONLY,
-                        i, TermInfo.SIZE_POST_MERGING);
-
-                byte[] termBytes = new byte[TermInfo.SIZE_TERM];
-                buffer.get(termBytes);
-
-                String term = new String(termBytes).trim();
-                int totFreq = buffer.getInt();
-                int nPost = buffer.getInt();
-                long off = buffer.getLong();
-                TermInfo termI = new TermInfo(term, totFreq, nPost, off);
-
-                System.out.println(termI);
-            }
+        for(ScoredDocument sd : daat.executeDAAT(tokens)){
+            System.out.println(sd);
         }
-        catch (IOException io)
-        {
-            io.printStackTrace();
-        }
+
+
     }
 }

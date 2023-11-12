@@ -25,4 +25,16 @@ public class BlockDescriptor {
     public long getOffsetFreq() { return offsetFreq; }
     public long getBytesOccupiedDocid() { return bytesDocID; }
     public long getBytesOccupiedFreq() { return bytesFreq; }
+
+    @Override
+    public String toString() {
+        return "BlockDescriptor{" +
+                "maxDocID=" + maxDocID +
+                ", numPostings=" + numPostings +
+                ", offsetDocID=" + offsetDocID +
+                ", offsetFreq=" + offsetFreq +
+                ", bytesDocID=" + bytesDocID +
+                ", bytesFreq=" + bytesFreq +
+                "}\n";
+    }
 }

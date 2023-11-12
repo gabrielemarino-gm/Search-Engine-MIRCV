@@ -1,6 +1,7 @@
 package it.unipi.aide.algorithms;
 
 import it.unipi.aide.model.*;
+import it.unipi.aide.utils.Commons;
 import it.unipi.aide.utils.Compressor;
 import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
@@ -16,15 +17,14 @@ import java.util.List;
 
 public class Merging
 {
+    private final int MIN_POSTING_LIMIT = 128; // Minimum number of postings to split in blocks
     private final boolean COMPRESSION;
-    private final int BLOCKS_COUNT;
+    private final int BLOCKS_COUNT; // Number of blocks to merge
 
     long finalDocidOffset = 0;
     long finalFreqOffset = 0;
     long blockDescriptorOffset = 0;
     long vFinalOffset = 0;
-
-    private InvertedIndex invertedIndex = new InvertedIndex();
 
     public Merging(boolean compression, int blocksCount)
     {;
@@ -74,11 +74,11 @@ public class Merging
 
             try (
                     // Open FileChannels to each file
+                    FileChannel finalVocChannel = (FileChannel) Files.newByteChannel(Paths.get(FvocPath),
+                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
                     FileChannel finalDocIDChannel = (FileChannel) Files.newByteChannel(Paths.get(FdocPath),
                             StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
                     FileChannel finalFreqChannel = (FileChannel) Files.newByteChannel(Paths.get(FfreqPath),
-                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
-                    FileChannel finalVocChannel = (FileChannel) Files.newByteChannel(Paths.get(FvocPath),
                             StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
                     FileChannel blockDescriptorsChannel = (FileChannel) Files.newByteChannel(Paths.get(FblockPath),
                             StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE)
@@ -87,9 +87,9 @@ public class Merging
                 // INIT PHASE
                 for (int indexBlock = 0; indexBlock < BLOCKS_COUNT; indexBlock++)
                 {
+                    String vocPath = ConfigReader.getPartialVocabularyPath() + indexBlock;
                     String docPath = ConfigReader.getPartialDocsPath() + indexBlock;
                     String freqPath = ConfigReader.getPartialFrequenciesPath() + indexBlock;
-                    String vocPath = ConfigReader.getPartialVocabularyPath() + indexBlock;
 
                     // Open FileChannels to each file
                     docIdFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(docPath),
@@ -177,10 +177,9 @@ public class Merging
                         os += v.length;
                     }
 
-                    /** From now on, concatenatedDocsBytes contains the all the docIDs
-                     *      while concatenade FreqBytes contains all the Frequencies */
+                    /* Now that we cumulated docids and frequencies for that term, split them in Blocks */
 
-                    // ... write sqrt(n) postings each block ...
+                    // ... write sqrt(n) postings in each block ...
                     int postingsInsideEachBlock = (int) Math.sqrt(totalTermPostings);
                     int numberOfBlocksToCreate = (int) Math.ceil((double) totalTermPostings / postingsInsideEachBlock);
 
@@ -189,35 +188,37 @@ public class Merging
                     List<byte[]> freqBlocks = new ArrayList<>();
                     List<BlockDescriptor> blockDescriptors = new ArrayList<>();
 
-                    // ... if sqrt(n) is less than 512, just write the entire block ...
-                    if (postingsInsideEachBlock < 512) {
+                    // ... if totalTerms is less than 512, just write one block ...
+                    if (totalTermPostings < MIN_POSTING_LIMIT) {
                         BlockDescriptor blockDescriptor = new BlockDescriptor();
                         blockDescriptor.setNumPostings(totalTermPostings);
 
-                        // TODO -> Set maxDocID in blockDescriptor
 
+                        // Manage compression
                         if (COMPRESSION)
                         {
                             byte[] tempDoc = Compressor.VariableByteCompression(concatenatedDocsBytes);
                             byte[] tempFreq = Compressor.UnaryCompression(concatenatedFreqBytes);
 
+                            // Update blockDescriptor (Compression uses fewer bytes)
                             blockDescriptor.setBytesOccupiedDocid(tempDoc.length);
                             blockDescriptor.setBytesOccupiedFreq(tempFreq.length);
-
                             docidBlocks.add(tempDoc);
                             freqBlocks.add(tempFreq);
                         }
                         else
                         {
-                            // Set bytes occupied in that block
+                            // Update blockDescriptor
                             blockDescriptor.setBytesOccupiedDocid(concatenatedDocsBytes.length);
                             blockDescriptor.setBytesOccupiedFreq(concatenatedFreqBytes.length);
-
                             docidBlocks.add(concatenatedDocsBytes);
                             freqBlocks.add(concatenatedFreqBytes);
                         }
 
+                        // Update MaxDocID for current block and add to the list
+                        blockDescriptor.setMaxDocID(getMaxDocid(concatenatedDocsBytes));
                         blockDescriptors.add(blockDescriptor);
+                        finalTerm.setNumBlocks(1);
                     }
 
                     // ... otherwise, divide the block in sqrt(n) blocks ...
@@ -251,12 +252,6 @@ public class Merging
                                     tempFreq, 0,
                                     postingsInCurrentBlock * 4);
 
-                            // TODO -> Set maxDocID in blockDescriptor
-
-                            /** From there, tempDocs contain the bytes for the docids contained in current block
-                             *      while tempFreq contains the bytes for the frequencies contained in current block
-                             *      */
-
                             if(COMPRESSION){
                                 tempDocs = Compressor.VariableByteCompression(tempDocs);
                                 tempFreq = Compressor.UnaryCompression(tempFreq);
@@ -270,19 +265,24 @@ public class Merging
                             docidBlocks.add(tempDocs);
                             freqBlocks.add(tempFreq);
 
-                            // Add to the list of block descriptors
+                            // Update current blockDescriptor and add to the list
+                            blockDescriptor.setMaxDocID(getMaxDocid(docidBlocks.get(i)));
                             blockDescriptors.add(blockDescriptor);
+
+                        finalTerm.setNumBlocks(numberOfBlocksToCreate);
                         }
                     }
 
-                    // Vocabulary offset unchanged, finalTerm also
+                    // ... update the final term ... (Not dependent by compression or blocks splitting)
                     finalTerm.setNumPosting(totalTermPostings);
                     finalTerm.setTotalFrequency(finalTotalFreq);
 
-                    // Write accumulated term on the disk
+                    // Write everything as separated blocks
                     writeBlocks(finalDocIDChannel, finalFreqChannel, blockDescriptorsChannel,
                             docidBlocks,freqBlocks, blockDescriptors,
-                            finalTerm, postingsInsideEachBlock < 512 ? 1: numberOfBlocksToCreate);
+                            finalTerm);
+
+                    // First offset of first term Block is updated inside the previous function
 
                     writeTermToDisk(finalVocChannel, finalTerm);
 
@@ -335,26 +335,26 @@ public class Merging
                              List<byte[]> docsBlocks,
                              List<byte[]> freqBlocks,
                              List<BlockDescriptor> blockDescriptors,
-                             TermInfo finalTerm,
-                             int nBlocks) {
+                             TermInfo finalTerm) {
 
-        // Write first block offset
+        // Write first blockDescriptor offset for that term
         finalTerm.setOffset(blockDescriptorOffset);
 
-        for(int i = 0; i < nBlocks; i++)
+        try
         {
-            try
+            // ... for each block ...
+            for(int i = 0; i < blockDescriptors.size(); i++)
             {
-                // Write block docid
+                //
                 MappedByteBuffer tempBuffer = finalDocIDChannel.map(FileChannel.MapMode.READ_WRITE,
                         finalDocidOffset, blockDescriptors.get(i).getBytesOccupiedDocid());
                 tempBuffer.put(docsBlocks.get(i));
-
                 blockDescriptors.get(i).setOffsetDocID(finalDocidOffset);
+
                 finalDocidOffset += blockDescriptors.get(i).getBytesOccupiedDocid();
 
 
-                // Write bloc frequencies
+                // Write block frequencies
                 tempBuffer = finalFreqChannel.map(FileChannel.MapMode.READ_WRITE,
                         finalFreqOffset, blockDescriptors.get(i).getBytesOccupiedFreq());
                 tempBuffer.put(freqBlocks.get(i));
@@ -375,14 +375,16 @@ public class Merging
                 tempBuffer.putLong(blockDescriptors.get(i).getBytesOccupiedFreq());
 
                 blockDescriptorOffset += BlockDescriptor.BLOCK_SIZE;
-
-            }
-            catch (IOException io)
-            {
-                io.printStackTrace();
+                if (finalTerm.getTerm().equals("bomb"))
+                    System.out.println(blockDescriptors.get(i).toString());
             }
 
         }
+        catch (IOException io)
+        {
+            io.printStackTrace();
+        }
+
     }
 
     /**
@@ -402,6 +404,7 @@ public class Merging
         tempBuffer.put(paddedTerm.getBytes());
         tempBuffer.putInt(finalTerm.getTotalFrequency());
         tempBuffer.putInt(finalTerm.getNumPosting());
+        tempBuffer.putInt(finalTerm.getNumBlocks());
         tempBuffer.putLong(finalTerm.getOffset());
 
         vFinalOffset += TermInfo.SIZE_POST_MERGING;
@@ -444,7 +447,7 @@ public class Merging
 
         String term = new String(termBytes).trim();
 
-        return new TermInfo(term, frequency, nPosting, offset);
+        return new TermInfo(term, frequency, nPosting, 0, offset);
     }
     /**
      * Extract bytes from given channel at given offset and returns them
@@ -464,6 +467,15 @@ public class Merging
 
         tempBuff.get(tempBytes);
         return tempBytes;
+    }
+
+    private int getMaxDocid(byte[] list){
+        int max = 0;
+        int[] ints = Commons.bytesToIntArray(list);
+        for(Integer i: ints){
+            if(i > max) max = i;
+        }
+        return max;
     }
 }
 

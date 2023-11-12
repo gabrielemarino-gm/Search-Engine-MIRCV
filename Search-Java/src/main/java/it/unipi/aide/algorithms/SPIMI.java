@@ -68,6 +68,7 @@ public class SPIMI
 
         // Starting cleaning the folder
         FileManager.cleanFolder(ConfigReader.getWorkingDir());
+        FileManager.cleanFolder(ConfigReader.getDebugDir());
 
         Corpus corpus = new Corpus(INPUT_PATH);
         DocumentIndex documentIndex = new DocumentIndex();
