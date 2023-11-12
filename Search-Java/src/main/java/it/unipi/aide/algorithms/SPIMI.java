@@ -112,7 +112,6 @@ public class SPIMI
                 if(newPosting) numBlocksPosting++;
             }
 
-
             // Memory control
             if(memoryCheck())
             {
@@ -203,7 +202,7 @@ public class SPIMI
                 // For each term I have to save into the vocabulary file.
                 TermInfo termInfo = vocabulary.get(t);
                 // Set the offset at which postings start
-                termInfo.setDocidOffset(partialOffset);
+                termInfo.setOffset(partialOffset);
 
                 // Write vocabulary entry
                 StringBuilder pattern = new StringBuilder("%-").append(TermInfo.SIZE_TERM).append("s");
@@ -212,8 +211,8 @@ public class SPIMI
                 // Write
                 vocabularyBuffer.put(paddedTerm.getBytes());
                 vocabularyBuffer.putInt(termInfo.getTotalFrequency());
-                vocabularyBuffer.putLong(termInfo.getDocidOffset());
                 vocabularyBuffer.putInt(termInfo.getNumPosting());
+                vocabularyBuffer.putLong(termInfo.getOffset());
 
                 // Write the other 2 files for DocId and Frequency
                 for (Posting p: invertedIndex.getPostingList(t))

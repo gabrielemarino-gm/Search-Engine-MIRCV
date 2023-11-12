@@ -24,7 +24,7 @@ public class DAAT {
 
     public DAAT(int k){
         this.K = k;
-        COMPRESSION = true;
+        COMPRESSION = false;
     }
 
     public void testRetrievalCompression(){
@@ -146,20 +146,18 @@ public class DAAT {
 
     private TermInfo getTerm(FileChannel channel, long from) throws IOException
     {
-        MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY,from * TermInfo.SIZE_POST_MERGING, TermInfo.SIZE_POST_MERGING);
+        MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY,
+                from * TermInfo.SIZE_POST_MERGING, TermInfo.SIZE_POST_MERGING);
 
         byte[] termBytes = new byte[TermInfo.SIZE_TERM];
         buffer.get(termBytes);
 
         String term = new String(termBytes).trim();
         int totFreq = buffer.getInt();
-        long docOff = buffer.getLong();
-        long freqOff = buffer.getLong();
-        long docBytes = buffer.getLong();
-        long freqBytes = buffer.getLong();
         int nPost = buffer.getInt();
+        long off = buffer.getLong();
 
-        return new TermInfo(term, totFreq, docOff, freqOff, docBytes, freqBytes, nPost);
+        return new TermInfo(term, totFreq, nPost, off);
     }
 
     private List<Posting> getPostingsByTerm(TermInfo toRetrieve)
@@ -170,23 +168,46 @@ public class DAAT {
 
         String docsPath = ConfigReader.getDocidPath();
         String freqPath = ConfigReader.getFrequencyPath();
+        String blocksPath = ConfigReader.getBlockDescriptorsPath();
         try
+                (
+                        FileChannel blockChannel = (FileChannel) Files.newByteChannel(Paths.get(blocksPath),
+                                StandardOpenOption.READ);
+                        FileChannel docsChannel = (FileChannel) Files.newByteChannel(Paths.get(docsPath),
+                                StandardOpenOption.READ);
+                        FileChannel freqChannel = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
+                                StandardOpenOption.READ);
+                        )
         {
-            FileChannel docsChannel = (FileChannel) Files.newByteChannel(Paths.get(docsPath),
-                    StandardOpenOption.READ);
-            FileChannel freqChannel = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
-                    StandardOpenOption.READ);
+            BlockDescriptor block = new BlockDescriptor();
+            MappedByteBuffer blockBuffer = blockChannel.map(FileChannel.MapMode.READ_ONLY, toRetrieve.getOffset(), BlockDescriptor.BLOCK_SIZE);
+            block.setMaxDocID(blockBuffer.getInt());
+            block.setNumPostings(blockBuffer.getInt());
+            block.setOffsetDocID(blockBuffer.getLong());
+            block.setOffsetFreq(blockBuffer.getLong());
+            block.setBytesOccupiedDocid(blockBuffer.getLong());
+            block.setBytesOccupiedFreq(blockBuffer.getLong());
 
-            MappedByteBuffer docBuffer = docsChannel.map(FileChannel.MapMode.READ_ONLY, toRetrieve.getDocidOffset(), toRetrieve.getBytesOccupiedDocid());
-            MappedByteBuffer freqBuffer = freqChannel.map(FileChannel.MapMode.READ_ONLY, toRetrieve.getFreqOffset(), toRetrieve.getBytesOccupiedFreq());
+            MappedByteBuffer docBuffer = docsChannel.map(FileChannel.MapMode.READ_ONLY, block.getOffsetDocid(), block.getBytesOccupiedDocid());
+            MappedByteBuffer freqBuffer = freqChannel.map(FileChannel.MapMode.READ_ONLY, block.getOffsetFreq(), block.getBytesOccupiedFreq());
 
-            byte[] docBytes = new byte[(int)toRetrieve.getBytesOccupiedDocid()];
-            byte[] freqBytes = new byte[(int)toRetrieve.getBytesOccupiedFreq()];
+            byte[] docBytes = new byte[(int)block.getBytesOccupiedDocid()];
+            byte[] freqBytes = new byte[(int)block.getBytesOccupiedFreq()];
 
             docBuffer.get(docBytes);
             freqBuffer.get(freqBytes);
 
-            if (!COMPRESSION) {
+            if (COMPRESSION) {
+
+                int[] decompressedDocBytes = Compressor.VariableByteDecompression(docBytes);
+                int[] decompressedFreqBytes = Compressor.UnaryDecompression(freqBytes);
+
+                for (int i = 0; i < toRetrieve.getNumPosting(); i++) {
+                    toRet.add(new Posting(decompressedDocBytes[i], decompressedFreqBytes[i]));
+                }
+            }
+            else
+            {
                 for (int i = 0; i < toRetrieve.getNumPosting(); i++) {
                     byte[] tempDocBytes = new byte[4];
                     byte[] tempFreqBytes = new byte[4];
@@ -194,15 +215,6 @@ public class DAAT {
                     System.arraycopy(freqBytes, i * 4, tempFreqBytes, 0, 4);
 
                     toRet.add(new Posting(Commons.bytesToInt(tempDocBytes), Commons.bytesToInt(tempFreqBytes)));
-                }
-            }
-            else
-            {
-                int[] decompressedDocBytes = Compressor.VariableByteDecompression(docBytes);
-                int[] decompressedFreqBytes = Compressor.UnaryDecompression(freqBytes);
-
-                for (int i = 0; i < toRetrieve.getNumPosting(); i++) {
-                    toRet.add(new Posting(decompressedDocBytes[i], decompressedFreqBytes[i]));
                 }
             }
         }

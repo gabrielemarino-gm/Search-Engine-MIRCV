@@ -1,8 +1,7 @@
 package it.unipi.aide;
 
-import it.unipi.aide.algorithms.MergingM;
+import it.unipi.aide.algorithms.Merging;
 import it.unipi.aide.algorithms.SPIMI;
-import it.unipi.aide.utils.ConfigReader;
 
 public class CreateIndex
 {
@@ -41,7 +40,7 @@ public class CreateIndex
 //        Merging merge = new Merging(OUTPUT_PATH, COMPRESSION, numBlocks);
 //        merge.mergeBlocks(DEBUG);
 
-        MergingM mergem = new MergingM(COMPRESSION, numBlocks);
+        Merging mergem = new Merging(COMPRESSION, numBlocks);
         mergem.mergeBlocks(DEBUG);
     }
 }
