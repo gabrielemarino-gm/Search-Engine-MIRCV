@@ -3,17 +3,18 @@ package it.unipi.aide.model;
 public class TermInfo
 {
     public final static int SIZE_TERM = 46;
-    public final static long SIZE_PRE_MERGING = SIZE_TERM +4L + 8L + 4L;
-    public final static long SIZE_POST_MERGING = SIZE_TERM + 4L + 8L + 8L + 4L + 8L + 8L;
+    public final static long SIZE_PRE_MERGING = SIZE_TERM  + 4L + 4L + 8L;
+    public final static long SIZE_POST_MERGING = SIZE_TERM + 4L + 4L + 4L + 8L;
 
 
     private String term;
     private int totalFrequency;
-    private long docidOffset;
-    private long freqOffset;
-    private long bytesOccupiedDocid;
-    private long bytesOccupiedFreq;
     private int numPosting;
+    private int numBlocks; // Only post-merging
+    private long offset;
+
+    // Before merging is where docids and frequencies stats
+    // After merging is the position of first block descriptor
 
     /**
      * Create a new TermInfo (USE IN SPIMI ONLY)
@@ -24,62 +25,49 @@ public class TermInfo
     public TermInfo(String term){
         this.term = term;
         this.totalFrequency = 1;
-        this.docidOffset = 0;
-        this.freqOffset = 0;
         this.numPosting = 1;
+        this.offset = 0;
     }
 
     /**
      * Create new TermInfo (USE IN MERGE ONLY FOR READ)
      * @param term Term name
      * @param totalFrequency How many times it appears in the Corpus
-     * @param docOffset At which offset its PostingList begins (DocIDs)
-     * @param freqOffset At which offset its PostingList begins (Frequencies)
+     * @param offset Offset in the file where the posting list starts
      * @param numPosting How many Postings for that term
      */
     public TermInfo(String term, int totalFrequency,
-                    long docOffset, long freqOffset,
-                    int numPosting)
+                    int numPosting, long offset)
     {
         this.term = term;
         this.totalFrequency = totalFrequency;
-        this.docidOffset = docOffset;
-        this.freqOffset = freqOffset;
         this.numPosting = numPosting;
+        this.offset = offset;
     }
-
     public TermInfo(String term, int totalFrequency,
-                    long docidOffset, long freqOffset,
-                    long docidBytes, long freqBytes,
-                    int numPosting)
+                    int numPosting, int nBlocks, long offset)
     {
-        this(term, totalFrequency, docidOffset, freqOffset, numPosting);
-        bytesOccupiedDocid = docidBytes;
-        bytesOccupiedFreq = freqBytes;
+        this(term, totalFrequency, numPosting, offset);
+        this.numBlocks = nBlocks;
     }
 
     public void incrementTotalFrequency() {this.totalFrequency++;}
     public void incrementNumPosting() {this.numPosting++;}
 
     public int getTotalFrequency() {return totalFrequency;}
-    public long getDocidOffset() {return docidOffset;}
-    public long getFreqOffset() {return freqOffset;}
+    public int getNumBlocks() {return numBlocks;}
+    public long getOffset() {return offset;}
     public int getNumPosting() {return numPosting;}
     public String getTerm() {return term;}
-    public void setTerm(String t) {this.term = t;}
     public void setNumPosting(int n) {this.numPosting = n;}
     public void setTotalFrequency(int f) {this.totalFrequency = f;}
-    public void setDocidOffset(long o) {this.docidOffset = o;}
-    public void setFreqOffset(long o) {this.freqOffset = o;}
-    public void setBytesOccupiedDocid(long bytesOccupiedDocid) {this.bytesOccupiedDocid = bytesOccupiedDocid;}
-    public void setBytesOccupiedFreq(long bytesOccupiedFreq) {this.bytesOccupiedFreq = bytesOccupiedFreq;}
-    public long getBytesOccupiedDocid() {return bytesOccupiedDocid;}
-    public long getBytesOccupiedFreq() {return bytesOccupiedFreq;}
+    public void setNumBlocks(int n) {this.numBlocks = n;}
+    public void setOffset(long o) {this.offset = o;}
 
     @Override
     public String toString()
     {
-        return String.format("[%s](%d, %d, %d, %d, %d, %d)", term, totalFrequency, numPosting, docidOffset, freqOffset, bytesOccupiedDocid, bytesOccupiedFreq);
+        return String.format("[%s](%d, %d, %d, %d)", term, totalFrequency, numPosting, numBlocks, offset);
     }
 }
 

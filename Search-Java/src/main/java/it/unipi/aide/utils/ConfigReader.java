@@ -23,7 +23,7 @@ public class ConfigReader
     private static String partialVocabularyPath;
     private static String partialDocsPath;
     private static String partialFrequenciesPath;
-
+    private static boolean compressionEnabled;
 
     static
     {
@@ -56,6 +56,8 @@ public class ConfigReader
             partialVocabularyPath = rootNode.get("partialVocabularyPath").asText();
             partialDocsPath = rootNode.get("partialDocsPath").asText();
             partialFrequenciesPath = rootNode.get("partialFrequenciesPath").asText();
+
+            compressionEnabled = rootNode.get("compressionEnabled").asBoolean();
         }
         catch (IOException e)
         {
@@ -93,5 +95,6 @@ public class ConfigReader
 
     public static String getPartialFrequenciesPath() { return partialFrequenciesPath; }
 
+    public static boolean compressionEnabled() { return compressionEnabled; }
 
 }

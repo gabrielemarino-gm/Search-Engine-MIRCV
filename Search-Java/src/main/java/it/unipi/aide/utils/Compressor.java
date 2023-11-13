@@ -33,15 +33,15 @@ public class Compressor {
      * @param fromBytes Array of bytes to decompress
      * @return Array of integer decompressed
      */
-    public static int[] UnaryDecompression(byte[] fromBytes){
+    public static int[] UnaryDecompression(byte[] fromBytes, int qty){
         List<Integer> toRet = new ArrayList<>();
         int counter = 1;
 
         // Shift to the right: when we encounter a 0 on the second place we print
         // Otherwise, we accumulate on an accumulator
-        for(int i = 0; i < fromBytes.length*8-1; i++) {
+        for(int i = 0; i < fromBytes.length * 8; i++) {
             if ((fromBytes[fromBytes.length - 1] & 0b00000010) == 0b00000000 ||
-                    ((fromBytes[fromBytes.length - 1] & 0b00000011) == 0b00000011) && i == fromBytes.length*8-2)
+                    ((fromBytes[fromBytes.length - 1] & 0b00000011) == 0b00000011) && i == fromBytes.length*8 - 2)
             {
                 toRet.add(counter);
                 counter = 1;
@@ -52,10 +52,10 @@ public class Compressor {
         }
 
         // We want to return an Array, not a List
-        int[] temp = new int[toRet.size()];
-        for(int i = 0; i < toRet.size(); i++)
+        int[] temp = new int[qty];
+        for(int i = 0; i < qty; i++)
             {
-                temp[i] = toRet.get(i);
+                temp[qty-1-i] = toRet.get(i);
             }
         return temp;
     }
@@ -165,7 +165,7 @@ public class Compressor {
     private static int bytesNeeded(int[] ints){
         int b = 0;
         for(int n : ints){
-            b+=n;
+            b += n;
         }
         return ((b - (b % 8)) + ((b % 8 == 0)? 0 : 8)) / 8;
     }
@@ -175,7 +175,7 @@ public class Compressor {
      * @param arr Array of Bytes to shift
      */
     private static void shiftLeft(byte[] arr){
-        for(int i = 0; i < arr.length -1; i++){
+        for(int i = 0; i < arr.length - 1; i++){
             arr[i] = (byte)((arr[i] & 0xFF) << 1);
             byte ow = (byte)((arr[i+1] & 0x80) >>> 7);
             arr[i] = (byte)(arr[i] | ow);

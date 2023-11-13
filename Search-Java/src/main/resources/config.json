@@ -18,6 +18,7 @@
   "partialPath" : "data/out/partial",
   "partialVocabularyPath" : "data/out/partial/vocabularyBlock-",
   "partialDocsPath" : "data/out/partial/docidsBlock-",
-  "partialFrequenciesPath" : "data/out/partial/frequenciesBlock-"
+  "partialFrequenciesPath" : "data/out/partial/frequenciesBlock-",
 
+  "compressionEnabled" : true
 }

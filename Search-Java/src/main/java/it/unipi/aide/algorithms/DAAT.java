@@ -24,32 +24,27 @@ public class DAAT {
 
     public DAAT(int k){
         this.K = k;
-        COMPRESSION = true;
-    }
-
-    public void testRetrievalCompression(){
-        TermInfo toRetrieve1 = binarySearch("bomb");
-        TermInfo toRetrieve2 = binarySearch("atom");
-
-        System.out.println(toRetrieve1);
-        System.out.println(toRetrieve2);
-
-        PostingList pl1 = new PostingList("bomb", getPostingsByTerm(toRetrieve1));
-        PostingList pl2 = new PostingList("atom", getPostingsByTerm(toRetrieve2));
-
-        System.out.println(pl1);
-        System.out.println(pl2);
-
+        COMPRESSION = false;
     }
 
     public List<ScoredDocument> executeDAAT(List<String> queryTerms){
         // Retrieve the posting lists of the query terms
-        List<PostingList> postingLists= new ArrayList<>();
+        List<PostingListSkippable> postingLists= new ArrayList<>();
         for(String t : queryTerms){
             /* TODO -> Search inside a cache before performing binary search */
             TermInfo toRetrieve = binarySearch(t);
             terms.put(t, toRetrieve);
-            postingLists.add(new PostingList(t, getPostingsByTerm(toRetrieve)));
+
+            System.out.println(toRetrieve);
+
+            if (toRetrieve == null)
+            {
+                // TODO -> What if the term is not in the vocabulary?
+
+            }
+            else {
+                postingLists.add(new PostingListSkippable(toRetrieve));
+            }
         }
 
         // If searched terms are not in the vocabulary, return null
@@ -63,7 +58,7 @@ public class DAAT {
             stop = true;
             int firstDoc = getSmallestDocid(postingLists);
             ScoredDocument toAdd = new ScoredDocument(firstDoc, 0);
-            for(PostingList pl : postingLists){
+            for(PostingListSkippable pl : postingLists){
                 // If at least one Posting List has elements, Hypothesis became false
                 if (pl.getCurrent() != null) {
                     stop = false;
@@ -77,7 +72,8 @@ public class DAAT {
                     }
                 }
             }
-            scoredDocuments.add(toAdd);
+            if(!stop)
+                scoredDocuments.add(toAdd);
         }
 
         // Sort the documents by score
@@ -87,14 +83,17 @@ public class DAAT {
             else return 0;
         });
 
+        if (scoredDocuments.size() > K)
+            return scoredDocuments.subList(0, K);
         // Return top-k documents
-        return scoredDocuments.subList(0, K);
+        else
+            return scoredDocuments;
     }
 
-    private int getSmallestDocid(List<PostingList> postingLists){
+    private int getSmallestDocid(List<PostingListSkippable> postingLists){
         int min = Integer.MAX_VALUE;
 
-        for(PostingList pl : postingLists){
+        for(PostingListSkippable pl : postingLists){
             if(pl.getCurrent() != null && pl.getCurrent().getDocId() < min){
                 min = pl.getCurrent().getDocId();
             }
@@ -114,8 +113,8 @@ public class DAAT {
             while (true)
             {
                 long MID_POINT = (WIN_UP - WIN_DOWN)/ 2 + WIN_DOWN;
-                if(MID_POINT == 0) return null;
-                TermInfo middleTerm = getTerm(channel, MID_POINT);
+                if(WIN_UP == WIN_DOWN) return null;
+                TermInfo middleTerm = getTermFromDisk(channel, MID_POINT);
 
                 int comp = middleTerm.getTerm().compareTo(term);
                 if (comp == 0)
@@ -144,73 +143,20 @@ public class DAAT {
         return null;
     }
 
-    private TermInfo getTerm(FileChannel channel, long from) throws IOException
+    private TermInfo getTermFromDisk(FileChannel channel, long from) throws IOException
     {
-        MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY,from * TermInfo.SIZE_POST_MERGING, TermInfo.SIZE_POST_MERGING);
+        MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY,
+                from * TermInfo.SIZE_POST_MERGING, TermInfo.SIZE_POST_MERGING);
 
         byte[] termBytes = new byte[TermInfo.SIZE_TERM];
         buffer.get(termBytes);
 
         String term = new String(termBytes).trim();
         int totFreq = buffer.getInt();
-        long docOff = buffer.getLong();
-        long freqOff = buffer.getLong();
-        long docBytes = buffer.getLong();
-        long freqBytes = buffer.getLong();
         int nPost = buffer.getInt();
+        int nBlocks = buffer.getInt();
+        long off = buffer.getLong();
 
-        return new TermInfo(term, totFreq, docOff, freqOff, docBytes, freqBytes, nPost);
-    }
-
-    private List<Posting> getPostingsByTerm(TermInfo toRetrieve)
-    {
-        if (toRetrieve == null) return null;
-
-        List<Posting> toRet = new ArrayList<>();
-
-        String docsPath = ConfigReader.getDocidPath();
-        String freqPath = ConfigReader.getFrequencyPath();
-        try
-        {
-            FileChannel docsChannel = (FileChannel) Files.newByteChannel(Paths.get(docsPath),
-                    StandardOpenOption.READ);
-            FileChannel freqChannel = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
-                    StandardOpenOption.READ);
-
-            MappedByteBuffer docBuffer = docsChannel.map(FileChannel.MapMode.READ_ONLY, toRetrieve.getDocidOffset(), toRetrieve.getBytesOccupiedDocid());
-            MappedByteBuffer freqBuffer = freqChannel.map(FileChannel.MapMode.READ_ONLY, toRetrieve.getFreqOffset(), toRetrieve.getBytesOccupiedFreq());
-
-            byte[] docBytes = new byte[(int)toRetrieve.getBytesOccupiedDocid()];
-            byte[] freqBytes = new byte[(int)toRetrieve.getBytesOccupiedFreq()];
-
-            docBuffer.get(docBytes);
-            freqBuffer.get(freqBytes);
-
-            if (!COMPRESSION) {
-                for (int i = 0; i < toRetrieve.getNumPosting(); i++) {
-                    byte[] tempDocBytes = new byte[4];
-                    byte[] tempFreqBytes = new byte[4];
-                    System.arraycopy(docBytes, i * 4, tempDocBytes, 0, 4);
-                    System.arraycopy(freqBytes, i * 4, tempFreqBytes, 0, 4);
-
-                    toRet.add(new Posting(Commons.bytesToInt(tempDocBytes), Commons.bytesToInt(tempFreqBytes)));
-                }
-            }
-            else
-            {
-                int[] decompressedDocBytes = Compressor.VariableByteDecompression(docBytes);
-                int[] decompressedFreqBytes = Compressor.UnaryDecompression(freqBytes);
-
-                for (int i = 0; i < toRetrieve.getNumPosting(); i++) {
-                    toRet.add(new Posting(decompressedDocBytes[i], decompressedFreqBytes[i]));
-                }
-            }
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-
-        return toRet;
+        return new TermInfo(term, totFreq, nPost, nBlocks, off);
     }
 }

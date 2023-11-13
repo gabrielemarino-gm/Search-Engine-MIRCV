@@ -5,7 +5,6 @@ TODO LIST
 3. Iniziare DAAT e PENSARE strutture per nextGEQ
 
 
-
 OPZIONALI
 4. Compressione (a scelta)
 5. In input dovrebbe essere preso il file tar.gz, anziche il tsv
@@ -40,14 +39,32 @@ OPZIONALI
 # IDFt = log( Numero totale di documenti / Numero di documenti dove t appare almeno una volta)
 
 # Per calcolare TFd,t ci serve:
-# 1- Quante volte t appare in d
+# 1- Quante volte t appare in d (gia presente nel Posting di quel documento per quel termine)
 
 # Per calcolare IDFt ci serve:
-# 1- Totale documenti nel Corpus
-# 2- Quanti documenti t appare almeno una volta
+# 1- Totale documenti nel Corpus (gia calcolato in fase di creazione dell inverted index)
+# 2- In quanti documenti t appare almeno una volta (ossia il numero di posting che ci sono per quel termine)
 
 # IDFt si calcola immediatamente per ogni termine guardando il vocabolario
 # TFf,t bisogna scorrere le posting list del termine
 
 # STATISTICA BF25 VA ANCORA FATTA
+#   Per questo bisogna calcolare average_document_lenght (calcolato in fase di crezione dell'indice)
+#    e le lunghezze (in token) di ogni documento (anche questo calcolabile in fase di crezione dell'indice)
+
+# NB: La maggior parte dell'overhead di tutte queste cose e' dato dal dover leggere dal disco, in quanto
+#      si deve assumere che tutte queste strutture non entrano in memoria tutte insieme
+
 # NEXTGEQ VA ANCORA FATTO
+
+
+
+
+# BLOCCHI DI SKIP
+# Ogni TermInfo deve anche contenere un Offset dove trovare il primo BlockSkip e idealmente quanti altri
+#   ce ne sono. Ogni blocco dovrebbe contenere pezzetti di PostingList lunghi sqrt(posting_totali)
+#   Ogni blocco dovrebbe essere compresso a se stante, perlomeno le frequenze che sono Unarie
+#   Ogni blocco contiene:
+#       - maxDocID dentro quel blocco
+#       - docID e freq offsets
+#       - Posting contenuti

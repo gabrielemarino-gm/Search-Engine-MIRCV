@@ -1,47 +1,42 @@
 package it.unipi.aide.algorithms;
 
-import it.unipi.aide.model.InvertedIndex;
-import it.unipi.aide.model.Posting;
-import it.unipi.aide.model.PostingList;
-import it.unipi.aide.model.TermInfo;
+import it.unipi.aide.model.*;
+import it.unipi.aide.utils.Commons;
+import it.unipi.aide.utils.Compressor;
+import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Merging
 {
-    private final String INPUT_PATH;
-    private final String OUTPUT_PATH;
+    private final int MIN_POSTING_LIMIT = 128; // Minimum number of postings to split in blocks
     private final boolean COMPRESSION;
-    private final int numFiles;
-    private long partialOffset;
+    private final int BLOCKS_COUNT; // Number of blocks to merge
 
-    private InvertedIndex invertedIndex = new InvertedIndex();
+    long finalDocidOffset = 0;
+    long finalFreqOffset = 0;
+    long blockDescriptorOffset = 0;
+    long vFinalOffset = 0;
 
-    // Write in binary
-    private String docPath;
-    private String freqPath;
-    private String vocPath;
-
-    public Merging(String outputPath, boolean compression, int numFiles)
-    {
-        this.INPUT_PATH = outputPath+ "partial/";
-        this.OUTPUT_PATH = outputPath + "complete/";
-        this.numFiles = numFiles;
+    public Merging(boolean compression, int blocksCount)
+    {;
+        this.BLOCKS_COUNT = blocksCount;
         this.COMPRESSION = compression;
-        this.partialOffset = 0;
 
-        this.docPath = OUTPUT_PATH+"docIDsBlock";
-        this.freqPath = OUTPUT_PATH+"frequenciesBlock";
-        this.vocPath = OUTPUT_PATH+"vocabularyBlock";
+        System.out.println(String.format(
+                "-----MERGING-----\nCOMPRESSION = %b\nBLOCKS_TO_COMPRESS = %d\n-----------------",
+                COMPRESSION,
+                BLOCKS_COUNT
+        ));
+
     }
 
     /**
@@ -49,238 +44,473 @@ public class Merging
      */
     public void mergeBlocks(boolean debug)
     {
-        chechDir(true);
-
+        long nTerms = 0;
         // Check if the directory with the blocks results exists
-        if(FileManager.checkDir(INPUT_PATH))
+        if(FileManager.checkDir(ConfigReader.getPartialPath()))
         {
             // Create a channel for each block, both for docId, frequencies and vocabulary fragments
-            FileChannel[] docIdFileChannel = new FileChannel[numFiles];
-            MappedByteBuffer[] docIdBuffers = new MappedByteBuffer[numFiles];
-
-            FileChannel[] frequenciesFileChannel = new FileChannel[numFiles];
-            MappedByteBuffer[] frequenciesBuffers = new MappedByteBuffer[numFiles];
-
-            FileChannel[] vocabulariesFileChannel = new FileChannel[numFiles];
-            MappedByteBuffer[] vocabulariesBuffers = new MappedByteBuffer[numFiles];
+            FileChannel[] docIdFileChannel = new FileChannel[BLOCKS_COUNT];
+            FileChannel[] frequenciesFileChannel = new FileChannel[BLOCKS_COUNT];
+            FileChannel[] vocabulariesFileChannel = new FileChannel[BLOCKS_COUNT];
 
             // Create one offset for each block, both for docId, frequencies and vocabulary fragments
-            long[] offsetDocId = new long[numFiles];
-            long[] offsetFrequency = new long[numFiles];
-            long[] offsetVocabulary = new long[numFiles];
+            long[] offsetDocId = new long[BLOCKS_COUNT];
+            long[] offsetFrequency = new long[BLOCKS_COUNT];
+            long[] offsetVocabulary = new long[BLOCKS_COUNT];
 
-            // Unknown
-            long[] dimVocabularyFile = new long[numFiles];
-            boolean[] stoppingCondition = new boolean[numFiles];
+            long[] dimVocabularyFile = new long[BLOCKS_COUNT];
 
-            TermInfo[] termsToMerge = new TermInfo[numFiles];
-            PostingList[] postingList = new PostingList[numFiles];
-            TreeMap<String, Integer> mapOfTerm = new TreeMap<>();
-            // Unknown
+            TermInfo[] vocs = new TermInfo[BLOCKS_COUNT];
 
-            int nTerms = 0;
-            try
+            String FdocPath = ConfigReader.getDocidPath();
+            String FfreqPath = ConfigReader.getFrequencyPath();
+            String FvocPath = ConfigReader.getVocabularyPath();
+            String FblockPath = ConfigReader.getBlockDescriptorsPath();
+
+            if(!FileManager.checkDir(FdocPath)) FileManager.createFile(FdocPath);
+            if(!FileManager.checkDir(FfreqPath)) FileManager.createFile(FfreqPath);
+            if(!FileManager.checkDir(FvocPath)) FileManager.createFile(FvocPath);
+            if(!FileManager.checkDir(FblockPath)) FileManager.createFile(FblockPath);
+
+            try (
+                    // Open FileChannels to each file
+                    FileChannel finalVocChannel = (FileChannel) Files.newByteChannel(Paths.get(FvocPath),
+                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+                    FileChannel finalDocIDChannel = (FileChannel) Files.newByteChannel(Paths.get(FdocPath),
+                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+                    FileChannel finalFreqChannel = (FileChannel) Files.newByteChannel(Paths.get(FfreqPath),
+                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+                    FileChannel blockDescriptorsChannel = (FileChannel) Files.newByteChannel(Paths.get(FblockPath),
+                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE)
+                    )
             {
-                // initialize the FileChannel of all file needed
-                for (int indexBlock = 0; indexBlock < numFiles; indexBlock++)
+                // INIT PHASE
+                for (int indexBlock = 0; indexBlock < BLOCKS_COUNT; indexBlock++)
                 {
-                    String docPath = INPUT_PATH + "docIDsBlock-" + indexBlock;
-                    String freqPath = INPUT_PATH + "frequenciesBlock-" + indexBlock;
-                    String vocPath = INPUT_PATH + "vocabularyBlock-" + indexBlock;
+                    String vocPath = ConfigReader.getPartialVocabularyPath() + indexBlock;
+                    String docPath = ConfigReader.getPartialDocsPath() + indexBlock;
+                    String freqPath = ConfigReader.getPartialFrequenciesPath() + indexBlock;
 
+                    // Open FileChannels to each file
                     docIdFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(docPath),
-                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
-
+                            StandardOpenOption.READ);
                     frequenciesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
-                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
-
+                            StandardOpenOption.READ);
                     vocabulariesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(vocPath),
-                            StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+                            StandardOpenOption.READ);
 
-                    // Maybe -> Maybe use the vocabulary as it brings more info?
                     dimVocabularyFile[indexBlock] = vocabulariesFileChannel[indexBlock].size();
+
+                    // Get first term for each block's vocabulary
+                    vocs[indexBlock] = getNextVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
+                    offsetVocabulary[indexBlock] += TermInfo.SIZE_PRE_MERGING;
                 }
 
-                // Until we have data to analyze
+                // Until we have data to analyze inside blocks...
                 while(true)
                 {
-                    // for each block, initialize all the data structure of a term needed
-                    for (int indexBlock = 0; indexBlock < numFiles; indexBlock++)
+                    // ...get the smallest term along all vocabularies...
+                    String smallestTerm = getSmallestTerm(vocs);
+
+                    // ...create a TermInfo to merge those in different blocks...
+                    TermInfo finalTerm = new TermInfo(smallestTerm);
+
+                    int finalTotalFreq = 0;
+                    int totalTermPostings = 0;
+
+                    // ...create two lists to accumulate bytes from different blocks...
+                    // TODO -> Evaluate if it's better to create those lists outside the loop and clear each term
+
+                    List<byte[]> docsAcc = new ArrayList<>();
+                    List<byte[]> freqAcc = new ArrayList<>();
+
+                    // For each block...
+                    for (int indexBlock = 0; indexBlock < BLOCKS_COUNT; indexBlock++)
                     {
-                        // Check if we arrived at the end of the file of the current block
-                        if (offsetVocabulary[indexBlock] >= dimVocabularyFile[indexBlock])
+                        // ...if current term is equal the smallest (and it's not null)...
+                        if(vocs[indexBlock] != null && vocs[indexBlock].getTerm().equals(smallestTerm))
                         {
-                            // If we finish to elaborate the file, just go to the next iteration
-                            stoppingCondition[indexBlock] = true;
-                            continue;
+
+                            // ...accumulates bytes from different blocks , for all blocks...
+                            docsAcc.add(extractBytes(docIdFileChannel[indexBlock],offsetDocId[indexBlock],vocs[indexBlock].getNumPosting()));
+                            freqAcc.add(extractBytes(frequenciesFileChannel[indexBlock],offsetFrequency[indexBlock],vocs[indexBlock].getNumPosting()));
+
+
+                            // finalPostings and totalFrequency are jsut the sum of partial blocks
+                            totalTermPostings += vocs[indexBlock].getNumPosting();
+                            finalTotalFreq += vocs[indexBlock].getTotalFrequency();
+
+                            // Update the offsets for current block
+                            offsetDocId[indexBlock] += 4L * vocs[indexBlock].getNumPosting();
+                            offsetFrequency[indexBlock] += 4L * vocs[indexBlock].getNumPosting();
+                            /*
+                                If this block is finished, set its vocs to null and skip
+                                 This happen because last time we extracted a term for this
+                                 block, it was the last term in the list
+                                Null is used as break condition
+                             */
+                            if (offsetVocabulary[indexBlock] >= dimVocabularyFile[indexBlock]) {
+                                System.err.println("LOG:\t\tBlock #" + indexBlock + " exhausted.");
+                                vocs[indexBlock] = null;
+                                continue;
+                            }
+                            // Vocabulary shift
+                            vocs[indexBlock] = getNextVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
+                            offsetVocabulary[indexBlock] += TermInfo.SIZE_PRE_MERGING;
                         }
+                    }
 
-                        // Stating to read inside the vocabulary the length of the first posting list
-                        vocabulariesBuffers[indexBlock] = vocabulariesFileChannel[indexBlock].map(FileChannel.MapMode.READ_WRITE,
-                                offsetVocabulary[indexBlock], TermInfo.SIZE_PRE_MERGING);
+                    // ... current term is ended, bytes are accumulated ...
+                    int totalBytesSummed = docsAcc.stream().mapToInt(vec -> vec.length).sum();
 
-                        byte[] termBytes = new byte[64];
-                        vocabulariesBuffers[indexBlock].get(termBytes);
-                        int frequency = vocabulariesBuffers[indexBlock].getInt();
-                        long offset = vocabulariesBuffers[indexBlock].getLong();
-                        int nPosting = vocabulariesBuffers[indexBlock].getInt();
+                    byte[] concatenatedDocsBytes = new byte[totalBytesSummed];
+                    byte[] concatenatedFreqBytes = new byte[totalBytesSummed];
 
-                        String term = new String(termBytes).trim();
+                    int os = 0;
+                    for(byte[] v: docsAcc){
+                        System.arraycopy(v,0, concatenatedDocsBytes, os, v.length);
+                        os += v.length;
+                    }
+                    os = 0;
+                    for(byte[] v: freqAcc){
+                        System.arraycopy(v,0, concatenatedFreqBytes, os, v.length);
+                        os += v.length;
+                    }
 
-                        // I need to take in account the term that occur in each step, looping in the vocabulary of each block.
-                        if (mapOfTerm.get(term) != null)
+                    /* Now that we cumulated docids and frequencies for that term, split them in Blocks */
+
+                    // ... write sqrt(n) postings in each block ...
+                    int postingsInsideEachBlock = (int) Math.sqrt(totalTermPostings);
+                    int numberOfBlocksToCreate = (int) Math.ceil((double) totalTermPostings / postingsInsideEachBlock);
+
+                    // ... divide the accumulated bytes in sqrt(n) blocks ...
+                    List<byte[]> docidBlocks = new ArrayList<>();
+                    List<byte[]> freqBlocks = new ArrayList<>();
+                    List<BlockDescriptor> blockDescriptors = new ArrayList<>();
+
+                    // ... if totalTerms is less than 512, just write one block ...
+                    if (totalTermPostings < MIN_POSTING_LIMIT) {
+                        BlockDescriptor blockDescriptor = new BlockDescriptor();
+                        blockDescriptor.setNumPostings(totalTermPostings);
+
+
+                        // Manage compression
+                        if (COMPRESSION)
                         {
-                            mapOfTerm.compute(term, (key, oldValue) -> oldValue + 1);
+                            byte[] tempDoc = Compressor.VariableByteCompression(concatenatedDocsBytes);
+                            byte[] tempFreq = Compressor.UnaryCompression(concatenatedFreqBytes);
+
+                            // Update blockDescriptor (Compression uses fewer bytes)
+                            blockDescriptor.setBytesOccupiedDocid(tempDoc.length);
+                            blockDescriptor.setBytesOccupiedFreq(tempFreq.length);
+                            docidBlocks.add(tempDoc);
+                            freqBlocks.add(tempFreq);
                         }
                         else
                         {
-                            mapOfTerm.put(term, 1);
+                            // Update blockDescriptor
+                            blockDescriptor.setBytesOccupiedDocid(concatenatedDocsBytes.length);
+                            blockDescriptor.setBytesOccupiedFreq(concatenatedFreqBytes.length);
+                            docidBlocks.add(concatenatedDocsBytes);
+                            freqBlocks.add(concatenatedFreqBytes);
                         }
 
-                        termsToMerge[indexBlock] = new TermInfo(term, frequency, offset, offset, nPosting);
-                        postingList[indexBlock] = new PostingList(new String(termBytes).trim());
+                        // Update MaxDocID for current block and add to the list
+                        blockDescriptor.setMaxDocID(getMaxDocid(concatenatedDocsBytes));
+                        blockDescriptors.add(blockDescriptor);
+                        finalTerm.setNumBlocks(1);
+                    }
 
-                        // Need to read nPosting integers, i.e. the entire posting list for that term
-                        docIdBuffers[indexBlock] = docIdFileChannel[indexBlock].map(FileChannel.MapMode.READ_WRITE, offsetDocId[indexBlock], 4L * nPosting);
-                        frequenciesBuffers[indexBlock] = frequenciesFileChannel[indexBlock].map(FileChannel.MapMode.READ_WRITE, offsetFrequency[indexBlock], 4L * nPosting);
+                    // ... otherwise, divide the block in sqrt(n) blocks ...
+                    else {
 
-                        // Fill the posting list
-                        postingList[indexBlock] = new PostingList(term);
-                        for (int j = 0; j < nPosting; j++)
-                        {
-                            int d = docIdBuffers[indexBlock].getInt();
-                            int f = frequenciesBuffers[indexBlock].getInt();
-                            postingList[indexBlock].addPosting(new Posting(d, f));
+                    /* From there we can use postingsInsideEachBlock as the number of postings in each block
+                     * and numberOfBlocksToCreate as the number of blocks to create
+                     */
+
+                        for (int i = 0; i < numberOfBlocksToCreate; i++) {
+
+                            // Last block may contain fewer elements than blockSize
+                            int postingsInCurrentBlock = Math.min(
+                                    postingsInsideEachBlock,
+                                    totalTermPostings - i * postingsInsideEachBlock
+                            );
+
+                            // Block descriptor for current block
+                            BlockDescriptor blockDescriptor = new BlockDescriptor();
+                            blockDescriptor.setNumPostings(postingsInCurrentBlock);
+
+                            byte[] tempDocs = new byte[postingsInCurrentBlock * 4];
+                            byte[] tempFreq = new byte[postingsInCurrentBlock * 4];
+
+                            // Get the bytes for the current block from the accumulated bytes
+                            System.arraycopy(concatenatedDocsBytes, i * postingsInsideEachBlock * 4,
+                                    tempDocs, 0,
+                                    postingsInCurrentBlock * 4);
+
+                            System.arraycopy(concatenatedFreqBytes, i * postingsInsideEachBlock * 4,
+                                    tempFreq, 0,
+                                    postingsInCurrentBlock * 4);
+
+                            if(COMPRESSION){
+                                tempDocs = Compressor.VariableByteCompression(tempDocs);
+                                tempFreq = Compressor.UnaryCompression(tempFreq);
+                            }
+
+                            // Update bytes occupied in that block
+                            blockDescriptor.setBytesOccupiedDocid(tempDocs.length);
+                            blockDescriptor.setBytesOccupiedFreq(tempFreq.length);
+
+                            // Add to the list of blocks
+                            docidBlocks.add(tempDocs);
+                            freqBlocks.add(tempFreq);
+
+                            // Update current blockDescriptor and add to the list
+                            blockDescriptor.setMaxDocID(getMaxDocid(docidBlocks.get(i)));
+                            blockDescriptors.add(blockDescriptor);
+
+                        finalTerm.setNumBlocks(numberOfBlocksToCreate);
                         }
                     }
 
-                    // STOPPING CONDITION. If all the element of the boolean array are true then stop the while loop
-                    BitSet bitSet = new BitSet();
-                    for (int i = 0; i < stoppingCondition.length; i++)
-                        bitSet.set(i, stoppingCondition[i]);
+                    // ... update the final term ... (Not dependent by compression or blocks splitting)
+                    finalTerm.setNumPosting(totalTermPostings);
+                    finalTerm.setTotalFrequency(finalTotalFreq);
 
-                    if (bitSet.cardinality() == stoppingCondition.length)
+                    // Write everything as separated blocks
+                    writeBlocks(finalDocIDChannel, finalFreqChannel, blockDescriptorsChannel,
+                            docidBlocks,freqBlocks, blockDescriptors,
+                            finalTerm);
+
+                    // First offset of first term Block is updated inside the previous function
+
+                    writeTermToDisk(finalVocChannel, finalTerm);
+
+                    nTerms++;
+
+                    if(nTerms % 100_000 == 0){
+                        System.out.println(String.format("LOG:\t\t%d terms have been processed", nTerms));
+                    }
+
+                    /*
+                        STOPPING CONDITION
+                         if all the entry of vocs are null, we have finished
+                         as we exhausted all blocks
+                     */
+                    boolean allNull = true;
+                    for(TermInfo t: vocs)
+                    {
+                        // If at least one is not null, just continue
+                        if(t != null )
+                        {
+                            allNull = false;
+                            break;
+                        }
+                    }
+
+                    if(allNull)
                         break;
 
-                    // We need to retrieve the term lexicographically minor, because I'll merge that term
-                    String minorTerm = mapOfTerm.firstKey();
-                    PostingList mergePostingList = new PostingList(minorTerm);
-
-                    for (int indexBlock = 0; indexBlock < numFiles; indexBlock++)
-                    {
-                        // if the posting list it's inherent at the minor term, merge it!
-                        if (termsToMerge[indexBlock].getTerm().equals(minorTerm))
-                        {
-                            // Add all the posting. The method sort those postings for DocID.
-                            mergePostingList.addPostingList(postingList[indexBlock]);
-
-                            // Now we need to update the buffer offset of just the blocks merged
-                            offsetDocId[indexBlock] += 4L * termsToMerge[indexBlock].getNumPosting();
-                            offsetFrequency[indexBlock] += 4L * termsToMerge[indexBlock].getNumPosting();
-                            offsetVocabulary[indexBlock] += 64 + 4 + 8 + 4;
-
-                            nTerms++;
-                        }
-                    }
-
-                    // Now just add the merged posting list to the global inverted index
-                    invertedIndex.addPostingList(minorTerm, mergePostingList);
-
-                    // Increment the number of total posting into the inverted index
-                    writePostingList(minorTerm, invertedIndex.getPostingList(minorTerm), true);
-
-
-                    // Clean data structure
-                    // delete the term merged from the mapOfTerm
-                    mapOfTerm.remove(minorTerm);
-                    if (nTerms%1000000 == 0)
-                        System.out.println("LOG:    Processed " + nTerms + " terms");
                 }
 
+                // Delete temporary blocks
+//                FileManager.deleteDir(ConfigReader.getPartialPath());
+                System.out.println(String.format("LOG:\t\tTotal terms in the Lexicon is %d", nTerms));
+                CollectionInformation.setTotalTerms(nTerms);
             }
             catch (Exception e)
             {
                 e.printStackTrace();
             }
-
-            FileManager.cleanFolder(INPUT_PATH);
-
         }
         else
         {
-            System.err.println("ERR:    Merge error, directory " + INPUT_PATH + " doesn't exists!");
+            System.err.println("ERR\t\tMerge error, directory " + ConfigReader.getPartialPath() + " doesn't exists!");
         }
     }
 
-    private void chechDir(boolean debug)
-    {
-        if(!FileManager.checkFile(docPath)) FileManager.createFile(docPath);
-        if(!FileManager.checkFile(freqPath)) FileManager.createFile(freqPath);
-        if(!FileManager.createFile(vocPath)) FileManager.createFile(vocPath);
+    private void writeBlocks(FileChannel finalDocIDChannel,
+                             FileChannel finalFreqChannel,
+                             FileChannel blockDescriptorsChannel,
+                             List<byte[]> docsBlocks,
+                             List<byte[]> freqBlocks,
+                             List<BlockDescriptor> blockDescriptors,
+                             TermInfo finalTerm) {
 
-        if (debug)
+        // Write first blockDescriptor offset for that term
+        finalTerm.setOffset(blockDescriptorOffset);
+
+        try
         {
-            FileManager.createDir(OUTPUT_PATH + "debug/");
-            FileManager.cleanFolder(OUTPUT_PATH + "debug/");
-            FileManager.createFile(OUTPUT_PATH + "debug/invertedIndex.txt");
+            // ... for each block ...
+            for(int i = 0; i < blockDescriptors.size(); i++)
+            {
+                //
+                MappedByteBuffer tempBuffer = finalDocIDChannel.map(FileChannel.MapMode.READ_WRITE,
+                        finalDocidOffset, blockDescriptors.get(i).getBytesOccupiedDocid());
+                tempBuffer.put(docsBlocks.get(i));
+                blockDescriptors.get(i).setOffsetDocID(finalDocidOffset);
+
+                finalDocidOffset += blockDescriptors.get(i).getBytesOccupiedDocid();
+
+
+                // Write block frequencies
+                tempBuffer = finalFreqChannel.map(FileChannel.MapMode.READ_WRITE,
+                        finalFreqOffset, blockDescriptors.get(i).getBytesOccupiedFreq());
+                tempBuffer.put(freqBlocks.get(i));
+
+                blockDescriptors.get(i).setOffsetFreq(finalFreqOffset);
+
+                finalFreqOffset += blockDescriptors.get(i).getBytesOccupiedFreq();
+
+                // Write block descriptors
+                tempBuffer = blockDescriptorsChannel.map(FileChannel.MapMode.READ_WRITE,
+                        blockDescriptorOffset, BlockDescriptor.BLOCK_SIZE);
+
+                tempBuffer.putInt(blockDescriptors.get(i).getMaxDocid());
+                tempBuffer.putInt(blockDescriptors.get(i).getNumPostings());
+                tempBuffer.putLong(blockDescriptors.get(i).getOffsetDocid());
+                tempBuffer.putLong(blockDescriptors.get(i).getOffsetFreq());
+                tempBuffer.putLong(blockDescriptors.get(i).getBytesOccupiedDocid());
+                tempBuffer.putLong(blockDescriptors.get(i).getBytesOccupiedFreq());
+
+                blockDescriptorOffset += BlockDescriptor.BLOCK_SIZE;
+                if (finalTerm.getTerm().equals("bomb"))
+                    System.out.println(blockDescriptors.get(i).toString());
+            }
+
         }
+        catch (IOException io)
+        {
+            io.printStackTrace();
+        }
+
     }
 
-    private void writePostingList(String term, List<Posting> postingList, boolean debug)
+    /**
+     * Write a TermInfo on the disk
+     * @param finalVocChannel Vocabulary FileChannel
+     * @param finalTerm Term to write
+     * @throws IOException
+     */
+    private void writeTermToDisk(FileChannel finalVocChannel, TermInfo finalTerm) throws IOException
     {
-        int numPosting = postingList.size();
+        MappedByteBuffer tempBuffer = finalVocChannel.map(FileChannel.MapMode.READ_WRITE, vFinalOffset, TermInfo.SIZE_POST_MERGING);
 
-        try (
-                // Open a FileChannel for docId, frequencies and vocabulary fragments
-                FileChannel docIdFileChannel = (FileChannel) Files.newByteChannel(Paths.get(docPath),
-                        StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
+        StringBuilder pattern = new StringBuilder("%-").append(TermInfo.SIZE_TERM).append("s");
+        String paddedTerm = String.format(pattern.toString(), finalTerm.getTerm()).substring(0, TermInfo.SIZE_TERM); // Pad with spaces up to 64 characters
 
-                FileChannel frequencyFileChannel = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
-                        StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE)
+        // Write
+        tempBuffer.put(paddedTerm.getBytes());
+        tempBuffer.putInt(finalTerm.getTotalFrequency());
+        tempBuffer.putInt(finalTerm.getNumPosting());
+        tempBuffer.putInt(finalTerm.getNumBlocks());
+        tempBuffer.putLong(finalTerm.getOffset());
 
-                // FileChannel vocabularyFileChannel = (FileChannel) Files.newByteChannel(Paths.get(vocPath),
-                //        StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE)
-        )
+        vFinalOffset += TermInfo.SIZE_POST_MERGING;
+    }
+
+    /**
+     * First term in lexicographic order between all terms
+     * @param vocs TermInfo array to pick the terms from
+     * @return Smallest term in lexicographic order
+     */
+    private String getSmallestTerm(TermInfo[] vocs)
+    {
+        String toRet = null;
+        for(TermInfo t: vocs)
         {
-            // Create the buffer where write the streams of bytes
-            MappedByteBuffer docIdBuffer = docIdFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numPosting*4L);
-            MappedByteBuffer frequencyBuffer = frequencyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numPosting*4L);
-
-            // Write that all Posting to the disk
-            for (Posting p: postingList)
-            {
-                docIdBuffer.putInt(p.getDocId());
-                frequencyBuffer.putInt(p.getFrequency());
-                partialOffset += 4L;
-            }
+            if(t == null) continue;
+            if(toRet == null) toRet = t.getTerm();
+            if(t.getTerm().compareTo(toRet) < 0) toRet = t.getTerm();
         }
-        catch (IOException e)
-        {
-            e.printStackTrace();
+        return toRet;
+    }
+
+    /**
+     * Get next TermInfo from that channel
+     * @param fileChannel FileChannel to retrieve the Term from
+     * @param offsetVocabulary Offset at which the term is
+     * @return Next TermInfo in line
+     * @throws IOException
+     */
+    private TermInfo getNextVoc(FileChannel fileChannel, long offsetVocabulary) throws IOException
+    {
+        MappedByteBuffer tempBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, offsetVocabulary, TermInfo.SIZE_PRE_MERGING);
+
+        byte[] termBytes = new byte[TermInfo.SIZE_TERM];
+        tempBuffer.get(termBytes);
+
+        int frequency = tempBuffer.getInt();
+        int nPosting = tempBuffer.getInt();
+        long offset = tempBuffer.getLong();
+
+        String term = new String(termBytes).trim();
+
+        return new TermInfo(term, frequency, nPosting, 0, offset);
+    }
+    /**
+     * Extract bytes from given channel at given offset and returns them
+     *
+     * @param fromChannel File Channel to extract Bytes from
+     * @param offset At which offset to extract bytes
+     * @param nPosting How many 4-bytes to extract
+     * @return Array of Bytes extracted
+     */
+    private byte[] extractBytes(FileChannel fromChannel, long offset, int nPosting) throws IOException
+    {
+        // Buffer to extract bytes from
+        MappedByteBuffer tempBuff = fromChannel.map(FileChannel.MapMode.READ_ONLY,
+                offset, 4L*nPosting);
+        // Where to place those bytes
+        byte[] tempBytes = new byte[4 * nPosting];
+
+        tempBuff.get(tempBytes);
+        return tempBytes;
+    }
+
+    private int getMaxDocid(byte[] list){
+        int max = 0;
+        int[] ints = Commons.bytesToIntArray(list);
+        for(Integer i: ints){
+            if(i > max) max = i;
         }
-
-        if (debug)
-        {
-            try
-            {
-                // Write inverted index to debug text file
-                BufferedWriter indexWriter = new BufferedWriter(
-                        new FileWriter(OUTPUT_PATH + "debug/invertedIndex.txt", true)
-                );
-
-                indexWriter.write(term+ ": ");
-                for (Posting p: postingList)
-                {
-                    indexWriter.write(postingList.toString());
-                }
-
-                indexWriter.write("\n");
-                indexWriter.close();
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-        }
+        return max;
     }
 }
+
+/*
+ * La seguente classe si occupa di riunire i blocchi parziali creati dall'algoritmo SPIMI.
+ *  Tale algoritmo sfrutta il fatto che i document ID di un blocco i, non possono essere maggiori
+ *  di un blocco i+1, il merge consiste di unire le posting list dei blocchi con lo stesso termine,
+ *  semplicemente accodandole, dai blocchi piu piccoli a quelli piu grandi
+ *
+ * In particolare: all'inizio vengono caricati tutti i primi termini dei vocabolari parziali di ogni blocco
+ *  Tra questi viene estratto il termine lessicograficamente piu piccolo, e viene usato per accodare le Liste:
+ *  se un vocabolario non contiene quel termine, allora esso ha un termine maggiore e puo essere semplicemente skippato,
+ *  se invece contiene quel termine, viene estratta la posting list parziale, e accodata al file dei posting finale.
+ *  Inoltre, tale vocabolario e' incrementato al termine successivo: se non esiste, sara' settato a null.
+ *
+ * Si continua cosi finche tutti i vocabolari parziali sono null, ossia quando abbiamo finito tutti i termini in tutti i vocabolari.
+ *  Durante il merging vengono aggiornati anche i termini finali, sommando frequenze totali  e numero di posting delle liste parziali.
+ *
+ * L'algoritmo presenta una leggera differenza se si decide di utilizzare la Compressione:
+ *  Senza compressione, una posting list occupera' 4byte per ogni elemento della lista
+ *  ie. Se una lista ha 5 Posting, tale lista occupera' 5*4=20byte
+ *  Con compressione, le liste parziali sono accumulate in un vettore di byte.
+ *  Alla fine di ogni termine, tale vettore conterra' sempre 4*numero di Posting per quel termine
+ *  ie. Esattamente come prima, avro un vettore di 20byte
+ *  A questo punto pero, la compressione ha la possibilita di generare un vettore con meno di 20byte, occupando meno spazio
+ *
+ * Si noti che effettuare tale operazione, aumenta sensibilmente il tempo di esecuzione dell'algoritmo
+ *
+ * In entrambi i casi sono aggiornati il numero di byte occupati dai DocId e Frequenze
+ *
+ * Alla fine dell'algoritmo, viene aggiornato il valore globale di CollectionInformation:
+ *  Total (unique) Terms nella collezione
+ *
+ * Non viene fatto uso della classe Vocabolario, in quanto si assume che i termini siano tutti ordinati lessicograficamente
+ *  nei vari blocchi, e potento aggiornare le informazioni di ogni termine on-the-fly, non e' necessario mantenere tali
+ *  strutture in memoria
+ */
+
