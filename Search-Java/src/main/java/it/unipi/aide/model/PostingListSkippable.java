@@ -11,15 +11,18 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-public class PostingListSkippable  implements Iterator<Posting> {
-
+public class PostingListSkippable  implements Iterator<Posting>
+{
     private TermInfo term;
     private List<BlockDescriptor> blockDescriptors = new ArrayList<>();
     private List<Posting> postings = new ArrayList<>();
     private int blockIndexer = 0;
+    private int nextGEQindex = 0;
+
 
     public PostingListSkippable(TermInfo termInfo)
     {
@@ -138,13 +141,15 @@ public class PostingListSkippable  implements Iterator<Posting> {
     public void reset(){ blockIndexer = 0; }
 
     private Posting current = null;
-    public Posting getCurrent() {
+    public Posting getCurrent()
+    {
         if(current == null && hasNext())
             current = next();
 
         return current;
     }
-    public boolean hasNext() {
+    public boolean hasNext()
+    {
         // Last block
         if(blockIndexer == term.getNumBlocks()) { return !postings.isEmpty(); }
         // Not last block
@@ -162,25 +167,62 @@ public class PostingListSkippable  implements Iterator<Posting> {
                 return true;
             }
         }
-
     }
 
-    public Posting next() {
-        if(hasNext()) {
+    public Posting next()
+    {
+
+        if(hasNext())
+        {
             current = postings.remove(0);
-        } else
+        }
+        else
         {
             current = null;
         }
         return current;
     }
 
+    public Posting nextGEQ(int docID)
+    {
+        if (hasNext())
+        {
+            while (getCurrent().getDocId() < docID)
+            {
+                current = next();
+            }
+        }
+        else
+        {
+            current = null;
+        }
+
+        return current;
+    }
+
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "PostingListSkippable{" +
                 ", blockDescriptors=" + blockDescriptors +
                 ", blockIndexer=" + blockIndexer +
                 '}';
+    }
+
+    public static Comparator<PostingListSkippable> compareToTFIDF() {
+        return Comparator.comparing(PostingListSkippable::getTermUpperBoundTFIDF);
+    }
+
+    public float getTermUpperBoundTFIDF() {
+        return term.getTermUpperBoundTDIDF();
+    }
+
+    public static Comparator<PostingListSkippable> compareToBM25() {
+        return Comparator.comparing(PostingListSkippable::getTermUpperBoundBM25);
+    }
+
+    public float getTermUpperBoundBM25() {
+        return term.getTermUpperBoundTDIDF();
     }
 
 }

@@ -1,23 +1,36 @@
 package it.unipi.aide.algorithms;
 
-import it.unipi.aide.model.PostingList;
-import it.unipi.aide.model.ScoredDocument;
+import it.unipi.aide.model.*;
+import it.unipi.aide.utils.ConfigReader;
+import it.unipi.aide.utils.QueryPreprocessing;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.*;
 
 /**
  * Class to implement the MaxScore algorithm
  */
 
-public class MaxScore {
+public class MaxScore
+{
 
+
+    HashMap<String, TermInfo> terms = new HashMap<>();
+    List<PostingListSkippable> postingLists= new ArrayList<>();
+    List<ScoredDocument> topKDocs = new ArrayList<>();
+    boolean BM25 = false;
     /**
      * Initialization method if needed
      */
-    public MaxScore() {
-
-    }
+    public MaxScore(Boolean bm25)
+    {
+        BM25 = bm25;
+    }       
 
     /*
         TODO -> Remember: Non-essential lists are those with an upper bound lower than sigma
@@ -28,8 +41,8 @@ public class MaxScore {
 
     /**
      * Execute the MaxScore algorithm
-     * @param d List of PostingList, one for each query term, including term upper bound
-     * @param k Top-K documents to retrieve
+     * @param queryTerms List of query terms
+     * @param kDocs Top-K documents to retrieve
      * @return List of top-k scored documents
      */
     // TODO -> Consider using a PriorityQueue
@@ -37,37 +50,74 @@ public class MaxScore {
     /* TODO -> Use another Class instead of PostingList, which includes the upper bound
      *          of the term in the posting list
      */
-    public List<ScoredDocument> execute (List<PostingList> d, int k) {
-        // List of top-k scored documents initially empty
-        List<ScoredDocument> topK = new ArrayList<>();
+    public List<ScoredDocument> executeMaxScore(List<String> queryTerms, int kDocs)
+    {
+        // Retrieve the posting lists of the query terms
+        List<PostingListSkippable> postingLists;
+        QueryPreprocessing qp = new QueryPreprocessing();
+        postingLists = qp.retrievePostingList(queryTerms);
+        terms = qp.getTerms();
 
         // Initial threshold sigma is equal to 0
         float sigma = 0;
         // Initial pivot for non-essential lists is the first one
         int pivot = 0;
 
-
         // Make sure that the list of PostingList is ordered by increasing upper bound
-        // TODO -> Order the list of PostingList by increasing upper bound
+        if (BM25)
+            Collections.sort(postingLists, PostingListSkippable.compareToBM25());
+        else
+            Collections.sort(postingLists, PostingListSkippable.compareToTFIDF());
 
-        // TODO -> Repeat the followings util every document is examined
+
+        // TODO -> Repeat the followings until the top-k documents are retrieved
 
         // Get minimum docID from the first posting list
-        int minDocID = getMinimumDocID();
+        int currentDoc = getMinimumDocID();
 
-        float score = 0;
-        // For current DocID, compute the score of essential lists only
-        score += computeEssentialScore(d, pivot);
+        while (pivot < terms.size())
+        {
+            float score = 0;
+            int next = Integer.MAX_VALUE;
 
-        // Also compute the score for each non-essential list
-        score += computeNonEssentialScore(d, pivot);
+            // For current DocID, compute the score of essential lists only
+            for (int i = pivot; i < terms.size() - 1; i++)
+            {
+                if (postingLists.get(i).getCurrent().getDocId() == currentDoc)
+                {
+                    score = computeEssentialScore(pivot);
+                    next = postingLists.get(i).next().getDocId();
+                }
 
-        // TODO -> Repeat the followings for every non-essential list (from pivot-1 to 0)
+                if (postingLists.get(i).getCurrent().getDocId() < next)
+                {
+                    next = postingLists.get(i).getCurrent().getDocId();
+                }
+            }
+
+            // For current DocID, compute the score of non-essential lists only
+            for (int i = pivot - 1; i >= 0; i--)
+            {
+                // If score + upper bound of the first non-essential list is lower than the current sigma,
+                // skip the document
+                if (score + postingLists.get(i).getTermUpperBoundTFIDF() <= sigma)
+                {
+                    break;
+                }
+
+                // Every time we calculate a score, we also have to increase the posting list pointer
+                postingLists.get(i).nextGEQ(currentDoc);
+                if (postingLists.get(i).getCurrent().getDocId() == currentDoc)
+                {
+                    score = computeNonEssentialScore(pivot);
+                }
+            }
+        }
+
 
         /* TODO -> If score + upper bound of the first non-essential list is lower than the current sigma,
          *          skip the document
          */
-
 
         /* TODO -> Every time we calculate a score, we also have to increase the posting list pointer
          *          of the current non-essential list using nextGEQ() method
@@ -76,7 +126,7 @@ public class MaxScore {
         // Update the current sigma
         // Update the pivot
 
-        return topK.subList(0, k - 1);
+        return topKDocs.subList(0, kDocs - 1);
     }
 
     /**
@@ -89,21 +139,33 @@ public class MaxScore {
 
     /**
      * Compute the score of essential lists only
-     * @param d List of PostingList, one for each query term, including term upper bound
      * @param pivot Current pivot
      * @return Score of essential lists only
      */
-    private float computeEssentialScore(List<PostingList> d, int pivot) {
+    private float computeEssentialScore(int pivot)
+    {
+        for (int i = pivot; i <= terms.size() - 1; i++)
+        {
+            if (BM25)
+            {
+                // TODO -> Compute BM25 score
+            }
+            else
+            {
+                // TODO -> Compute TF-IDF score
+
+            }
+        }
         return 0;
     }
 
     /**
      * Compute the score of non-essential lists only
-     * @param d List of PostingList, one for each query term, including term upper bound
      * @param pivot Current pivot
      * @return Score of non-essential lists only
      */
-    private float computeNonEssentialScore(List<PostingList> d, int pivot) {
+    private float computeNonEssentialScore(int pivot)
+    {
         return 0;
     }
 }

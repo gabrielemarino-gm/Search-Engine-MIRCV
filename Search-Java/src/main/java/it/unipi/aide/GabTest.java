@@ -6,6 +6,6 @@ public class GabTest
 {
     public static void main(String[] argv)
     {
-        ConfigReader.stampaDBG();
+
     }
 }

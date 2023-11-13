@@ -13,6 +13,9 @@ public class TermInfo
     private int numBlocks; // Only post-merging
     private long offset;
 
+    private float termUpperBoundTDIDF;
+    private float termUpperBoundBM25;
+
     // Before merging is where docids and frequencies stats
     // After merging is the position of first block descriptor
 
@@ -54,11 +57,15 @@ public class TermInfo
     public void incrementTotalFrequency() {this.totalFrequency++;}
     public void incrementNumPosting() {this.numPosting++;}
 
+
     public int getTotalFrequency() {return totalFrequency;}
     public int getNumBlocks() {return numBlocks;}
     public long getOffset() {return offset;}
     public int getNumPosting() {return numPosting;}
     public String getTerm() {return term;}
+    public float getTermUpperBoundTDIDF() {return termUpperBoundTDIDF;}
+    public float getTermUpperBoundBM25() {return termUpperBoundBM25;}
+
     public void setNumPosting(int n) {this.numPosting = n;}
     public void setTotalFrequency(int f) {this.totalFrequency = f;}
     public void setNumBlocks(int n) {this.numBlocks = n;}

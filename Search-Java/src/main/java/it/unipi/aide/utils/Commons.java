@@ -4,8 +4,8 @@ package it.unipi.aide.utils;
  * This class contains common utilities function that can be used
  * from any other class
  */
-public class Commons {
-
+public class Commons
+{
     /**
      * Convert 4 bytes into an integer
      * @param b 4-bytes array
