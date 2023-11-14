@@ -506,7 +506,7 @@ public class Merging
  *
  * In entrambi i casi sono aggiornati il numero di byte occupati dai DocId e Frequenze
  *
- * Alla fine dell'algoritmo, viene aggiornato il valore globale di CollectionInformation:
+ * Alla fine dell'algoritmo, viene aggiornato il valore globale di collectionStatistics:
  *  Total (unique) Terms nella collezione
  *
  * Non viene fatto uso della classe Vocabolario, in quanto si assume che i termini siano tutti ordinati lessicograficamente

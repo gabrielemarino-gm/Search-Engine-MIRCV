@@ -3,6 +3,7 @@ package it.unipi.aide.algorithms;
 import it.unipi.aide.model.*;
 import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.QueryPreprocessing;
+import it.unipi.aide.utils.ScoreFunction;
 
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
@@ -18,8 +19,6 @@ import java.util.*;
 
 public class MaxScore
 {
-
-
     HashMap<String, TermInfo> terms = new HashMap<>();
     List<PostingListSkippable> postingLists= new ArrayList<>();
     List<ScoredDocument> topKDocs = new ArrayList<>();
@@ -32,12 +31,6 @@ public class MaxScore
         BM25 = bm25;
     }       
 
-    /*
-        TODO -> Remember: Non-essential lists are those with an upper bound lower than sigma
-
-        TODO -> Remember: If a document is not in an essential list, it cannot be in the top-k,
-                    which means that we can skip it if
-     */
 
     /**
      * Execute the MaxScore algorithm
@@ -45,12 +38,8 @@ public class MaxScore
      * @param kDocs Top-K documents to retrieve
      * @return List of top-k scored documents
      */
-    // TODO -> Consider using a PriorityQueue
 
-    /* TODO -> Use another Class instead of PostingList, which includes the upper bound
-     *          of the term in the posting list
-     */
-    public List<ScoredDocument> executeMaxScore(List<String> queryTerms, int kDocs)
+    public PriorityQueue<ScoredDocument> executeMaxScore(List<String> queryTerms, int kDocs)
     {
         // Retrieve the posting lists of the query terms
         List<PostingListSkippable> postingLists;
@@ -62,6 +51,8 @@ public class MaxScore
         float sigma = 0;
         // Initial pivot for non-essential lists is the first one
         int pivot = 0;
+        // Initial priority queue
+        PriorityQueue<ScoredDocument> topKDocs = new PriorityQueue<>(kDocs, ScoredDocument.compareTo());
 
         // Make sure that the list of PostingList is ordered by increasing upper bound
         if (BM25)
@@ -70,31 +61,32 @@ public class MaxScore
             Collections.sort(postingLists, PostingListSkippable.compareToTFIDF());
 
 
-        // TODO -> Repeat the followings until the top-k documents are retrieved
-
+        // Repeat the followings until the top-k documents are retrieved
         // Get minimum docID from the first posting list
         int currentDoc = getMinimumDocID();
-
         while (pivot < terms.size())
         {
             float score = 0;
-            int next = Integer.MAX_VALUE;
+            int nextDoc = Integer.MAX_VALUE;
 
+// ( ESSENTIAL LISTS
             // For current DocID, compute the score of essential lists only
             for (int i = pivot; i < terms.size() - 1; i++)
             {
                 if (postingLists.get(i).getCurrent().getDocId() == currentDoc)
                 {
-                    score = computeEssentialScore(pivot);
-                    next = postingLists.get(i).next().getDocId();
+                    score += computeScore(i);
+                    nextDoc = postingLists.get(i).next().getDocId();
                 }
 
-                if (postingLists.get(i).getCurrent().getDocId() < next)
+                if (postingLists.get(i).getCurrent().getDocId() < nextDoc)
                 {
-                    next = postingLists.get(i).getCurrent().getDocId();
+                    nextDoc = postingLists.get(i).getCurrent().getDocId();
                 }
             }
+// )
 
+// ( NON-ESSENTIAL LISTS
             // For current DocID, compute the score of non-essential lists only
             for (int i = pivot - 1; i >= 0; i--)
             {
@@ -106,67 +98,82 @@ public class MaxScore
                 }
 
                 // Every time we calculate a score, we also have to increase the posting list pointer
+                // to the posting with the DocID equal to the first docid equal to the next in the essential lists
                 postingLists.get(i).nextGEQ(currentDoc);
+
+                // Compute the score if the current DocID is in the posting list
                 if (postingLists.get(i).getCurrent().getDocId() == currentDoc)
                 {
-                    score = computeNonEssentialScore(pivot);
+                    score += computeScore(i);
                 }
             }
+// )
+
+// ( INSERT IN QUEUE AND UPDATE PIVOT
+            if (topKDocs.add(new ScoredDocument(currentDoc, score)))
+            {
+                // Update the current sigma
+                sigma = topKDocs.peek().getScore();
+
+                // Update the pivot
+                while (pivot < terms.size() && postingLists.get(pivot).getTermUpperBoundTFIDF() <= sigma)
+                {
+                    pivot++;
+                }
+            }
+// )
+            // Update the current docID
+            currentDoc = nextDoc;
         }
 
-
-        /* TODO -> If score + upper bound of the first non-essential list is lower than the current sigma,
-         *          skip the document
-         */
-
-        /* TODO -> Every time we calculate a score, we also have to increase the posting list pointer
-         *          of the current non-essential list using nextGEQ() method
-         */
-
-        // Update the current sigma
-        // Update the pivot
-
-        return topKDocs.subList(0, kDocs - 1);
+        return topKDocs;
     }
 
     /**
      * Return the minimum DocID from each posting list
      * @return Minimum DocID
      */
-    private int getMinimumDocID() {
-        return 0;
+    private int getMinimumDocID()
+    {
+        // TODO -> Check if this is correct
+        int min = Integer.MAX_VALUE;
+
+        for (PostingListSkippable pl : postingLists)
+        {
+            if (pl.getCurrent().getDocId() < min)
+            {
+                min = pl.getCurrent().getDocId();
+            }
+        }
+        return min;
     }
 
     /**
      * Compute the score of essential lists only
-     * @param pivot Current pivot
+     * @param postingIndex Index of current the posting list
      * @return Score of essential lists only
      */
-    private float computeEssentialScore(int pivot)
+    private float computeScore(int postingIndex)
     {
-        for (int i = pivot; i <= terms.size() - 1; i++)
+        float score = 0;
+
+        if (BM25)
         {
-            if (BM25)
-            {
-                // TODO -> Compute BM25 score
-            }
-            else
-            {
-                // TODO -> Compute TF-IDF score
+            // TODO -> Compute BM25 score
 
-            }
         }
-        return 0;
-    }
+        else
+        {
+            // TODO -> Compute TF-IDF score
+            score = ScoreFunction.computeTDIDF (
+                    postingLists.get(postingIndex).getCurrent().getFrequency(),
+                    terms.get(postingLists.get(postingIndex).getTerm()).getTotalFrequency(),
+                    CollectionInformation.getTotalDocuments()
+            );
+        }
 
-    /**
-     * Compute the score of non-essential lists only
-     * @param pivot Current pivot
-     * @return Score of non-essential lists only
-     */
-    private float computeNonEssentialScore(int pivot)
-    {
-        return 0;
+
+        return score;
     }
 }
 
