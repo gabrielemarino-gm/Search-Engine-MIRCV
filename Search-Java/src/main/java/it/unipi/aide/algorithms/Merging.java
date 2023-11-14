@@ -17,7 +17,6 @@ import java.util.List;
 
 public class Merging
 {
-    private final int MIN_POSTING_LIMIT = 128; // Minimum number of postings to split in blocks
     private final boolean COMPRESSION;
     private final int BLOCKS_COUNT; // Number of blocks to merge
 
@@ -120,7 +119,6 @@ public class Merging
 
                     // ...create two lists to accumulate bytes from different blocks...
                     // TODO -> Evaluate if it's better to create those lists outside the loop and clear each term
-
                     List<byte[]> docsAcc = new ArrayList<>();
                     List<byte[]> freqAcc = new ArrayList<>();
 
@@ -132,9 +130,13 @@ public class Merging
                         {
 
                             // ...accumulates bytes from different blocks , for all blocks...
-                            docsAcc.add(extractBytes(docIdFileChannel[indexBlock],offsetDocId[indexBlock],vocs[indexBlock].getNumPosting()));
-                            freqAcc.add(extractBytes(frequenciesFileChannel[indexBlock],offsetFrequency[indexBlock],vocs[indexBlock].getNumPosting()));
+                            docsAcc.add(extractBytes(docIdFileChannel[indexBlock],
+                                    offsetDocId[indexBlock],
+                                    vocs[indexBlock].getNumPosting()));
 
+                            freqAcc.add(extractBytes(frequenciesFileChannel[indexBlock],
+                                    offsetFrequency[indexBlock],
+                                    vocs[indexBlock].getNumPosting()));
 
                             // finalPostings and totalFrequency are jsut the sum of partial blocks
                             totalTermPostings += vocs[indexBlock].getNumPosting();
@@ -145,11 +147,12 @@ public class Merging
                             offsetFrequency[indexBlock] += 4L * vocs[indexBlock].getNumPosting();
                             /*
                                 If this block is finished, set its vocs to null and skip
-                                 This happen because last time we extracted a term for this
-                                 block, it was the last term in the list
+                                This happen because last time we extracted a term for this
+                                block, it was the last term in the list
                                 Null is used as break condition
                              */
-                            if (offsetVocabulary[indexBlock] >= dimVocabularyFile[indexBlock]) {
+                            if (offsetVocabulary[indexBlock] >= dimVocabularyFile[indexBlock])
+                            {
                                 System.err.println("LOG:\t\tBlock #" + indexBlock + " exhausted.");
                                 vocs[indexBlock] = null;
                                 continue;
@@ -166,15 +169,18 @@ public class Merging
                     byte[] concatenatedDocsBytes = new byte[totalBytesSummed];
                     byte[] concatenatedFreqBytes = new byte[totalBytesSummed];
 
-                    int os = 0;
-                    for(byte[] v: docsAcc){
-                        System.arraycopy(v,0, concatenatedDocsBytes, os, v.length);
-                        os += v.length;
+                    // ... and now we can concatenate them ...
+                    int concatenationOffset = 0;
+                    for(byte[] v: docsAcc)
+                    {
+                        System.arraycopy(v,0, concatenatedDocsBytes, concatenationOffset, v.length);
+                        concatenationOffset += v.length;
                     }
-                    os = 0;
-                    for(byte[] v: freqAcc){
-                        System.arraycopy(v,0, concatenatedFreqBytes, os, v.length);
-                        os += v.length;
+                    concatenationOffset = 0;
+                    for(byte[] v: freqAcc)
+                    {
+                        System.arraycopy(v,0, concatenatedFreqBytes, concatenationOffset, v.length);
+                        concatenationOffset += v.length;
                     }
 
                     /* Now that we cumulated docids and frequencies for that term, split them in Blocks */
@@ -189,10 +195,13 @@ public class Merging
                     List<BlockDescriptor> blockDescriptors = new ArrayList<>();
 
                     // ... if totalTerms is less than 512, just write one block ...
-                    if (totalTermPostings < MIN_POSTING_LIMIT) {
+                    if (totalTermPostings <= ConfigReader.getCompressionBlockSize()
+                        &&
+                        !ConfigReader.blockDivisionEnabled())
+                    {
                         BlockDescriptor blockDescriptor = new BlockDescriptor();
                         blockDescriptor.setNumPostings(totalTermPostings);
-
+                        blockDescriptor.setMaxDocID(getMaxDocid(concatenatedDocsBytes));
 
                         // Manage compression
                         if (COMPRESSION)
@@ -216,14 +225,14 @@ public class Merging
                         }
 
                         // Update MaxDocID for current block and add to the list
-                        blockDescriptor.setMaxDocID(getMaxDocid(concatenatedDocsBytes));
+
                         blockDescriptors.add(blockDescriptor);
                         finalTerm.setNumBlocks(1);
                     }
 
                     // ... otherwise, divide the block in sqrt(n) blocks ...
-                    else {
-
+                    else
+                    {
                     /* From there we can use postingsInsideEachBlock as the number of postings in each block
                      * and numberOfBlocksToCreate as the number of blocks to create
                      */
@@ -252,6 +261,8 @@ public class Merging
                                     tempFreq, 0,
                                     postingsInCurrentBlock * 4);
 
+                            blockDescriptor.setMaxDocID(getMaxDocid(tempDocs));
+
                             if(COMPRESSION){
                                 tempDocs = Compressor.VariableByteCompression(tempDocs);
                                 tempFreq = Compressor.UnaryCompression(tempFreq);
@@ -266,7 +277,6 @@ public class Merging
                             freqBlocks.add(tempFreq);
 
                             // Update current blockDescriptor and add to the list
-                            blockDescriptor.setMaxDocID(getMaxDocid(docidBlocks.get(i)));
                             blockDescriptors.add(blockDescriptor);
 
                         finalTerm.setNumBlocks(numberOfBlocksToCreate);
@@ -375,8 +385,6 @@ public class Merging
                 tempBuffer.putLong(blockDescriptors.get(i).getBytesOccupiedFreq());
 
                 blockDescriptorOffset += BlockDescriptor.BLOCK_SIZE;
-                if (finalTerm.getTerm().equals("bomb"))
-                    System.out.println(blockDescriptors.get(i).toString());
             }
 
         }

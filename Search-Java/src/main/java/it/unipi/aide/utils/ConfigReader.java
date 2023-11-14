@@ -24,6 +24,8 @@ public class ConfigReader
     private static String partialDocsPath;
     private static String partialFrequenciesPath;
     private static boolean compressionEnabled;
+    private static int compressionBlockSize;
+    private static boolean blockDivisionEnabled;
 
     static
     {
@@ -58,6 +60,9 @@ public class ConfigReader
             partialFrequenciesPath = rootNode.get("partialFrequenciesPath").asText();
 
             compressionEnabled = rootNode.get("compressionEnabled").asBoolean();
+
+            compressionBlockSize = rootNode.get("compressionBlockSize").asInt();
+            blockDivisionEnabled = rootNode.get("blockDivisionEnabled").asBoolean();
         }
         catch (IOException e)
         {
@@ -97,4 +102,7 @@ public class ConfigReader
 
     public static boolean compressionEnabled() { return compressionEnabled; }
 
+    public static int getCompressionBlockSize() { return compressionBlockSize; }
+
+    public static boolean blockDivisionEnabled() { return blockDivisionEnabled; }
 }

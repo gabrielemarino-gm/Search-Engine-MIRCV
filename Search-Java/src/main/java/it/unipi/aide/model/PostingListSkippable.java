@@ -21,7 +21,6 @@ public class PostingListSkippable  implements Iterator<Posting>
     private List<BlockDescriptor> blockDescriptors = new ArrayList<>();
     private List<Posting> postings = new ArrayList<>();
     private int blockIndexer = 0;
-    private int nextGEQindex = 0;
 
 
     public PostingListSkippable(TermInfo termInfo)
@@ -115,14 +114,15 @@ public class PostingListSkippable  implements Iterator<Posting>
                         postings.add(new Posting(docsInts[i], freqInts[i]));
                     }
                 }
-                 else {
+                else
+                {
                     for (int i = 0; i < block.getNumPostings(); i++) {
                         int docID = docsBuffer.getInt();
                         int freq = freqBuffer.getInt();
 
                         postings.add(new Posting(docID, freq));
                     }
-                 }
+                }
 
                 blockIndexer++;
             }
@@ -185,6 +185,12 @@ public class PostingListSkippable  implements Iterator<Posting>
 
     public Posting nextGEQ(int docID)
     {
+        if (blockDescriptors.get(blockIndexer - 1).getMaxDocid() < docID)
+        {
+            postings.clear();
+            getFromNextBlock();
+        }
+
         if (hasNext())
         {
             while (getCurrent().getDocId() < docID)

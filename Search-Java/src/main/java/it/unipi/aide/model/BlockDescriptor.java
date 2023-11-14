@@ -1,7 +1,7 @@
 package it.unipi.aide.model;
 
-public class BlockDescriptor {
-    
+public class BlockDescriptor
+{
     public static final long BLOCK_SIZE = 4L + 4L + 8L + 8L + 8L + 8L;
     private int maxDocID;
     private int numPostings;

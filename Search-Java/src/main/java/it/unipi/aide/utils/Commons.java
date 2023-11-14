@@ -24,10 +24,12 @@ public class Commons
      * @param i Integer to convert
      * @return 4-bytes array
      */
-    public static int[] bytesToIntArray(byte[] i){
+    public static int[] bytesToIntArray(byte[] i)
+    {
         int[] toRet = new int[i.length/4];
 
-        for(int j = 0; j < i.length; j += 4){
+        for(int j = 0; j < i.length; j += 4)
+        {
             toRet[j/4] = bytesToInt(new byte[]{i[j], i[j+1], i[j+2], i[j+3]});
         }
         return toRet;

@@ -38,9 +38,6 @@ public class CreateIndex
         System.out.println("LOG:\t\tIndex created. Merging...");
 
         // Index merging
-//        Merging merge = new Merging(OUTPUT_PATH, COMPRESSION, numBlocks);
-//        merge.mergeBlocks(DEBUG);
-
         Merging mergem = new Merging(COMPRESSION, numBlocks);
         mergem.mergeBlocks(DEBUG);
     }

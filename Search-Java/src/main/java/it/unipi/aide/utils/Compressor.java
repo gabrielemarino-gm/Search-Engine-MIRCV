@@ -39,13 +39,16 @@ public class Compressor {
 
         // Shift to the right: when we encounter a 0 on the second place we print
         // Otherwise, we accumulate on an accumulator
-        for(int i = 0; i < fromBytes.length * 8; i++) {
+        for(int i = 0; i < fromBytes.length * 8; i++)
+        {
             if ((fromBytes[fromBytes.length - 1] & 0b00000010) == 0b00000000 ||
                     ((fromBytes[fromBytes.length - 1] & 0b00000011) == 0b00000011) && i == fromBytes.length*8 - 2)
             {
                 toRet.add(counter);
                 counter = 1;
-            } else {
+            }
+            else
+            {
                 counter += 1;
             }
             shiftRight(fromBytes);
@@ -54,9 +57,9 @@ public class Compressor {
         // We want to return an Array, not a List
         int[] temp = new int[qty];
         for(int i = 0; i < qty; i++)
-            {
-                temp[qty-1-i] = toRet.get(i);
-            }
+        {
+            temp[qty-1-i] = toRet.get(i);
+        }
         return temp;
     }
 

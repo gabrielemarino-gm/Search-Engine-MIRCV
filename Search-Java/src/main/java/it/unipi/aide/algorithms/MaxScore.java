@@ -21,7 +21,6 @@ public class MaxScore
 {
     HashMap<String, TermInfo> terms = new HashMap<>();
     List<PostingListSkippable> postingLists= new ArrayList<>();
-    List<ScoredDocument> topKDocs = new ArrayList<>();
     boolean BM25 = false;
     /**
      * Initialization method if needed
@@ -30,7 +29,6 @@ public class MaxScore
     {
         BM25 = bm25;
     }       
-
 
     /**
      * Execute the MaxScore algorithm
@@ -54,6 +52,7 @@ public class MaxScore
         // Initial priority queue
         PriorityQueue<ScoredDocument> topKDocs = new PriorityQueue<>(kDocs, ScoredDocument.compareTo());
 
+        // TODO -> Forse è meglio usare una PriorityQueue invece di ordinare ogni volta
         // Make sure that the list of PostingList is ordered by increasing upper bound
         if (BM25)
             Collections.sort(postingLists, PostingListSkippable.compareToBM25());
@@ -164,7 +163,7 @@ public class MaxScore
         }
         else
         {
-            // TODO -> Compute TF-IDF score
+            // Compute TF-IDF score
             score = ScoreFunction.computeTDIDF (
                     postingLists.get(postingIndex).getCurrent().getFrequency(),
                     terms.get(postingLists.get(postingIndex).getTerm()).getTotalFrequency(),

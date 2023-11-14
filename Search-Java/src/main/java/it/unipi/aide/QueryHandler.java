@@ -20,11 +20,11 @@ public class QueryHandler
         query.setQuery("Sleeping cat");
         List<String> tokens = query.getTokens();
 
-        MaxScore maxScore = new MaxScore(false);
-        PriorityQueue<ScoredDocument> top_k = maxScore.executeMaxScore(tokens, 5);
+        // MaxScore maxScore = new MaxScore(false);
+        // PriorityQueue<ScoredDocument> top_k = maxScore.executeMaxScore(tokens, 5);
 
-        //DAAT daat = new DAAT( 5);
-        //List<ScoredDocument> top_kDAAT = daat.executeDAAT(tokens);
+        DAAT daat = new DAAT( 5);
+        List<ScoredDocument> top_k = daat.executeDAAT(tokens);
 
         for(ScoredDocument d : top_k)
             System.out.println(String.format("PID: %s\tScore: %f", d.getDocID(), d.getScore()));
