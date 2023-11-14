@@ -1,5 +1,7 @@
 package it.unipi.aide.model;
 
+import it.unipi.aide.utils.ScoreFunction;
+
 public class TermInfo
 {
     public final static int SIZE_TERM = 46;
@@ -70,6 +72,16 @@ public class TermInfo
     public void setTotalFrequency(int f) {this.totalFrequency = f;}
     public void setNumBlocks(int n) {this.numBlocks = n;}
     public void setOffset(long o) {this.offset = o;}
+    public void setTermUpperBoundTDIDF(int tf, int df)
+    {
+        float score = ScoreFunction.computeTDIDF(tf, df, CollectionInformation.getTotalDocuments());
+        if (this.termUpperBoundTDIDF < score)
+            this.termUpperBoundTDIDF = score;
+    }
+    public void setTermUpperBoundBM25(int tf, int df, int docLength)
+    {
+        // TODO: Compute BM25
+    }
 
     @Override
     public String toString()

@@ -183,6 +183,20 @@ public class Merging
                         concatenationOffset += v.length;
                     }
 
+                    // ... now compute ter upper bound for BM25 and TDIDF ...
+                    for (int i = 0; i < totalBytesSummed; i += 4)
+                    {
+                        // TODO: Check if this is correct
+                        // Find term frequency
+                        int tf = concatenatedFreqBytes[i] + concatenatedFreqBytes[i + 1] + concatenatedFreqBytes[i + 2] + concatenatedFreqBytes[i + 3];
+                        // Find document frequency
+                        int df = totalTermPostings;
+                        // Update upper bound fot TDIDF
+                        finalTerm.setTermUpperBoundTDIDF(tf, df);
+
+                        // TODO: Update upper bound for BM25
+                    }
+
                     /* Now that we cumulated docids and frequencies for that term, split them in Blocks */
 
                     // ... write sqrt(n) postings in each block ...
@@ -237,8 +251,8 @@ public class Merging
                      * and numberOfBlocksToCreate as the number of blocks to create
                      */
 
-                        for (int i = 0; i < numberOfBlocksToCreate; i++) {
-
+                        for (int i = 0; i < numberOfBlocksToCreate; i++)
+                        {
                             // Last block may contain fewer elements than blockSize
                             int postingsInCurrentBlock = Math.min(
                                     postingsInsideEachBlock,
@@ -263,7 +277,8 @@ public class Merging
 
                             blockDescriptor.setMaxDocID(getMaxDocid(tempDocs));
 
-                            if(COMPRESSION){
+                            if(COMPRESSION)
+                            {
                                 tempDocs = Compressor.VariableByteCompression(tempDocs);
                                 tempFreq = Compressor.UnaryCompression(tempFreq);
                             }
@@ -279,13 +294,14 @@ public class Merging
                             // Update current blockDescriptor and add to the list
                             blockDescriptors.add(blockDescriptor);
 
-                        finalTerm.setNumBlocks(numberOfBlocksToCreate);
+                            finalTerm.setNumBlocks(numberOfBlocksToCreate);
                         }
                     }
 
                     // ... update the final term ... (Not dependent by compression or blocks splitting)
                     finalTerm.setNumPosting(totalTermPostings);
                     finalTerm.setTotalFrequency(finalTotalFreq);
+
 
                     // Write everything as separated blocks
                     writeBlocks(finalDocIDChannel, finalFreqChannel, blockDescriptorsChannel,
@@ -298,7 +314,7 @@ public class Merging
 
                     nTerms++;
 
-                    if(nTerms % 100_000 == 0){
+                    if(nTerms % 100_000 == 0) {
                         System.out.println(String.format("LOG:\t\t%d terms have been processed", nTerms));
                     }
 

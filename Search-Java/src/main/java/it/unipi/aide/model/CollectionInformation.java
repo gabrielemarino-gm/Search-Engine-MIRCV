@@ -15,8 +15,8 @@ import java.nio.file.StandardOpenOption;
  * way such as retrieving terms from the vocabulary faster and
  * calculating scores
  */
-public class CollectionInformation {
-
+public class CollectionInformation
+{
     private static String PATH;
     private static long TOTAL_DOCUMENTS = 0;            // 0
     private static long TOTAL_TERMS = 0;                // 1
