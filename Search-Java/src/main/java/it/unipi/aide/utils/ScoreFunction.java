@@ -1,10 +1,8 @@
 package it.unipi.aide.utils;
 
-import it.unipi.aide.model.CollectionInformation;
-
 public class ScoreFunction
 {
-    public static float computeTDIDF(int tf, int df, long N)
+    public static float computeTFIDF(int tf, int df, long N)
     {
         float score = 0;
 

@@ -3,19 +3,13 @@ package it.unipi.aide.algorithms;
 import it.unipi.aide.model.*;
 import it.unipi.aide.utils.*;
 
-import java.io.IOException;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 public class DAAT
 {
-    private int K;
+    private final int K;
     boolean COMPRESSION;
 
     HashMap<String, TermInfo> terms = new HashMap<>();
@@ -57,7 +51,7 @@ public class DAAT
                     // If Posting List of current term has docId equals to the smallest under consideration, calculate its score
                     if (pl.getCurrent().getDocId() == firstDoc)
                     {
-                        documentToAdd.setScore(ScoreFunction.computeTDIDF(
+                        documentToAdd.setScore(ScoreFunction.computeTFIDF(
                                 pl.getCurrent().getFrequency(),
                                 terms.get(pl.getTerm()).getTotalFrequency(),
                                 CollectionInformation.getTotalDocuments()));

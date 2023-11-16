@@ -74,7 +74,7 @@ public class TermInfo
     public void setOffset(long o) {this.offset = o;}
     public void setTermUpperBoundTDIDF(int tf, int df)
     {
-        float score = ScoreFunction.computeTDIDF(tf, df, CollectionInformation.getTotalDocuments());
+        float score = ScoreFunction.computeTFIDF(tf, df, CollectionInformation.getTotalDocuments());
         if (this.termUpperBoundTDIDF < score)
             this.termUpperBoundTDIDF = score;
     }

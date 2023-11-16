@@ -1,16 +1,9 @@
 package it.unipi.aide.algorithms;
 
 import it.unipi.aide.model.*;
-import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.QueryPreprocessing;
 import it.unipi.aide.utils.ScoreFunction;
 
-import java.io.IOException;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 /**
@@ -21,7 +14,7 @@ public class MaxScore
 {
     HashMap<String, TermInfo> terms = new HashMap<>();
     List<PostingListSkippable> postingLists= new ArrayList<>();
-    boolean BM25 = false;
+    boolean BM25;
     /**
      * Initialization method if needed
      */
@@ -164,7 +157,7 @@ public class MaxScore
         else
         {
             // Compute TF-IDF score
-            score = ScoreFunction.computeTDIDF (
+            score = ScoreFunction.computeTFIDF (
                     postingLists.get(postingIndex).getCurrent().getFrequency(),
                     terms.get(postingLists.get(postingIndex).getTerm()).getTotalFrequency(),
                     CollectionInformation.getTotalDocuments()
