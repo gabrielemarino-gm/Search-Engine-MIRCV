@@ -61,6 +61,18 @@ public class MaxScore
             float score = 0;
             int nextDoc = Integer.MAX_VALUE;
 
+            /* TODO PER MARTINA -> Come prendere il numero di parole dentro un documento
+             *  Create DocumentIndex documentIndex = new DocumentIndex();
+             *  Document d = documentIndex.get(currentDoc);
+             *  d.getTokenCount(); -> Ritorna la lunghezza del documento
+             *
+             *  La 'get', va a cercare nel file il documento con docID = currentDoc
+             *   e ritorna un oggetto Document con tutte le informazioni
+             *  Ovviamente si puo migliorare con una cache anche quello, dato che
+             *   cercare ogni volta i documenti sul file rallentera' l'esecuzione di
+             *   molto
+             */
+
 // ( ESSENTIAL LISTS
             // For current DocID, compute the score of essential lists only
             for (int i = pivot; i < terms.size() - 1; i++)
