@@ -75,12 +75,17 @@ public class TermInfo
     public void setTermUpperBoundTDIDF(int tf, int df)
     {
         float score = ScoreFunction.computeTFIDF(tf, df, CollectionInformation.getTotalDocuments());
+
         if (this.termUpperBoundTDIDF < score)
             this.termUpperBoundTDIDF = score;
     }
     public void setTermUpperBoundBM25(int tf, int df, int docLength)
     {
-        // TODO: Compute BM25
+        float score = ScoreFunction.computeBM25(tf, df, CollectionInformation.getTotalDocuments(), docLength,
+                CollectionInformation.getAverageDocumentLength());
+
+        if (this.termUpperBoundBM25 < score)
+            this.termUpperBoundBM25 = score;
     }
 
     @Override

@@ -67,7 +67,7 @@ public class MaxScore
             {
                 if (postingLists.get(i).getCurrent().getDocId() == currentDoc)
                 {
-                    score += computeScore(i);
+                    score += computeScore(i); //todo tofix
                     nextDoc = postingLists.get(i).next().getDocId();
                 }
 
@@ -96,7 +96,7 @@ public class MaxScore
                 // Compute the score if the current DocID is in the posting list
                 if (postingLists.get(i).getCurrent().getDocId() == currentDoc)
                 {
-                    score += computeScore(i);
+                    score += computeScore(i); //todo tofix
                 }
             }
 // )
@@ -145,14 +145,23 @@ public class MaxScore
      * @param postingIndex Index of current the posting list
      * @return Score of essential lists only
      */
-    private float computeScore(int postingIndex)
+    private float computeScore(int postingIndex, int docLength)
     {
+        int currentDocId = postingLists.get(postingIndex).getCurrent().getDocId();
+
+
         float score = 0;
 
         if (BM25)
         {
-            // TODO -> Compute BM25 score
-
+            // Compute BM25 score
+            score = ScoreFunction.computeBM25(
+                    postingLists.get(postingIndex).getCurrent().getFrequency(),
+                    terms.get(postingLists.get(postingIndex).getTerm()).getTotalFrequency(),
+                    CollectionInformation.getTotalDocuments(),
+                    docLength,
+                    CollectionInformation.getAverageDocumentLength()
+            );
         }
         else
         {
