@@ -26,6 +26,7 @@ public class SPIMI
     private final String INPUT_PATH;
     private Vocabulary vocabulary;
     private InvertedIndex invertedIndex;
+    private DocumentIndex documentIndex;
     private final Preprocesser preprocesser;
     private int incrementalBlockNumber;
     private int numBlocksPosting;
@@ -46,6 +47,8 @@ public class SPIMI
 
         vocabulary = new Vocabulary();
         invertedIndex = new InvertedIndex();
+        documentIndex = new DocumentIndex();
+
         preprocesser = new Preprocesser(stemming);
         incrementalBlockNumber = 0;
         numBlocksPosting = 0;
@@ -71,7 +74,6 @@ public class SPIMI
         FileManager.cleanFolder(ConfigReader.getDebugDir());
 
         Corpus corpus = new Corpus(INPUT_PATH);
-        DocumentIndex documentIndex = new DocumentIndex();
 
         // Terms in all documents
         long termSum = 0;
