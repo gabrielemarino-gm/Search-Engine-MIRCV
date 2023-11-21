@@ -7,6 +7,7 @@ import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -26,7 +27,7 @@ public class Merging
     long vFinalOffset = 0;
 
     public Merging(boolean compression, int blocksCount)
-    {;
+    {
         this.BLOCKS_COUNT = blocksCount;
         this.COMPRESSION = compression;
 
@@ -86,6 +87,7 @@ public class Merging
                 // INIT PHASE
                 for (int indexBlock = 0; indexBlock < BLOCKS_COUNT; indexBlock++)
                 {
+                    /* Get the path for the 3 files relatively to all the blocks. */
                     String vocPath = ConfigReader.getPartialVocabularyPath() + indexBlock;
                     String docPath = ConfigReader.getPartialDocsPath() + indexBlock;
                     String freqPath = ConfigReader.getPartialFrequenciesPath() + indexBlock;
@@ -98,6 +100,8 @@ public class Merging
                     vocabulariesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(vocPath),
                             StandardOpenOption.READ);
 
+                    /* Store in this list at position 'indexBlock', relative to the block with that index, the size of
+                    the vocabulary correspondent to that block. */
                     dimVocabularyFile[indexBlock] = vocabulariesFileChannel[indexBlock].size();
 
                     // Get first term for each block's vocabulary
@@ -146,10 +150,10 @@ public class Merging
                             offsetDocId[indexBlock] += 4L * vocs[indexBlock].getNumPosting();
                             offsetFrequency[indexBlock] += 4L * vocs[indexBlock].getNumPosting();
                             /*
-                                If this block is finished, set its vocs to null and skip
-                                This happen because last time we extracted a term for this
-                                block, it was the last term in the list
-                                Null is used as break condition
+                                If this block is finished, set its vocs to null and skip.
+                                This happens because last time we extracted a term for this
+                                block, it was the last term in the list.
+                                Null is used as break condition.
                              */
                             if (offsetVocabulary[indexBlock] >= dimVocabularyFile[indexBlock])
                             {
@@ -184,17 +188,31 @@ public class Merging
                     }
 
                     // ... now compute ter upper bound for BM25 and TDIDF ...
+                    ByteBuffer buffer;
                     for (int i = 0; i < totalBytesSummed; i += 4)
                     {
                         // TODO: Check if this is correct
                         // Find term frequency
-                        int tf = concatenatedFreqBytes[i] + concatenatedFreqBytes[i + 1] + concatenatedFreqBytes[i + 2] + concatenatedFreqBytes[i + 3];
+                        //int tf = concatenatedFreqBytes[i] + concatenatedFreqBytes[i + 1] + concatenatedFreqBytes[i + 2] + concatenatedFreqBytes[i + 3];
+                        buffer = ByteBuffer.wrap(concatenatedFreqBytes, i, 4);
+                        int tf = buffer.getInt();
+
                         // Find document frequency
                         int df = totalTermPostings;
+
                         // Update upper bound fot TDIDF
                         finalTerm.setTermUpperBoundTDIDF(tf, df);
 
-                        // TODO: Update upper bound for BM25
+                        // TODO: Check if this is correct
+                        // int docid = concatenatedDocsBytes[i] + concatenatedDocsBytes[i + 1] + concatenatedDocsBytes[i + 2] + concatenatedDocsBytes[i + 3];
+                        buffer = ByteBuffer.wrap(concatenatedDocsBytes, i, 4);
+                        int docid = buffer.getInt();
+
+                        DocumentIndex documentIndex = new DocumentIndex();
+                        Document d = documentIndex.get(docid);
+                        int docLength = d.getTokenCount();
+
+                        finalTerm.setTermUpperBoundBM25(tf, df, docLength);
                     }
 
                     /* Now that we cumulated docids and frequencies for that term, split them in Blocks */
