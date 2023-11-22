@@ -17,10 +17,10 @@ public class CreateIndex
         int maxArgs = args.length;
         while(i < maxArgs)
         {
-            if (args[i].equals("-d")) {DEBUG = true; i += 1; continue;}
-            if (args[i].equals("-ss")) {STOPSTEM = true; i += 1; continue;}
-            if (args[i].equals("-c")) {COMPRESSION = true; i += 1; continue;}
             if (args[i].equals("-in")) {INPUT_PATH = args[i+1]; i += 2; continue;}
+            if (args[i].equals("-ss")) {STOPSTEM = true; i += 1; continue;}
+            if (args[i].equals("-d")) {DEBUG = true; i += 1; continue;}
+            if (args[i].equals("-c")) {COMPRESSION = true; i += 1; continue;}
 
             else {i++; System.err.println("Unknown command. Continuing.");}
         }
@@ -32,13 +32,13 @@ public class CreateIndex
         }
 
         // Index building
-        //SPIMI spimi = new SPIMI(INPUT_PATH, STOPSTEM);
-        //int numBlocks = spimi.algorithm(DEBUG);
+        SPIMI spimi = new SPIMI(INPUT_PATH, STOPSTEM);
+        int numBlocks = spimi.algorithm(DEBUG);
 
-        System.out.println("LOG:\t\tIndex created. Merging...");
+//        System.out.println("LOG:\t\tIndex created. Merging...");
 
-        // Index merging
-        Merging mergem = new Merging(COMPRESSION, 55);
-        mergem.mergeBlocks(DEBUG);
+//        // Index merging
+//        Merging mergem = new Merging(COMPRESSION, numBlocks);
+//        mergem.mergeBlocks(DEBUG);
     }
 }

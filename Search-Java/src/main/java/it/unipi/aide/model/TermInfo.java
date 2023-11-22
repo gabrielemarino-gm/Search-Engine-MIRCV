@@ -5,7 +5,9 @@ import it.unipi.aide.utils.ScoreFunction;
 public class TermInfo
 {
     public final static int SIZE_TERM = 46;
+    // Term, totalFrequency, numPosting, offset
     public final static long SIZE_PRE_MERGING = SIZE_TERM  + 4L + 4L + 8L;
+    //
     public final static long SIZE_POST_MERGING = SIZE_TERM + 4L + 4L + 4L + 8L;
 
 
