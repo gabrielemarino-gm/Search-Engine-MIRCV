@@ -1,6 +1,5 @@
 package it.unipi.aide.model;
 
-import it.unipi.aide.utils.Commons;
 import it.unipi.aide.utils.Compressor;
 import it.unipi.aide.utils.ConfigReader;
 
@@ -209,10 +208,14 @@ public class PostingListSkippable  implements Iterator<Posting>
     @Override
     public String toString()
     {
-        return "PostingListSkippable{" +
-                ", blockDescriptors=" + blockDescriptors +
-                ", blockIndexer=" + blockIndexer +
-                '}';
+        StringBuilder toReturn = new StringBuilder();
+        toReturn.append("PostingListSkippable{\n")
+                .append(term.toString()+"\n")
+                .append(blockDescriptors.toString())
+                .append(", blockIndexer=" + blockIndexer)
+                .append("\n}");
+
+        return toReturn.toString();
     }
 
     public static Comparator<PostingListSkippable> compareToTFIDF() {

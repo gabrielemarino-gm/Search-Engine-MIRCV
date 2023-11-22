@@ -39,17 +39,11 @@ public class QueryPreprocessing
             TermInfo toRetrieve = binarySearch(t);
             terms.put(t, toRetrieve);
 
-            System.out.println(toRetrieve);
-
-            if (toRetrieve == null)
-            {
-                // TODO -> What if the term is not in the vocabulary?
-
-            }
-            else
+            if (toRetrieve != null)
             {
                 postingLists.add(new PostingListSkippable(toRetrieve));
             }
+
         }
 
         return postingLists;

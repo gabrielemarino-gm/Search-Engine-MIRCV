@@ -26,6 +26,10 @@ public class DAAT
         List<PostingListSkippable> postingLists;
         QueryPreprocessing qp = new QueryPreprocessing();
         postingLists = qp.retrievePostingList(queryTerms);
+        if(postingLists.isEmpty()) {
+            System.err.println("No posting lists found");
+            return new ArrayList<>();
+        }
         terms = qp.getTerms();
 
         // If searched terms are not in the vocabulary, return null

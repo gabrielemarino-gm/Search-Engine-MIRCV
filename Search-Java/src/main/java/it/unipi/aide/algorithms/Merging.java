@@ -142,7 +142,7 @@ public class Merging
                                     offsetFrequency[indexBlock],
                                     vocs[indexBlock].getNumPosting()));
 
-                            // finalPostings and totalFrequency are jsut the sum of partial blocks
+                            // finalPostings and totalFrequency are just the sum of partial blocks
                             totalTermPostings += vocs[indexBlock].getNumPosting();
                             finalTotalFreq += vocs[indexBlock].getTotalFrequency();
 
@@ -188,32 +188,32 @@ public class Merging
                     }
 
                     // ... now compute ter upper bound for BM25 and TDIDF ...
-                    ByteBuffer buffer;
-                    for (int i = 0; i < totalBytesSummed; i += 4)
-                    {
-                        // TODO: Check if this is correct
-                        // Find term frequency
-                        //int tf = concatenatedFreqBytes[i] + concatenatedFreqBytes[i + 1] + concatenatedFreqBytes[i + 2] + concatenatedFreqBytes[i + 3];
-                        buffer = ByteBuffer.wrap(concatenatedFreqBytes, i, 4);
-                        int tf = buffer.getInt();
-
-                        // Find document frequency
-                        int df = totalTermPostings;
-
-                        // Update upper bound fot TDIDF
-                        finalTerm.setTermUpperBoundTDIDF(tf, df);
-
-                        // TODO: Check if this is correct
-                        // int docid = concatenatedDocsBytes[i] + concatenatedDocsBytes[i + 1] + concatenatedDocsBytes[i + 2] + concatenatedDocsBytes[i + 3];
-                        buffer = ByteBuffer.wrap(concatenatedDocsBytes, i, 4);
-                        int docid = buffer.getInt();
-
-                        DocumentIndex documentIndex = new DocumentIndex();
-                        Document d = documentIndex.get(docid);
-                        int docLength = d.getTokenCount();
-
-                        finalTerm.setTermUpperBoundBM25(tf, df, docLength);
-                    }
+//                    ByteBuffer buffer;
+//                    for (int i = 0; i < totalBytesSummed; i += 4)
+//                    {
+//                        // TODO: Check if this is correct
+//                        // Find term frequency
+//                        //int tf = concatenatedFreqBytes[i] + concatenatedFreqBytes[i + 1] + concatenatedFreqBytes[i + 2] + concatenatedFreqBytes[i + 3];
+//                        buffer = ByteBuffer.wrap(concatenatedFreqBytes, i, 4);
+//                        int tf = buffer.getInt();
+//
+//                        // Find document frequency
+//                        int df = totalTermPostings;
+//
+//                        // Update upper bound fot TDIDF
+//                        finalTerm.setTermUpperBoundTDIDF(tf, df);
+//
+//                        // TODO: Check if this is correct
+//                        // int docid = concatenatedDocsBytes[i] + concatenatedDocsBytes[i + 1] + concatenatedDocsBytes[i + 2] + concatenatedDocsBytes[i + 3];
+//                        buffer = ByteBuffer.wrap(concatenatedDocsBytes, i, 4);
+//                        int docid = buffer.getInt();
+//
+//                        DocumentIndex documentIndex = new DocumentIndex();
+//                        Document d = documentIndex.get(docid);
+//                        int docLength = d.getTokenCount();
+//
+//                        finalTerm.setTermUpperBoundBM25(tf, df, docLength);
+//                    }
 
                     /* Now that we cumulated docids and frequencies for that term, split them in Blocks */
 

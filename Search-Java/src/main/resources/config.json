@@ -20,7 +20,7 @@
   "partialDocsPath" : "data/out/partial/docidsBlock-",
   "partialFrequenciesPath" : "data/out/partial/frequenciesBlock-",
 
-  "compressionEnabled" : false,
+  "compressionEnabled" : true,
   "compressionBlockSize" : 512,
   "blockDivisionEnabled" : true
 }

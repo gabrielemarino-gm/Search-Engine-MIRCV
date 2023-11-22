@@ -54,6 +54,8 @@ public class Compressor {
             shiftRight(fromBytes);
         }
 
+        toRet.add(counter);
+
         // We want to return an Array, not a List
         int[] temp = new int[qty];
         for(int i = 0; i < qty; i++)
