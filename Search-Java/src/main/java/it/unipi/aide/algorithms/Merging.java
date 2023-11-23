@@ -6,6 +6,8 @@ import it.unipi.aide.utils.Compressor;
 import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -14,22 +16,24 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Merging
 {
-    private final boolean COMPRESSION;
+    private boolean COMPRESSION = false;
     private final int BLOCKS_COUNT; // Number of blocks to merge
-
+    private boolean DEBUG = false;
     long finalDocidOffset = 0;
     long finalFreqOffset = 0;
     long blockDescriptorOffset = 0;
     long vFinalOffset = 0;
 
-    public Merging(boolean compression, int blocksCount)
+    public Merging(boolean compression, int blocksCount, boolean debug)
     {
         this.BLOCKS_COUNT = blocksCount;
         this.COMPRESSION = compression;
+        this.DEBUG = debug;
 
         System.out.println(String.format(
                 "-----MERGING-----\nCOMPRESSION = %b\nBLOCKS_TO_COMPRESS = %d\n-----------------",
@@ -42,7 +46,7 @@ public class Merging
     /**
      * Merge partial blocks into one unique block
      */
-    public void mergeBlocks(boolean debug)
+    public void mergeBlocks()
     {
         long nTerms = 0;
         // Check if the directory with the blocks results exists
@@ -187,6 +191,9 @@ public class Merging
                         concatenationOffset += v.length;
                     }
 
+                    // ... print in txt format for debug ...
+                    printDebugInTXT(concatenatedDocsBytes, concatenatedFreqBytes, smallestTerm);
+
                     // ... now compute ter upper bound for BM25 and TDIDF ...
 //                    ByteBuffer buffer;
 //                    for (int i = 0; i < totalBytesSummed; i += 4)
@@ -219,6 +226,7 @@ public class Merging
 
                     // ... write sqrt(n) postings in each block ...
                     int postingsInsideEachBlock = (int) Math.sqrt(totalTermPostings);
+                    // ... compute the number of blocks to create ...
                     int numberOfBlocksToCreate = (int) Math.ceil((double) totalTermPostings / postingsInsideEachBlock);
 
                     // ... divide the accumulated bytes in sqrt(n) blocks ...
@@ -269,45 +277,53 @@ public class Merging
                      * and numberOfBlocksToCreate as the number of blocks to create
                      */
 
-                        for (int i = 0; i < numberOfBlocksToCreate; i++)
+                        // ... for each block ...
+                        for (int indxCurrentBlock = 0; indxCurrentBlock < numberOfBlocksToCreate; indxCurrentBlock++)
                         {
                             // Last block may contain fewer elements than blockSize
                             int postingsInCurrentBlock = Math.min(
                                     postingsInsideEachBlock,
-                                    totalTermPostings - i * postingsInsideEachBlock
+                                    totalTermPostings - indxCurrentBlock * postingsInsideEachBlock
                             );
 
                             // Block descriptor for current block
                             BlockDescriptor blockDescriptor = new BlockDescriptor();
                             blockDescriptor.setNumPostings(postingsInCurrentBlock);
 
-                            byte[] tempDocs = new byte[postingsInCurrentBlock * 4];
-                            byte[] tempFreq = new byte[postingsInCurrentBlock * 4];
+                            byte[] tempDocsBlock = new byte[postingsInCurrentBlock * 4];
+                            byte[] tempFreqBlock = new byte[postingsInCurrentBlock * 4];
 
                             // Get the bytes for the current block from the accumulated bytes
-                            System.arraycopy(concatenatedDocsBytes, i * postingsInsideEachBlock * 4,
-                                    tempDocs, 0,
-                                    postingsInCurrentBlock * 4);
+                            System.arraycopy(
+                                    concatenatedDocsBytes, // Source
+                                    indxCurrentBlock * postingsInsideEachBlock * 4, // Source offset
+                                    tempDocsBlock, // Destination
+                                    0, // Destination offset
+                                    postingsInCurrentBlock * 4 // Length
+                            );
 
-                            System.arraycopy(concatenatedFreqBytes, i * postingsInsideEachBlock * 4,
-                                    tempFreq, 0,
-                                    postingsInCurrentBlock * 4);
+                            System.arraycopy(concatenatedFreqBytes, // Source
+                                    indxCurrentBlock * postingsInsideEachBlock * 4, // Source offset
+                                    tempFreqBlock, // Destination
+                                    0, // Destination offset
+                                    postingsInCurrentBlock * 4 // Length
+                            );
 
-                            blockDescriptor.setMaxDocID(getMaxDocid(tempDocs));
+                            blockDescriptor.setMaxDocID(getMaxDocid(tempDocsBlock));
 
                             if(COMPRESSION)
                             {
-                                tempDocs = Compressor.VariableByteCompression(tempDocs);
-                                tempFreq = Compressor.UnaryCompression(tempFreq);
+                                tempDocsBlock = Compressor.VariableByteCompression(tempDocsBlock);
+                                tempFreqBlock = Compressor.UnaryCompression(tempFreqBlock);
                             }
 
                             // Update bytes occupied in that block
-                            blockDescriptor.setBytesOccupiedDocid(tempDocs.length);
-                            blockDescriptor.setBytesOccupiedFreq(tempFreq.length);
+                            blockDescriptor.setBytesOccupiedDocid(tempDocsBlock.length);
+                            blockDescriptor.setBytesOccupiedFreq(tempFreqBlock.length);
 
                             // Add to the list of blocks
-                            docidBlocks.add(tempDocs);
-                            freqBlocks.add(tempFreq);
+                            docidBlocks.add(tempDocsBlock);
+                            freqBlocks.add(tempFreqBlock);
 
                             // Update current blockDescriptor and add to the list
                             blockDescriptors.add(blockDescriptor);
@@ -323,7 +339,7 @@ public class Merging
 
                     // Write everything as separated blocks
                     writeBlocks(finalDocIDChannel, finalFreqChannel, blockDescriptorsChannel,
-                            docidBlocks,freqBlocks, blockDescriptors,
+                            docidBlocks, freqBlocks, blockDescriptors,
                             finalTerm);
 
                     // First offset of first term Block is updated inside the previous function
@@ -358,7 +374,7 @@ public class Merging
                 }
 
                 // Delete temporary blocks
-//                FileManager.deleteDir(ConfigReader.getPartialPath());
+//              FileManager.deleteDir(ConfigReader.getPartialPath());
                 System.out.println(String.format("LOG:\t\tTotal terms in the Lexicon is %d", nTerms));
                 CollectionInformation.setTotalTerms(nTerms);
             }
@@ -373,14 +389,51 @@ public class Merging
         }
     }
 
+    private void printDebugInTXT(byte[] concatenatedDocsBytes, byte[] concatenatedFreqBytes, String term)
+    {
+        if(DEBUG && !COMPRESSION)
+        {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(ConfigReader.getDebugDir() + "invertedIndex.txt", true)))
+            {
+                // write term
+                writer.write(String.format("%s: ", term));
+
+                // For each integer in the list
+                for (int i = 0; i < concatenatedDocsBytes.length; i += 4)
+                {
+                    int docid = Commons.bytesToInt(Arrays.copyOfRange(concatenatedDocsBytes, i, i + 4));
+                    int freq = Commons.bytesToInt(Arrays.copyOfRange(concatenatedFreqBytes, i, i + 4));
+
+                    // Write it in the file txt
+                    writer.write(String.format("(%d, %d) ", docid, freq));
+                }
+                writer.newLine();
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Write the final docID, frequencies and block descriptors on the disk
+     * @param finalDocIDChannel FileChannel for docID
+     * @param finalFreqChannel FileChannel for frequencies
+     * @param blockDescriptorsChannel FileChannel for block descriptors
+     * @param docsBlocks List of docID blocks
+     * @param freqBlocks List of frequency blocks
+     * @param blockDescriptors List of block descriptors
+     * @param finalTerm TermInfo to update
+     */
     private void writeBlocks(FileChannel finalDocIDChannel,
                              FileChannel finalFreqChannel,
                              FileChannel blockDescriptorsChannel,
                              List<byte[]> docsBlocks,
                              List<byte[]> freqBlocks,
                              List<BlockDescriptor> blockDescriptors,
-                             TermInfo finalTerm) {
-
+                             TermInfo finalTerm)
+    {
         // Write first blockDescriptor offset for that term
         finalTerm.setOffset(blockDescriptorOffset);
 
@@ -389,7 +442,6 @@ public class Merging
             // ... for each block ...
             for(int i = 0; i < blockDescriptors.size(); i++)
             {
-                //
                 MappedByteBuffer tempBuffer = finalDocIDChannel.map(FileChannel.MapMode.READ_WRITE,
                         finalDocidOffset, blockDescriptors.get(i).getBytesOccupiedDocid());
                 tempBuffer.put(docsBlocks.get(i));
@@ -419,18 +471,18 @@ public class Merging
                 tempBuffer.putLong(blockDescriptors.get(i).getBytesOccupiedFreq());
 
                 blockDescriptorOffset += BlockDescriptor.BLOCK_SIZE;
-            }
 
+
+            }
         }
         catch (IOException io)
         {
             io.printStackTrace();
         }
-
     }
 
     /**
-     * Write a TermInfo on the disk
+     * Write a TermInfo on the disk, into the final vocabulary file
      * @param finalVocChannel Vocabulary FileChannel
      * @param finalTerm Term to write
      * @throws IOException
@@ -511,10 +563,12 @@ public class Merging
         return tempBytes;
     }
 
-    private int getMaxDocid(byte[] list){
+    private int getMaxDocid(byte[] list)
+    {
         int max = 0;
         int[] ints = Commons.bytesToIntArray(list);
-        for(Integer i: ints){
+        for(Integer i: ints)
+        {
             if(i > max) max = i;
         }
         return max;
