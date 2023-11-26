@@ -17,7 +17,7 @@ public class QueryHandler
     public static void main(String[] args)
     {
         QueryPreprocessing query = new QueryPreprocessing();
-        query.setQuery("Sleeping cat");
+        query.setQuery("Bomb");
         List<String> tokens = query.getTokens();
 
         // MaxScore maxScore = new MaxScore(false);

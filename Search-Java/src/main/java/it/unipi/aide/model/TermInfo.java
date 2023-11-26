@@ -6,9 +6,9 @@ public class TermInfo
 {
     public final static int SIZE_TERM = 46;
     // Term, totalFrequency, numPosting, offset
-    public final static long SIZE_PRE_MERGING = SIZE_TERM  + 4L + 4L + 8L;
+    public final static long SIZE_PRE_MERGING = SIZE_TERM  + 4L + 4L + 8L + 4L + 4L;
     //
-    public final static long SIZE_POST_MERGING = SIZE_TERM + 4L + 4L + 4L + 8L;
+    public final static long SIZE_POST_MERGING = SIZE_TERM + 4L + 4L + 4L + 8L + 4L + 4L;
 
 
     private String term;
@@ -16,7 +16,7 @@ public class TermInfo
     private int numPosting;
     private int numBlocks; // Only post-merging
     private long offset;
-
+    private int termFrequency;
     private float termUpperBoundTDIDF;
     private float termUpperBoundBM25;
 
@@ -58,6 +58,47 @@ public class TermInfo
         this.numBlocks = nBlocks;
     }
 
+    /**
+     * Create new TermInfo (USE IN MERGE ONLY FOR WRITE)
+     * @param term Term name
+     * @param frequency How many times it appears in the Corpus
+     * @param nPosting How many Postings for that term
+     * @param i How many blocks for that term
+     * @param offset Offset in the file where the posting list starts
+     * @param upperBoundTDIDF Partial term upper bound for the score of the term
+     * @param upperBoundBM25 Partial term upper bound for the score of the term
+     */
+    public TermInfo(String term, int frequency, int nPosting, int i, long offset, float upperBoundTDIDF, float upperBoundBM25)
+    {
+        this.term = term;
+        this.totalFrequency = frequency;
+        this.numPosting = nPosting;
+        this.numBlocks = i;
+        this.offset = offset;
+        this.termUpperBoundTDIDF = upperBoundTDIDF;
+        this.termUpperBoundBM25 = upperBoundBM25;
+    }
+
+    public void setTermUpperBoundWithIntermediateResultsTDIDF(double maxScoreTFIDF, int documentFrequency)
+    {
+        this.termUpperBoundTDIDF = (float) (maxScoreTFIDF * Math.log((double) CollectionInformation.getTotalDocuments() / documentFrequency));
+    }
+    public void evaluateTermUpperBoundTDIDF(int tf, int df)
+    {
+        float score = ScoreFunction.computeTFIDF(tf, df, CollectionInformation.getTotalDocuments());
+
+        if (this.termUpperBoundTDIDF < score)
+            this.termUpperBoundTDIDF = score;
+    }
+    public void evaluateTermUpperBoundBM25(int tf, int df, int docLength)
+    {
+        float score = ScoreFunction.computeBM25(tf, df, CollectionInformation.getTotalDocuments(), docLength,
+                CollectionInformation.getAverageDocumentLength());
+
+        if (this.termUpperBoundBM25 < score)
+            this.termUpperBoundBM25 = score;
+    }
+
     public void incrementTotalFrequency() {this.totalFrequency++;}
     public void incrementNumPosting() {this.numPosting++;}
 
@@ -67,6 +108,7 @@ public class TermInfo
     public long getOffset() {return offset;}
     public int getNumPosting() {return numPosting;}
     public String getTerm() {return term;}
+    public int getTermFrequency() {return termFrequency;}
     public float getTermUpperBoundTDIDF() {return termUpperBoundTDIDF;}
     public float getTermUpperBoundBM25() {return termUpperBoundBM25;}
 
@@ -74,27 +116,16 @@ public class TermInfo
     public void setTotalFrequency(int f) {this.totalFrequency = f;}
     public void setNumBlocks(int n) {this.numBlocks = n;}
     public void setOffset(long o) {this.offset = o;}
-    public void setTermUpperBoundTDIDF(int tf, int df)
-    {
-        float score = ScoreFunction.computeTFIDF(tf, df, CollectionInformation.getTotalDocuments());
-
-        if (this.termUpperBoundTDIDF < score)
-            this.termUpperBoundTDIDF = score;
-    }
-    public void setTermUpperBoundBM25(int tf, int df, int docLength)
-    {
-        float score = ScoreFunction.computeBM25(tf, df, CollectionInformation.getTotalDocuments(), docLength,
-                CollectionInformation.getAverageDocumentLength());
-
-        if (this.termUpperBoundBM25 < score)
-            this.termUpperBoundBM25 = score;
-    }
+    public void setTermFrequency(int f) {this.termFrequency = f;}
+    public void setTermUpperBoundTDIDF(float f) {this.termUpperBoundTDIDF = f;}
+    public void setTermUpperBoundBM25(float f) {this.termUpperBoundBM25 = f;}
 
     @Override
     public String toString()
     {
         return String.format("[%s](TF: %d, NP: %d, NB: %d, OS: %d)", term, totalFrequency, numPosting, numBlocks, offset);
     }
+
 }
 
 /*

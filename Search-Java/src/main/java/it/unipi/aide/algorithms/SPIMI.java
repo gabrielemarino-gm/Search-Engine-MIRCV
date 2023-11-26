@@ -4,13 +4,14 @@ import it.unipi.aide.model.*;
 import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
 import it.unipi.aide.utils.Preprocesser;
-
+import it.unipi.aide.utils.ReturnableFromSPIMI;
 import java.io.*;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -78,6 +79,9 @@ public class SPIMI
         // Terms in all documents
         long termSum = 0;
 
+        // Used to calculate the upper bound
+        HashMap<String, Integer> lastDocScoredForTerm = new HashMap<>();
+
         // For each documents
         for(String doc: corpus)
         {
@@ -102,6 +106,7 @@ public class SPIMI
             // current document has no tokens inside, skip
             if(document.getTokens().isEmpty()) continue;
 
+
             for (String t : document.getTokens())
             {
                 /*
@@ -110,9 +115,30 @@ public class SPIMI
                  * Increment NumPosting of that term only if a new PostingList
                  * has been added in the InvertedIndex
                  */
+
                 boolean newPosting = invertedIndex.add(document.getDocid(), t);
                 vocabulary.add(t, newPosting);
                 if(newPosting) numBlocksPosting++;
+
+
+                // TERM UPPER BOUND TDIDF
+                // Calculate the actual term frequency
+                int actualTermFrequency = document.getTokens().stream().mapToInt(s -> s.equals(t) ? 1 : 0).sum();
+
+                // if we have never seen this term before, we need to set the upper bound
+                if (!lastDocScoredForTerm.containsKey(t))
+                {
+                    vocabulary.getTermInfo(t).setTermUpperBoundTDIDF((float) (1.0 + Math.log(actualTermFrequency)));
+                    lastDocScoredForTerm.put(t, document.getDocid());
+                }
+                // if we have already seen this term in the previous document we need to update the partial score
+                else if (lastDocScoredForTerm.get(t) < document.getDocid())
+                {
+                    // we need to update the partial score
+                    double partialScore = vocabulary.getTermInfo(t).getTermUpperBoundTDIDF() + 1.0 + Math.log(actualTermFrequency);
+                    vocabulary.getTermInfo(t).setTermUpperBoundTDIDF((float) partialScore);
+                    lastDocScoredForTerm.replace(t, document.getDocid());
+                }
             }
 
             // Memory control
@@ -138,7 +164,7 @@ public class SPIMI
 
             if (docid%100000 == 0)
             {
-//                printMemInfo();
+                // printMemInfo();
                 System.out.println("LOG:\t\tDocuments processed " + docid);
             }
         }
@@ -211,11 +237,12 @@ public class SPIMI
                 StringBuilder pattern = new StringBuilder("%-").append(TermInfo.SIZE_TERM).append("s");
                 String paddedTerm = String.format(pattern.toString(), termInfo.getTerm()).substring(0, TermInfo.SIZE_TERM); // Pad with spaces up to 64 characters
 
-                // Write
-                vocabularyBuffer.put(paddedTerm.getBytes());
-                vocabularyBuffer.putInt(termInfo.getTotalFrequency());
-                vocabularyBuffer.putInt(termInfo.getNumPosting());
-                vocabularyBuffer.putLong(termInfo.getOffset());
+                vocabularyBuffer.put(paddedTerm.getBytes());                    // Term                     46 bytes
+                vocabularyBuffer.putInt(termInfo.getTotalFrequency());          // TotalFrequency           4 bytes
+                vocabularyBuffer.putInt(termInfo.getNumPosting());              // NumPosting               4 bytes
+                vocabularyBuffer.putLong(termInfo.getOffset());                 // Offset                   8 bytes
+                vocabularyBuffer.putFloat(termInfo.getTermUpperBoundTDIDF());   // TermUpperBoundTDIDF      4 bytes
+                vocabularyBuffer.putFloat(termInfo.getTermUpperBoundBM25());    // TermUpperBoundBM25       4 bytes
 
                 // Write the other 2 files for DocId and Frequency
                 for (Posting p: invertedIndex.getPostingList(t))

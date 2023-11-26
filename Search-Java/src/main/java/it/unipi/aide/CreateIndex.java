@@ -3,6 +3,7 @@ package it.unipi.aide;
 import it.unipi.aide.algorithms.Merging;
 import it.unipi.aide.algorithms.SPIMI;
 import it.unipi.aide.utils.ConfigReader;
+import it.unipi.aide.utils.ReturnableFromSPIMI;
 
 public class CreateIndex
 {
@@ -33,12 +34,12 @@ public class CreateIndex
 
         // Index building
         SPIMI spimi = new SPIMI(INPUT_PATH, STOPSTEM);
-        int numBlocks = spimi.algorithm(DEBUG);
+        int nBlocks  = spimi.algorithm(DEBUG);
 
         System.out.println("LOG:\t\tIndex created. Merging...");
 
         // Index merging
-        Merging merge = new Merging(COMPRESSION, numBlocks, DEBUG);
+        Merging merge = new Merging(COMPRESSION, nBlocks, DEBUG);
         merge.mergeBlocks();
     }
 }
