@@ -3,7 +3,6 @@ package it.unipi.aide;
 import it.unipi.aide.algorithms.Merging;
 import it.unipi.aide.algorithms.SPIMI;
 import it.unipi.aide.utils.ConfigReader;
-import it.unipi.aide.utils.ReturnableFromSPIMI;
 
 public class CreateIndex
 {
