@@ -3,8 +3,7 @@ package it.unipi.aide.algorithms;
 import it.unipi.aide.model.*;
 import it.unipi.aide.utils.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
 
 public class DAAT
@@ -14,6 +13,8 @@ public class DAAT
 
     HashMap<String, TermInfo> terms = new HashMap<>();
 
+    Cache cache = new Cache();
+
     public DAAT(int k)
     {
         this.K = k;
@@ -22,10 +23,34 @@ public class DAAT
 
     public List<ScoredDocument> executeDAAT(List<String> queryTerms)
     {
-        // Retrieve the posting lists of the query terms
+        /* Check the existence of the results already in cache: */
+        List<ScoredDocument> cachedResults = cache.containsQueryResults(queryTerms);
+        if(cachedResults!=null)
+            return cachedResults;
+
         List<PostingListSkippable> postingLists;
         QueryPreprocessing qp = new QueryPreprocessing();
-        postingLists = qp.retrievePostingList(queryTerms);
+
+        Map<String, List<String>> result = cache.getTermsInCommonAndNot(queryTerms);
+        List<String> cachedTerms = result.get("common");
+        if(cachedTerms!=null)
+        {
+            List<PostingListSkippable> cachedPostingLists = null;
+            for (String cachedTerm : cachedTerms)
+                cachedPostingLists.add(cache.getTermsPostingList(cachedTerm));
+
+            List<String> notCachedTerms = result.get("nonCommon");
+            postingLists = qp.retrievePostingList(notCachedTerms);
+            cachePostingLists(postingLists);
+
+            postingLists = mergeLists(postingLists,cachedPostingLists);
+        }
+        else {
+            postingLists = qp.retrievePostingList(queryTerms);
+
+            cachePostingLists(postingLists);
+        }
+
         if(postingLists.isEmpty()) {
             System.err.println("No posting lists found");
             return new ArrayList<>();
@@ -76,11 +101,22 @@ public class DAAT
             else return 0;
         });
 
+        cache.putInQueriesResultsCache(queryTerms, scoredDocuments);
+
         if (scoredDocuments.size() > K)
             return scoredDocuments.subList(0, K);
         // Return top-k documents
         else
             return scoredDocuments;
+    }
+
+    private void cachePostingLists(List<PostingListSkippable> notCachedTerms) {
+
+        for (PostingListSkippable notCachedTerm : notCachedTerms) {
+
+            String term = notCachedTerm.getTerm();
+            cache.putInPostingListsCache(term, notCachedTerm);
+        }
     }
 
     private int getSmallestDocid(List<PostingListSkippable> postingLists)
@@ -95,5 +131,14 @@ public class DAAT
             }
         }
         return min;
+    }
+
+    public List<PostingListSkippable> mergeLists(List<PostingListSkippable> list1, List<PostingListSkippable> list2) {
+        List<PostingListSkippable> mergedList = new ArrayList<>();
+
+        mergedList.addAll(list1);
+        mergedList.addAll(list2);
+
+        return mergedList;
     }
 }
