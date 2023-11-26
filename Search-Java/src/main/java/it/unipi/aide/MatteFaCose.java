@@ -15,7 +15,7 @@ public class MatteFaCose {
         Preprocesser preprocesser = new Preprocesser(true);
         DAAT daat = new DAAT(10);
 
-        List<String> tokens = preprocesser.process("The brown fox jumps over the lazy dog");
+        List<String> tokens = preprocesser.process("Martina Burgisi");
 
         for(ScoredDocument sd : daat.executeDAAT(tokens)){
             System.out.print(sd);

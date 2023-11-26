@@ -37,11 +37,10 @@ public class QueryPreprocessing
         {
             /* TODO -> Search inside a cache before performing binary search */
             TermInfo toRetrieve = binarySearch(t);
-            terms.put(t, toRetrieve);
-
-            if (toRetrieve != null)
-            {
+            if(toRetrieve != null) {
+                terms.put(t, toRetrieve);
                 postingLists.add(new PostingListSkippable(toRetrieve));
+
             }
 
         }
@@ -69,7 +68,7 @@ public class QueryPreprocessing
             while (true)
             {
                 long MID_POINT = (WIN_UP - WIN_DOWN)/ 2 + WIN_DOWN;
-                if(WIN_UP == WIN_DOWN) return null;
+                if(WIN_UP == WIN_DOWN || MID_POINT == WIN_DOWN) return null;
                 TermInfo middleTerm = getTermFromDisk(channel, MID_POINT);
 
                 int comp = middleTerm.getTerm().compareTo(term);
