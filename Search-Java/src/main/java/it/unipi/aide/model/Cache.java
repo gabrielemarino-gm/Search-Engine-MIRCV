@@ -1,3 +1,5 @@
+//Cache
+
 package it.unipi.aide.model;
 
 import java.util.*;
@@ -8,7 +10,7 @@ public class Cache
 
     private final Map<String, TermsPostingLists> postingLists;
 
-    private final int maxSize = 1200; //todo tofix or tocheck
+    private final int maxSize = 1200; //tofix
 
     public Cache()
     {
@@ -76,6 +78,7 @@ public class Cache
     }
 
     private void makeSpaceInQueriesResultsCache() {
+
         long oldestTimestamp = Long.MAX_VALUE;
         List<String> queryToRemove = null;
 
@@ -145,7 +148,7 @@ public class Cache
 
         private final List<ScoredDocument> results;
 
-        private final long timestamp;
+        private long timestamp;
 
         public QueryResults(List<ScoredDocument> givenResults) {
             results = givenResults;
@@ -153,6 +156,7 @@ public class Cache
         }
 
         public List<ScoredDocument> getResults() {
+            timestamp = System.currentTimeMillis();
             return results;
         }
 
@@ -165,7 +169,7 @@ public class Cache
 
         private final PostingListSkippable postingList;
 
-        private final long timestamp;
+        private long timestamp;
 
         public TermsPostingLists (PostingListSkippable givenPostingList) {
             postingList = givenPostingList;
@@ -173,30 +177,12 @@ public class Cache
         }
 
         public PostingListSkippable getPostingList() {
+            timestamp = System.currentTimeMillis();
             return postingList;
         }
 
         public long getTimestamp() {
             return timestamp;
         }
-    }
-
-    /* DEBUG PRINT */
-    public void printQueriesResultsCache() {
-        System.out.println("Contenuto della Queries Results Cache:");
-        for (Map.Entry<List<String>, QueryResults> entry : queriesResults.entrySet()) {
-            System.out.println("Query: " + entry.getKey() + ", Risultati: " + entry.getValue().getResults());
-        }
-
-        System.out.println("*********");
-    }
-
-    public void printPostingListsCache() {
-        System.out.println("Contenuto della Posting Lists Cache:");
-        for (Map.Entry<String, TermsPostingLists> entry : postingLists.entrySet()) {
-            System.out.println("Termine: " + entry.getKey() + ", Posting List: " + entry.getValue().getPostingList());
-        }
-
-        System.out.println("*********");
     }
 }
