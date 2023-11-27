@@ -86,7 +86,7 @@ public class DAAT
                     {
                         documentToAdd.setScore(ScoreFunction.computeTFIDF(
                                                     pl.getCurrent().getFrequency(),
-                                                    terms.get(pl.getTerm()).getTotalFrequency(),
+                                                    terms.get(pl.getTerm()).getNumPosting(),
                                                     CollectionInformation.getTotalDocuments()
                                 )
                         );
