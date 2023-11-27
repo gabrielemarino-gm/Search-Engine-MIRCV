@@ -4,7 +4,6 @@ import it.unipi.aide.model.*;
 import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
 import it.unipi.aide.utils.Preprocesser;
-import it.unipi.aide.utils.ReturnableFromSPIMI;
 import java.io.*;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -135,7 +134,7 @@ public class SPIMI
                 else if (lastDocScoredForTerm.get(t) < document.getDocid())
                 {
                     // we need to update the partial score
-                    double partialScore = vocabulary.getTermInfo(t).getTermUpperBoundTDIDF() + 1.0 + Math.log(actualTermFrequency);
+                    double partialScore = vocabulary.getTermInfo(t).getTermUpperBoundTFIDF() + 1.0 + Math.log(actualTermFrequency);
                     vocabulary.getTermInfo(t).setTermUpperBoundTDIDF((float) partialScore);
                     lastDocScoredForTerm.replace(t, document.getDocid());
                 }
@@ -241,7 +240,7 @@ public class SPIMI
                 vocabularyBuffer.putInt(termInfo.getTotalFrequency());          // TotalFrequency           4 bytes
                 vocabularyBuffer.putInt(termInfo.getNumPosting());              // NumPosting               4 bytes
                 vocabularyBuffer.putLong(termInfo.getOffset());                 // Offset                   8 bytes
-                vocabularyBuffer.putFloat(termInfo.getTermUpperBoundTDIDF());   // TermUpperBoundTDIDF      4 bytes
+                vocabularyBuffer.putFloat(termInfo.getTermUpperBoundTFIDF());   // TermUpperBoundTDIDF      4 bytes
                 vocabularyBuffer.putFloat(termInfo.getTermUpperBoundBM25());    // TermUpperBoundBM25       4 bytes
 
                 // Write the other 2 files for DocId and Frequency

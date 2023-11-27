@@ -81,9 +81,11 @@ public class DAAT
                     if (pl.getCurrent().getDocId() == firstDoc)
                     {
                         documentToAdd.setScore(ScoreFunction.computeTFIDF(
-                                pl.getCurrent().getFrequency(),
-                                terms.get(pl.getTerm()).getTotalFrequency(),
-                                CollectionInformation.getTotalDocuments()));
+                                                    pl.getCurrent().getFrequency(),
+                                                    terms.get(pl.getTerm()).getTotalFrequency(),
+                                                    CollectionInformation.getTotalDocuments()
+                                )
+                        );
 
                         pl.next();
                     }

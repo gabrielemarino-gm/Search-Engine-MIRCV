@@ -17,13 +17,13 @@ public class QueryHandler
     public static void main(String[] args)
     {
         QueryPreprocessing query = new QueryPreprocessing();
-        query.setQuery("Bomb");
+        query.setQuery("Manahattan Project");
         List<String> tokens = query.getTokens();
 
         // MaxScore maxScore = new MaxScore(false);
         // PriorityQueue<ScoredDocument> top_k = maxScore.executeMaxScore(tokens, 5);
 
-        DAAT daat = new DAAT( 5);
+        DAAT daat = new DAAT( 10);
         List<ScoredDocument> top_k = daat.executeDAAT(tokens);
 
         for(ScoredDocument d : top_k)

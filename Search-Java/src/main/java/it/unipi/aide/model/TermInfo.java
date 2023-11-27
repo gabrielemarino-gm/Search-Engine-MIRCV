@@ -29,7 +29,8 @@ public class TermInfo
      *  TF = 1 and nPostings = 1
      * @param term Term name
      */
-    public TermInfo(String term){
+    public TermInfo(String term)
+    {
         this.term = term;
         this.totalFrequency = 1;
         this.numPosting = 1;
@@ -109,7 +110,7 @@ public class TermInfo
     public int getNumPosting() {return numPosting;}
     public String getTerm() {return term;}
     public int getTermFrequency() {return termFrequency;}
-    public float getTermUpperBoundTDIDF() {return termUpperBoundTDIDF;}
+    public float getTermUpperBoundTFIDF() {return termUpperBoundTDIDF;}
     public float getTermUpperBoundBM25() {return termUpperBoundBM25;}
 
     public void setNumPosting(int n) {this.numPosting = n;}
