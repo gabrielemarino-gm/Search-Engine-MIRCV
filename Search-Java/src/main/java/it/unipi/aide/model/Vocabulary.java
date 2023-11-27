@@ -12,14 +12,21 @@ public class Vocabulary
      */
     public void add(String term, boolean addPosting)
     {
+        // If the term is not in the vocabulary, add it
         if (!vocab.containsKey(term))
         {
             vocab.put(term, new TermInfo(term));
         }
+
+        // Otherwise, update the existing one
         else
         {
             vocab.get(term).incrementTotalFrequency();
-            if(addPosting){
+
+            // If the term is in the vocabulary,
+            // but it's the first time it's found in the document, add a posting
+            if(addPosting)
+            {
                 vocab.get(term).incrementNumPosting();
             }
         }
@@ -56,6 +63,10 @@ public class Vocabulary
      */
     public void clear(){
         vocab.clear();
+    }
+    public TermInfo getTermInfo(String term)
+    {
+        return vocab.get(term);
     }
 
     @Override

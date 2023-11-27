@@ -17,12 +17,13 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 public class Merging
 {
     private boolean COMPRESSION = false;
-    private final int BLOCKS_COUNT; // Number of blocks to merge
+    private int BLOCKS_COUNT; // Number of blocks to merge
     private boolean DEBUG = false;
     long finalDocidOffset = 0;
     long finalFreqOffset = 0;
@@ -40,7 +41,6 @@ public class Merging
                 COMPRESSION,
                 BLOCKS_COUNT
         ));
-
     }
 
     /**
@@ -49,10 +49,11 @@ public class Merging
     public void mergeBlocks()
     {
         long nTerms = 0;
+
         // Check if the directory with the blocks results exists
         if(FileManager.checkDir(ConfigReader.getPartialPath()))
         {
-            // Create a channel for each block, both for docId, frequencies and vocabulary fragments
+            // Create FileChannels for each block for docId, frequencies and vocabulary fragments
             FileChannel[] docIdFileChannel = new FileChannel[BLOCKS_COUNT];
             FileChannel[] frequenciesFileChannel = new FileChannel[BLOCKS_COUNT];
             FileChannel[] vocabulariesFileChannel = new FileChannel[BLOCKS_COUNT];
@@ -63,7 +64,6 @@ public class Merging
             long[] offsetVocabulary = new long[BLOCKS_COUNT];
 
             long[] dimVocabularyFile = new long[BLOCKS_COUNT];
-
             TermInfo[] vocs = new TermInfo[BLOCKS_COUNT];
 
             String FdocPath = ConfigReader.getDocidPath();
@@ -89,23 +89,23 @@ public class Merging
                     )
             {
                 // INIT PHASE
-                for (int indexBlock = 0; indexBlock < BLOCKS_COUNT; indexBlock++)
+                for (int indexBlock = 0; indexBlock < BLOCKS_COUNT; indexBlock++) // For each block...
                 {
-                    /* Get the path for the 3 files relatively to all the blocks. */
-                    String vocPath = ConfigReader.getPartialVocabularyPath() + indexBlock;
-                    String docPath = ConfigReader.getPartialDocsPath() + indexBlock;
-                    String freqPath = ConfigReader.getPartialFrequenciesPath() + indexBlock;
+                    // Get the path for the 3 files relatively to all the blocks
+                    String partialVocPath = ConfigReader.getPartialVocabularyPath() + indexBlock;
+                    String partialDocPath = ConfigReader.getPartialDocsPath() + indexBlock;
+                    String partialFreqPath = ConfigReader.getPartialFrequenciesPath() + indexBlock;
 
                     // Open FileChannels to each file
-                    docIdFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(docPath),
+                    docIdFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(partialDocPath),
                             StandardOpenOption.READ);
-                    frequenciesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
+                    frequenciesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(partialFreqPath),
                             StandardOpenOption.READ);
-                    vocabulariesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(vocPath),
+                    vocabulariesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(partialVocPath),
                             StandardOpenOption.READ);
 
-                    /* Store in this list at position 'indexBlock', relative to the block with that index, the size of
-                    the vocabulary correspondent to that block. */
+                    // Store in this list at position 'indexBlock', relative to the block with that index, the size of
+                    // the vocabulary correspondent to that block.
                     dimVocabularyFile[indexBlock] = vocabulariesFileChannel[indexBlock].size();
 
                     // Get first term for each block's vocabulary
@@ -137,7 +137,7 @@ public class Merging
                         if(vocs[indexBlock] != null && vocs[indexBlock].getTerm().equals(smallestTerm))
                         {
 
-                            // ...accumulates bytes from different blocks , for all blocks...
+                            // ...accumulates bytes from different blocks, for both docId and frequencies...
                             docsAcc.add(extractBytes(docIdFileChannel[indexBlock],
                                     offsetDocId[indexBlock],
                                     vocs[indexBlock].getNumPosting()));
@@ -153,19 +153,24 @@ public class Merging
                             // Update the offsets for current block
                             offsetDocId[indexBlock] += 4L * vocs[indexBlock].getNumPosting();
                             offsetFrequency[indexBlock] += 4L * vocs[indexBlock].getNumPosting();
-                            /*
-                                If this block is finished, set its vocs to null and skip.
-                                This happens because last time we extracted a term for this
-                                block, it was the last term in the list.
-                                Null is used as break condition.
-                             */
+
+
+                            // If this block is finished, set its vocs to null and skip.
+                            // This happens because last time we extracted a term for this
+                            // block, it was the last term in the list.
+                            // Null is used as break condition.
                             if (offsetVocabulary[indexBlock] >= dimVocabularyFile[indexBlock])
                             {
                                 System.err.println("LOG:\t\tBlock #" + indexBlock + " exhausted.");
                                 vocs[indexBlock] = null;
                                 continue;
                             }
-                            // Vocabulary shift
+
+                            // update the upper bound for TDIDF and BM25 for each term ...
+                            double intermediateTDIDF = finalTerm.getTermUpperBoundTDIDF() + vocs[indexBlock].getTermUpperBoundTDIDF();
+                            finalTerm.setTermUpperBoundTDIDF((float) intermediateTDIDF);
+
+                            // Vocabulary shift: we are going to read the next term
                             vocs[indexBlock] = getNextVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
                             offsetVocabulary[indexBlock] += TermInfo.SIZE_PRE_MERGING;
                         }
@@ -194,7 +199,9 @@ public class Merging
                     // ... print in txt format for debug ...
                     printDebugInTXT(concatenatedDocsBytes, concatenatedFreqBytes, smallestTerm);
 
-                    // ... now compute ter upper bound for BM25 and TDIDF ...
+                    // ... update the upper bound for TDIDF and BM25 for each term ...
+
+
 //                    ByteBuffer buffer;
 //                    for (int i = 0; i < totalBytesSummed; i += 4)
 //                    {
@@ -500,6 +507,8 @@ public class Merging
         tempBuffer.putInt(finalTerm.getNumPosting());
         tempBuffer.putInt(finalTerm.getNumBlocks());
         tempBuffer.putLong(finalTerm.getOffset());
+        tempBuffer.putFloat(finalTerm.getTermUpperBoundTDIDF());
+        tempBuffer.putFloat(finalTerm.getTermUpperBoundBM25());
 
         vFinalOffset += TermInfo.SIZE_POST_MERGING;
     }
@@ -538,10 +547,12 @@ public class Merging
         int frequency = tempBuffer.getInt();
         int nPosting = tempBuffer.getInt();
         long offset = tempBuffer.getLong();
+        float upperBoundTDIDF = tempBuffer.getFloat();
+        float upperBoundBM25 = tempBuffer.getFloat();
 
         String term = new String(termBytes).trim();
 
-        return new TermInfo(term, frequency, nPosting, 0, offset);
+        return new TermInfo(term, frequency, nPosting, 0, offset, upperBoundTDIDF, upperBoundBM25);
     }
     /**
      * Extract bytes from given channel at given offset and returns them
