@@ -6,6 +6,7 @@ public class Vocabulary
 {
     private final TreeMap<String, TermInfo> vocab = new TreeMap<>();
 
+
     /**
      * Add a new term in the vocabulary it doesn't exist yet,
      * otherwise just update the existing one

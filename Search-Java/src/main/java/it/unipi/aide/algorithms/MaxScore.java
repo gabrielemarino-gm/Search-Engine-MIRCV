@@ -161,10 +161,8 @@ public class MaxScore
             // Compute BM25 score
             score = ScoreFunction.computeBM25(
                     postingLists.get(postingIndex).getCurrent().getFrequency(),
-                    terms.get(postingLists.get(postingIndex).getTerm()).getTotalFrequency(),
-                    CollectionInformation.getTotalDocuments(),
-                    docLength,
-                    CollectionInformation.getAverageDocumentLength()
+                    terms.get(postingLists.get(postingIndex).getTerm()).getNumPosting(),
+                    docLength
             );
         }
         else
@@ -172,8 +170,7 @@ public class MaxScore
             // Compute TF-IDF score
             score = ScoreFunction.computeTFIDF (
                     postingLists.get(postingIndex).getCurrent().getFrequency(),
-                    terms.get(postingLists.get(postingIndex).getTerm()).getTotalFrequency(),
-                    CollectionInformation.getTotalDocuments()
+                    terms.get(postingLists.get(postingIndex).getTerm()).getNumPosting()
             );
         }
 

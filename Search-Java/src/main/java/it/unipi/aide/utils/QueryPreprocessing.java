@@ -37,12 +37,12 @@ public class QueryPreprocessing
         {
             /* TODO -> Search inside a cache before performing binary search */
             TermInfo toRetrieve = binarySearch(t);
-            if(toRetrieve != null) {
+            if(toRetrieve != null)
+            {
                 terms.put(t, toRetrieve);
                 postingLists.add(new PostingListSkippable(toRetrieve));
 
             }
-
         }
 
         return postingLists;
@@ -69,6 +69,9 @@ public class QueryPreprocessing
             {
                 long MID_POINT = (WIN_UP - WIN_DOWN)/ 2 + WIN_DOWN;
                 if(WIN_UP == WIN_DOWN || MID_POINT == WIN_DOWN) return null;
+                // if TermCache.contains(MID_TERM)
+                //  TermInfo middleTerm = TermCahce.get(MID_POINT)
+                // else
                 TermInfo middleTerm = getTermFromDisk(channel, MID_POINT);
 
                 int comp = middleTerm.getTerm().compareTo(term);
@@ -116,8 +119,10 @@ public class QueryPreprocessing
         int nPost = buffer.getInt();
         int nBlocks = buffer.getInt();
         long off = buffer.getLong();
+        float tfidf = buffer.getFloat();
+        float bm25 = buffer.getFloat();
 
-        return new TermInfo(term, totFreq, nPost, nBlocks, off);
+        return new TermInfo(term, totFreq, nPost, nBlocks, off, tfidf, bm25);
     }
 
     public List<String> getTokens()
