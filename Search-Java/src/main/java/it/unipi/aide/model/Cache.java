@@ -8,7 +8,7 @@ public class Cache
 
     private final Map<String, TermsPostingLists> postingLists;
 
-    private final int maxSize = 1200;
+    private final int maxSize = 1200; //todo tofix or tocheck
 
     public Cache()
     {
@@ -17,11 +17,6 @@ public class Cache
     }
 
     /* Query Results Cache */
-    public QueryResults getQueryResults(List<String> query)
-    {
-        return queriesResults.get(query);
-    }
-
     public List<ScoredDocument> containsQueryResults(List<String> query)
     {
         List<ScoredDocument> results;
@@ -45,7 +40,6 @@ public class Cache
 
         for (Map.Entry<List<String>, QueryResults> entry : queriesResults.entrySet()) {
             List<String> key = entry.getKey();
-            QueryResults value = entry.getValue();
 
             List<String> commonStrings = new ArrayList<>();
             List<String> nonCommonStrings = new ArrayList<>();
@@ -98,15 +92,6 @@ public class Cache
         }
     }
 
-    public void removeQueryResults(List<String> query)
-    {
-        queriesResults.remove(query);
-    }
-
-    public boolean isQueriesResultsCacheEmpty() {
-        return queriesResults.isEmpty();
-    }
-
     /* Returns True if the QueriesResults Cache is full. */
     public boolean isQueriesResultsCacheFull() {
         return (queriesResults.size() == maxSize);
@@ -115,7 +100,10 @@ public class Cache
     /* Posting Lists Term Cache */
     public PostingListSkippable getTermsPostingList(String term)
     {
-        return postingLists.get(term).getPostingList();
+        if(containsTermsPostingList(term))
+            return postingLists.get(term).getPostingList();
+        else
+            return null;
     }
 
     public void putInPostingListsCache(String term, PostingListSkippable postingListToBeCached)
@@ -151,15 +139,6 @@ public class Cache
     public boolean containsTermsPostingList(String term)
     {
         return postingLists.containsKey(term);
-    }
-
-    public void removeTermsPostingList(String term)
-    {
-        postingLists.remove(term);
-    }
-
-    public boolean isTermsPostingListCacheEmpty() {
-        return postingLists.isEmpty();
     }
 
     public static class QueryResults {
@@ -200,5 +179,24 @@ public class Cache
         public long getTimestamp() {
             return timestamp;
         }
+    }
+
+    /* DEBUG PRINT */
+    public void printQueriesResultsCache() {
+        System.out.println("Contenuto della Queries Results Cache:");
+        for (Map.Entry<List<String>, QueryResults> entry : queriesResults.entrySet()) {
+            System.out.println("Query: " + entry.getKey() + ", Risultati: " + entry.getValue().getResults());
+        }
+
+        System.out.println("*********");
+    }
+
+    public void printPostingListsCache() {
+        System.out.println("Contenuto della Posting Lists Cache:");
+        for (Map.Entry<String, TermsPostingLists> entry : postingLists.entrySet()) {
+            System.out.println("Termine: " + entry.getKey() + ", Posting List: " + entry.getValue().getPostingList());
+        }
+
+        System.out.println("*********");
     }
 }

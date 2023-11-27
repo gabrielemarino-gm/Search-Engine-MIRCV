@@ -24,6 +24,7 @@ public class DAAT
     public List<ScoredDocument> executeDAAT(List<String> queryTerms)
     {
         /* Check the existence of the results already in cache: */
+        //cache.printQueriesResultsCache();
         List<ScoredDocument> cachedResults = cache.containsQueryResults(queryTerms);
         if(cachedResults!=null)
             return cachedResults;
@@ -35,9 +36,12 @@ public class DAAT
         List<String> cachedTerms = result.get("common");
         if(cachedTerms!=null)
         {
-            List<PostingListSkippable> cachedPostingLists = null;
-            for (String cachedTerm : cachedTerms)
-                cachedPostingLists.add(cache.getTermsPostingList(cachedTerm));
+            List<PostingListSkippable> cachedPostingLists = new ArrayList<>();
+            for (String cachedTerm : cachedTerms) {
+                PostingListSkippable currentPostingList = cache.getTermsPostingList(cachedTerm);
+                if(currentPostingList!=null)
+                    cachedPostingLists.add(currentPostingList);
+            }
 
             List<String> notCachedTerms = result.get("nonCommon");
             postingLists = qp.retrievePostingList(notCachedTerms);
@@ -101,13 +105,19 @@ public class DAAT
             else return 0;
         });
 
-        cache.putInQueriesResultsCache(queryTerms, scoredDocuments);
-
         if (scoredDocuments.size() > K)
-            return scoredDocuments.subList(0, K);
-        // Return top-k documents
+        {
+            List<ScoredDocument> firstKResults = scoredDocuments.subList(0, K);
+            cache.putInQueriesResultsCache(queryTerms, firstKResults);
+
+            return firstKResults;
+        }
         else
+        {
+            cache.putInQueriesResultsCache(queryTerms, scoredDocuments);
             return scoredDocuments;
+        }
+
     }
 
     private void cachePostingLists(List<PostingListSkippable> notCachedTerms) {
