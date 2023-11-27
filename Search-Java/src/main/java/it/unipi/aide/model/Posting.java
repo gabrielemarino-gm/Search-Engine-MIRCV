@@ -35,7 +35,7 @@ public class Posting
     /**
      * Increment frequency by one (USE IN SPIMI ONLY)
      */
-    public void increment() {
+    public void incrementFrequency() {
         frequency++;
     }
 

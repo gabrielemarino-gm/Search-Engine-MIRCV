@@ -2,6 +2,8 @@
 
 package it.unipi.aide.model;
 
+import com.fasterxml.jackson.databind.util.LRUMap;
+
 import java.util.*;
 
 public class Cache

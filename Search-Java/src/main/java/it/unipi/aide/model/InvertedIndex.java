@@ -13,7 +13,7 @@ public class InvertedIndex
      * @param term Term contained in that document
      * @return true if a new Posting has been added, 0 otherwise
      */
-    public boolean add(int doc, String term)
+    public boolean add(int doc, String term, Vocabulary vocab, int dl)
     {
         List<Posting> postingList = index.get(term);
 
@@ -22,18 +22,30 @@ public class InvertedIndex
         {
             Posting newPosting = new Posting(doc);
             index.put(term, new ArrayList<>(Collections.singletonList(newPosting)));
+            vocab.add(term, true);
+            // Aggiungi al vocabolario col true
             return true;
         }
 
         // Posting List exists, use that
         else
         {
+            // get the last posting
             Posting lastPosting = postingList.get(postingList.size() - 1);
 
-            // Last posting for that term is about current document
+            // if the last posting for that term is about current document
             if (lastPosting.getDocId() == doc)
             {
-                lastPosting.increment();
+                // Check MaxTF
+                lastPosting.incrementFrequency();
+
+                vocab.get(term).setMaxTF (lastPosting.getFrequency());
+                vocab.get(term).setMaxBM25(lastPosting.getFrequency(), dl);
+
+                // Check MaxBM25
+
+                // add to the vocabulary with the flag false, because it's not a new posting
+                vocab.add(term, false);
                 return false;
             }
 
@@ -42,6 +54,7 @@ public class InvertedIndex
             {
                 Posting newPosting = new Posting(doc);
                 postingList.add(newPosting);
+                // Aggiungi al vocabolario con true
                 return true;
             }
         }

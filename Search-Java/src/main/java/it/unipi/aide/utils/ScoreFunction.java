@@ -1,10 +1,20 @@
 package it.unipi.aide.utils;
 
+import it.unipi.aide.model.CollectionInformation;
+
 public class ScoreFunction
 {
     static final float k1 = 1.2f;
     static final float b = 0.75f;
-    public static float computeTFIDF(int tf, int df, long N)
+    static final long N;
+    static final long ADL;
+
+    static{
+        N = CollectionInformation.getTotalDocuments();
+        ADL = CollectionInformation.getAverageDocumentLength();
+    }
+
+    public static float computeTFIDF(int tf, int df)
     {
         float score = 0;
 
@@ -14,12 +24,12 @@ public class ScoreFunction
         return score;
     }
 
-    public static float computeBM25(int tf, int df, long N, int docLength, long avgDocLength)
+    public static float computeBM25(int tf, int df, int docLength)
     {
         float score = 0;
 
         if (tf > 0)
-            score = (float) (tf / (((1-b) + b*(docLength/avgDocLength)) + tf) * Math.log((double) N / df));
+            score = (float) (tf / (k1*((1-b) + b*(docLength/ADL)) + tf) * Math.log((double) N / df));
 
         return score;
     }

@@ -1,10 +1,7 @@
 package it.unipi.aide.algorithms;
 
 import it.unipi.aide.model.*;
-import it.unipi.aide.utils.Commons;
-import it.unipi.aide.utils.Compressor;
-import it.unipi.aide.utils.ConfigReader;
-import it.unipi.aide.utils.FileManager;
+import it.unipi.aide.utils.*;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -137,6 +134,25 @@ public class Merging
                         if(vocs[indexBlock] != null && vocs[indexBlock].getTerm().equals(smallestTerm))
                         {
 
+                            if (offsetDocId[indexBlock] > 775) {
+                                System.out.println("DBG:\t\tsmallestTerm: " + smallestTerm
+                                        + "\n\t\t\t" + "offsetDocId: " + offsetDocId[indexBlock]
+                                        + "\n\t\t\t" + "offsetFrequency: " + offsetFrequency[indexBlock]
+                                        + "\n\t\t\t" + "offsetVocabulary: " + offsetVocabulary[indexBlock]
+                                        + "\n\t\t\t" + "dimVocabularyFile: " + dimVocabularyFile[indexBlock]
+                                        + "\n\t\t\t" + "vocs[indexBlock]: " + vocs[indexBlock].toString()
+                                        + "\n\t\t\t" + "indexBlock: " + indexBlock
+                                        + "\n\t\t\t" + "nDoc: " + nDoc
+                                        + "\n\t\t\t" + "nTerms: " + nTerms
+                                        + "\n\t\t\t" + "totalTermPostings: " + totalTermPostings
+                                        + "\n\t\t\t" + "finalTotalFreq: " + finalTotalFreq
+                                        + "\n\t\t\t" + "finalTerm: " + finalTerm.toString()
+                                        + "\n\t\t\t" + "finalDocidOffset: " + finalDocidOffset
+                                        + "\n\t\t\t" + "finalFreqOffset: " + finalFreqOffset
+                                        + "\n\t\t\t" + "blockDescriptorOffset: " + blockDescriptorOffset
+                                        + "\n\t\t\t" + "vFinalOffset: " + vFinalOffset
+                                        + "\n");
+                            }
                             // ...accumulates bytes from different blocks, for both docId and frequencies...
                             docsAcc.add(extractBytes(docIdFileChannel[indexBlock],
                                     offsetDocId[indexBlock],
@@ -150,10 +166,13 @@ public class Merging
                             totalTermPostings += vocs[indexBlock].getNumPosting();
                             finalTotalFreq += vocs[indexBlock].getTotalFrequency();
 
+                            // Update MaxTF for current term. The method getMaxTF() checks if the current term has the maximum TF
+                            finalTerm.setMaxTF(vocs[indexBlock].getMaxTF());
+                            finalTerm.setMaxBM25(vocs[indexBlock].getBM25TF(), vocs[indexBlock].getBM25DL());
+
                             // Update the offsets for current block
                             offsetDocId[indexBlock] += 4L * vocs[indexBlock].getNumPosting();
                             offsetFrequency[indexBlock] += 4L * vocs[indexBlock].getNumPosting();
-
 
                             // If this block is finished, set its vocs to null and skip.
                             // This happens because last time we extracted a term for this
@@ -164,16 +183,6 @@ public class Merging
                                 System.err.println("LOG:\t\tBlock #" + indexBlock + " exhausted.");
                                 vocs[indexBlock] = null;
                                 continue;
-                            }
-
-                            // update the partial term upper bound for TDIDF and BM25 for each term ...
-                            double intermediateTDIDF = finalTerm.getTermUpperBoundTFIDF() + vocs[indexBlock].getTermUpperBoundTFIDF();
-                            finalTerm.setTermUpperBoundTDIDF((float) intermediateTDIDF);
-
-                            if (indexBlock == BLOCKS_COUNT - 1)
-                            {
-                                double intermediateTFIDF = finalTerm.getTermUpperBoundTFIDF() * Math.log((double) nDoc / totalTermPostings);
-                                finalTerm.setTermUpperBoundTDIDF((float) intermediateTFIDF);
                             }
 
                             // Vocabulary shift: we are going to read the next term
@@ -204,36 +213,6 @@ public class Merging
 
                     // ... print in txt format for debug ...
                     printDebugInTXT(concatenatedDocsBytes, concatenatedFreqBytes, smallestTerm);
-
-                    // ... update the upper bound for TDIDF and BM25 for each term ...
-
-
-//                    ByteBuffer buffer;
-//                    for (int i = 0; i < totalBytesSummed; i += 4)
-//                    {
-//                        // TODO: Check if this is correct
-//                        // Find term frequency
-//                        //int tf = concatenatedFreqBytes[i] + concatenatedFreqBytes[i + 1] + concatenatedFreqBytes[i + 2] + concatenatedFreqBytes[i + 3];
-//                        buffer = ByteBuffer.wrap(concatenatedFreqBytes, i, 4);
-//                        int tf = buffer.getInt();
-//
-//                        // Find document frequency
-//                        int df = totalTermPostings;
-//
-//                        // Update upper bound fot TDIDF
-//                        finalTerm.setTermUpperBoundTDIDF(tf, df);
-//
-//                        // TODO: Check if this is correct
-//                        // int docid = concatenatedDocsBytes[i] + concatenatedDocsBytes[i + 1] + concatenatedDocsBytes[i + 2] + concatenatedDocsBytes[i + 3];
-//                        buffer = ByteBuffer.wrap(concatenatedDocsBytes, i, 4);
-//                        int docid = buffer.getInt();
-//
-//                        DocumentIndex documentIndex = new DocumentIndex();
-//                        Document d = documentIndex.get(docid);
-//                        int docLength = d.getTokenCount();
-//
-//                        finalTerm.setTermUpperBoundBM25(tf, df, docLength);
-//                    }
 
                     /* Now that we cumulated docids and frequencies for that term, split them in Blocks */
 
@@ -462,7 +441,6 @@ public class Merging
 
                 finalDocidOffset += blockDescriptors.get(i).getBytesOccupiedDocid();
 
-
                 // Write block frequencies
                 tempBuffer = finalFreqChannel.map(FileChannel.MapMode.READ_WRITE,
                         finalFreqOffset, blockDescriptors.get(i).getBytesOccupiedFreq());
@@ -484,8 +462,6 @@ public class Merging
                 tempBuffer.putLong(blockDescriptors.get(i).getBytesOccupiedFreq());
 
                 blockDescriptorOffset += BlockDescriptor.BLOCK_SIZE;
-
-
             }
         }
         catch (IOException io)
@@ -513,8 +489,10 @@ public class Merging
         tempBuffer.putInt(finalTerm.getNumPosting());
         tempBuffer.putInt(finalTerm.getNumBlocks());
         tempBuffer.putLong(finalTerm.getOffset());
-        tempBuffer.putFloat(finalTerm.getTermUpperBoundTFIDF());
-        tempBuffer.putFloat(finalTerm.getTermUpperBoundBM25());
+
+        // Evaluate term upper bound fof TFIDF and BM25
+        tempBuffer.putFloat(ScoreFunction.computeTFIDF(finalTerm.getMaxTF(),finalTerm.getNumPosting()));
+        tempBuffer.putFloat(ScoreFunction.computeBM25(finalTerm.getBM25TF(), finalTerm.getBM25DL(), finalTerm.getNumPosting()));
 
         vFinalOffset += TermInfo.SIZE_POST_MERGING;
     }
@@ -553,12 +531,13 @@ public class Merging
         int frequency = tempBuffer.getInt();
         int nPosting = tempBuffer.getInt();
         long offset = tempBuffer.getLong();
-        float upperBoundTDIDF = tempBuffer.getFloat();
-        float upperBoundBM25 = tempBuffer.getFloat();
+        int maxTF = tempBuffer.getInt();
+        int BM25TF = tempBuffer.getInt();
+        int BM25DL = tempBuffer.getInt();
 
         String term = new String(termBytes).trim();
 
-        return new TermInfo(term, frequency, nPosting, 0, offset, upperBoundTDIDF, upperBoundBM25);
+        return new TermInfo(term, frequency, nPosting, 0, offset, maxTF, BM25TF, BM25DL);
     }
     /**
      * Extract bytes from given channel at given offset and returns them
