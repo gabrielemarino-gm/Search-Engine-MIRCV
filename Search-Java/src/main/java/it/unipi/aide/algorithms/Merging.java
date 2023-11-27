@@ -9,7 +9,6 @@ import it.unipi.aide.utils.FileManager;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -17,7 +16,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 public class Merging
@@ -75,6 +73,8 @@ public class Merging
             if(!FileManager.checkDir(FfreqPath)) FileManager.createFile(FfreqPath);
             if(!FileManager.checkDir(FvocPath)) FileManager.createFile(FvocPath);
             if(!FileManager.checkDir(FblockPath)) FileManager.createFile(FblockPath);
+
+            long nDoc = CollectionInformation.getTotalDocuments();
 
             try (
                     // Open FileChannels to each file
@@ -166,9 +166,15 @@ public class Merging
                                 continue;
                             }
 
-                            // update the upper bound for TDIDF and BM25 for each term ...
-                            double intermediateTDIDF = finalTerm.getTermUpperBoundTDIDF() + vocs[indexBlock].getTermUpperBoundTDIDF();
+                            // update the partial term upper bound for TDIDF and BM25 for each term ...
+                            double intermediateTDIDF = finalTerm.getTermUpperBoundTFIDF() + vocs[indexBlock].getTermUpperBoundTFIDF();
                             finalTerm.setTermUpperBoundTDIDF((float) intermediateTDIDF);
+
+                            if (indexBlock == BLOCKS_COUNT - 1)
+                            {
+                                double intermediateTFIDF = finalTerm.getTermUpperBoundTFIDF() * Math.log((double) nDoc / totalTermPostings);
+                                finalTerm.setTermUpperBoundTDIDF((float) intermediateTFIDF);
+                            }
 
                             // Vocabulary shift: we are going to read the next term
                             vocs[indexBlock] = getNextVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
@@ -507,7 +513,7 @@ public class Merging
         tempBuffer.putInt(finalTerm.getNumPosting());
         tempBuffer.putInt(finalTerm.getNumBlocks());
         tempBuffer.putLong(finalTerm.getOffset());
-        tempBuffer.putFloat(finalTerm.getTermUpperBoundTDIDF());
+        tempBuffer.putFloat(finalTerm.getTermUpperBoundTFIDF());
         tempBuffer.putFloat(finalTerm.getTermUpperBoundBM25());
 
         vFinalOffset += TermInfo.SIZE_POST_MERGING;

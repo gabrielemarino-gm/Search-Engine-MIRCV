@@ -223,7 +223,7 @@ public class PostingListSkippable  implements Iterator<Posting>
     }
 
     public float getTermUpperBoundTFIDF() {
-        return term.getTermUpperBoundTDIDF();
+        return term.getTermUpperBoundTFIDF();
     }
 
     public static Comparator<PostingListSkippable> compareToBM25() {
@@ -231,7 +231,7 @@ public class PostingListSkippable  implements Iterator<Posting>
     }
 
     public float getTermUpperBoundBM25() {
-        return term.getTermUpperBoundTDIDF();
+        return term.getTermUpperBoundTFIDF();
     }
 
 }
