@@ -52,7 +52,7 @@ public class TermInfo {
         this.numPosting = 1;
         this.maxTF = 1;
         this.BM25TF = 1;
-        this.BM25DL = Integer.MAX_VALUE;
+        this.BM25DL = 0;
         this.offset = 0;
     }
 
@@ -123,7 +123,11 @@ public class TermInfo {
 
     public void setMaxBM25(int tf, int dl)
     {
-        if (((double)tf / (double)(tf + dl)) > ((double)this.BM25TF / (double)(this.BM25TF + this.BM25DL)))
+        if (this.BM25DL == 0)
+        {
+            this.BM25DL = dl;
+            this.BM25TF = tf;
+        } else if (((double)tf / (double)(tf + dl)) > ((double)this.BM25TF / (double)(this.BM25TF + this.BM25DL)))
         {
             this.BM25DL = dl;
             this.BM25TF = tf;
@@ -142,6 +146,7 @@ public class TermInfo {
 
     public void incrementTotalFrequency() {this.totalFrequency++;}
     public void incrementNumPosting() {this.numPosting++;}
+
     public int getTotalFrequency() {return totalFrequency;}
     public int getNumBlocks() {return numBlocks;}
     public long getOffset() {return offset;}

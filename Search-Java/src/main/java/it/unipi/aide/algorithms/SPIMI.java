@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.List;
+import java.util.PriorityQueue;
 
 /**
  * Class that implement the SPIMI algorithm
@@ -78,9 +79,6 @@ public class SPIMI
         // Terms in all documents
         long termSum = 0;
 
-        // Used to calculate the upper bound
-        HashMap<String, Integer> lastDocScoredForTerm = new HashMap<>();
-
         // For each documents
         for(String doc: corpus)
         {
@@ -124,32 +122,11 @@ public class SPIMI
                 vocabulary.getTermInfo(t).incrementTotalFrequency();
 
                 // Update the number of postings of the current term if a new posting list has been added
-                if (canCreateNewPosting)
-                {
+                if (canCreateNewPosting) {
                     vocabulary.getTermInfo(t).incrementNumPosting();
                     numBlocksPosting++;
                 }
 
-                // vocabulary.add(t, canCreateNewPosting);
-
-
-                // // TERM UPPER BOUND TDIDF
-                // // Calculate the actual term frequency
-                // int actualTermFrequency = document.getTokens().stream().mapToInt(s -> s.equals(t) ? 1 : 0).sum();
-                // // if we have never seen this term before, we need to set the upper bound
-                // if (!lastDocScoredForTerm.containsKey(t))
-                // {
-                //     vocabulary.getTermInfo(t).setTermUpperBoundTDIDF((float) (1.0 + Math.log(actualTermFrequency)));
-                //     lastDocScoredForTerm.put(t, document.getDocid());
-                // }
-                // // if we have already seen this term in the previous document we need to update the partial score
-                // else if (lastDocScoredForTerm.get(t) < document.getDocid())
-                // {
-                //     // we need to update the partial score
-                //     double partialScore = vocabulary.getTermInfo(t).getTermUpperBoundTFIDF() + 1.0 + Math.log(actualTermFrequency);
-                //     vocabulary.getTermInfo(t).setTermUpperBoundTDIDF((float) partialScore);
-                //     lastDocScoredForTerm.replace(t, document.getDocid());
-                // }
             }
 
             // Memory control
@@ -246,7 +223,7 @@ public class SPIMI
 
                 // Write vocabulary entry
                 StringBuilder pattern = new StringBuilder("%-").append(TermInfo.SIZE_TERM).append("s");
-                String paddedTerm = String.format(pattern.toString(), termInfo.getTerm()).substring(0, TermInfo.SIZE_TERM); // Pad with spaces up to 64 characters
+                String paddedTerm = String.format(pattern.toString(), termInfo.getTerm()).substring(0, TermInfo.SIZE_TERM); // Pad with spaces up to 46 characters
 
                 vocabularyBuffer.put(paddedTerm.getBytes());                    // Term                     46 bytes
                 vocabularyBuffer.putInt(termInfo.getTotalFrequency());          // TotalFrequency           4 bytes
@@ -256,12 +233,20 @@ public class SPIMI
                 vocabularyBuffer.putInt(termInfo.getBM25TF());                  // TFBM25                   4 bytes
                 vocabularyBuffer.putInt(termInfo.getBM25DL());                  // DLBM25                   4 bytes
 
+                System.out.println("DEBUG:\t\t" + termInfo.getTerm() + " " + termInfo.getOffset() + " " + termInfo.getNumPosting() + " " + termInfo.getTotalFrequency() + " " + termInfo.getMaxTF() + " " + termInfo.getBM25TF() + " " + termInfo.getBM25DL());
+
                 // Write the other 2 files for DocId and Frequency
                 for (Posting p: invertedIndex.getPostingList(t))
                 {
                     docIdBuffer.putInt(p.getDocId());
                     frequencyBuffer.putInt(p.getFrequency());
                     partialOffset += 4L;
+                }
+
+                // debug
+                if (partialOffset > 775)
+                {
+                    System.out.println("DEBUG:\t\t" + partialOffset);
                 }
             }
         }

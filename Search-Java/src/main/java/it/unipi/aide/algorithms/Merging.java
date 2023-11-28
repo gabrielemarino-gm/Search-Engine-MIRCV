@@ -74,7 +74,7 @@ public class Merging
             long nDoc = CollectionInformation.getTotalDocuments();
 
             try (
-                    // Open FileChannels to each file
+                    // Open FileChannels to each file (Vocabulary, DocID, Frequencies, BlockDescriptors)
                     FileChannel finalVocChannel = (FileChannel) Files.newByteChannel(Paths.get(FvocPath),
                             StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
                     FileChannel finalDocIDChannel = (FileChannel) Files.newByteChannel(Paths.get(FdocPath),
@@ -101,12 +101,12 @@ public class Merging
                     vocabulariesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(partialVocPath),
                             StandardOpenOption.READ);
 
-                    // Store in this list at position 'indexBlock', relative to the block with that index, the size of
-                    // the vocabulary correspondent to that block.
+                    // Store in this list at position 'indexBlock', relative to the block with that index,
+                    // the size of the vocabulary correspondent to that block.
                     dimVocabularyFile[indexBlock] = vocabulariesFileChannel[indexBlock].size();
 
                     // Get first term for each block's vocabulary
-                    vocs[indexBlock] = getNextVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
+                    vocs[indexBlock] = getTermFromVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
                     offsetVocabulary[indexBlock] += TermInfo.SIZE_PRE_MERGING;
                 }
 
@@ -133,10 +133,11 @@ public class Merging
                         // ...if current term is equal the smallest (and it's not null)...
                         if(vocs[indexBlock] != null && vocs[indexBlock].getTerm().equals(smallestTerm))
                         {
-
-                            if (offsetDocId[indexBlock] > 775) {
+                            if (offsetDocId[indexBlock] > 775)
+                            {
                                 System.out.println("DBG:\t\tsmallestTerm: " + smallestTerm
                                         + "\n\t\t\t" + "offsetDocId: " + offsetDocId[indexBlock]
+                                        + "\n\t\t\t" + "vocs[indexBlock].getNumPosting(): " + vocs[indexBlock].getNumPosting()
                                         + "\n\t\t\t" + "offsetFrequency: " + offsetFrequency[indexBlock]
                                         + "\n\t\t\t" + "offsetVocabulary: " + offsetVocabulary[indexBlock]
                                         + "\n\t\t\t" + "dimVocabularyFile: " + dimVocabularyFile[indexBlock]
@@ -186,7 +187,7 @@ public class Merging
                             }
 
                             // Vocabulary shift: we are going to read the next term
-                            vocs[indexBlock] = getNextVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
+                            vocs[indexBlock] = getTermFromVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
                             offsetVocabulary[indexBlock] += TermInfo.SIZE_PRE_MERGING;
                         }
                     }
@@ -381,6 +382,12 @@ public class Merging
         }
     }
 
+    /**
+     * Print the current term in a txt file
+     * @param concatenatedDocsBytes Bytes of docIDs
+     * @param concatenatedFreqBytes Bytes of frequencies
+     * @param term Term to print
+     */
     private void printDebugInTXT(byte[] concatenatedDocsBytes, byte[] concatenatedFreqBytes, String term)
     {
         if(DEBUG && !COMPRESSION)
@@ -484,15 +491,15 @@ public class Merging
         String paddedTerm = String.format(pattern.toString(), finalTerm.getTerm()).substring(0, TermInfo.SIZE_TERM); // Pad with spaces up to 64 characters
 
         // Write
-        tempBuffer.put(paddedTerm.getBytes());
-        tempBuffer.putInt(finalTerm.getTotalFrequency());
-        tempBuffer.putInt(finalTerm.getNumPosting());
-        tempBuffer.putInt(finalTerm.getNumBlocks());
-        tempBuffer.putLong(finalTerm.getOffset());
+        tempBuffer.put(paddedTerm.getBytes());                      // 46
+        tempBuffer.putInt(finalTerm.getTotalFrequency());           // 4
+        tempBuffer.putInt(finalTerm.getNumPosting());               // 4
+        tempBuffer.putInt(finalTerm.getNumBlocks());                // 4
+        tempBuffer.putLong(finalTerm.getOffset());                  // 8
 
         // Evaluate term upper bound fof TFIDF and BM25
-        tempBuffer.putFloat(ScoreFunction.computeTFIDF(finalTerm.getMaxTF(),finalTerm.getNumPosting()));
-        tempBuffer.putFloat(ScoreFunction.computeBM25(finalTerm.getBM25TF(), finalTerm.getBM25DL(), finalTerm.getNumPosting()));
+        tempBuffer.putFloat(ScoreFunction.computeTFIDF(finalTerm.getMaxTF(),finalTerm.getNumPosting()));                            // 4
+        tempBuffer.putFloat(ScoreFunction.computeBM25(finalTerm.getBM25TF(), finalTerm.getBM25DL(), finalTerm.getNumPosting()));    // 4
 
         vFinalOffset += TermInfo.SIZE_POST_MERGING;
     }
@@ -521,8 +528,9 @@ public class Merging
      * @return Next TermInfo in line
      * @throws IOException
      */
-    private TermInfo getNextVoc(FileChannel fileChannel, long offsetVocabulary) throws IOException
+    private TermInfo getTermFromVoc(FileChannel fileChannel, long offsetVocabulary) throws IOException
     {
+        // vocs[indexBlock] = getNextVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
         MappedByteBuffer tempBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, offsetVocabulary, TermInfo.SIZE_PRE_MERGING);
 
         byte[] termBytes = new byte[TermInfo.SIZE_TERM];
@@ -532,6 +540,7 @@ public class Merging
         int nPosting = tempBuffer.getInt();
         long offset = tempBuffer.getLong();
         int maxTF = tempBuffer.getInt();
+
         int BM25TF = tempBuffer.getInt();
         int BM25DL = tempBuffer.getInt();
 
