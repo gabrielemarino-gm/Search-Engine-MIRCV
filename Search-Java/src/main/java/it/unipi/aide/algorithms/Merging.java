@@ -133,27 +133,6 @@ public class Merging
                         // ...if current term is equal the smallest (and it's not null)...
                         if(vocs[indexBlock] != null && vocs[indexBlock].getTerm().equals(smallestTerm))
                         {
-                            if (offsetDocId[indexBlock] > 775)
-                            {
-                                System.out.println("DBG:\t\tsmallestTerm: " + smallestTerm
-                                        + "\n\t\t\t" + "offsetDocId: " + offsetDocId[indexBlock]
-                                        + "\n\t\t\t" + "vocs[indexBlock].getNumPosting(): " + vocs[indexBlock].getNumPosting()
-                                        + "\n\t\t\t" + "offsetFrequency: " + offsetFrequency[indexBlock]
-                                        + "\n\t\t\t" + "offsetVocabulary: " + offsetVocabulary[indexBlock]
-                                        + "\n\t\t\t" + "dimVocabularyFile: " + dimVocabularyFile[indexBlock]
-                                        + "\n\t\t\t" + "vocs[indexBlock]: " + vocs[indexBlock].toString()
-                                        + "\n\t\t\t" + "indexBlock: " + indexBlock
-                                        + "\n\t\t\t" + "nDoc: " + nDoc
-                                        + "\n\t\t\t" + "nTerms: " + nTerms
-                                        + "\n\t\t\t" + "totalTermPostings: " + totalTermPostings
-                                        + "\n\t\t\t" + "finalTotalFreq: " + finalTotalFreq
-                                        + "\n\t\t\t" + "finalTerm: " + finalTerm
-                                        + "\n\t\t\t" + "finalDocidOffset: " + finalDocidOffset
-                                        + "\n\t\t\t" + "finalFreqOffset: " + finalFreqOffset
-                                        + "\n\t\t\t" + "blockDescriptorOffset: " + blockDescriptorOffset
-                                        + "\n\t\t\t" + "vFinalOffset: " + vFinalOffset
-                                        + "\n");
-                            }
                             // ...accumulates bytes from different blocks, for both docId and frequencies...
                             docsAcc.add(extractBytes(docIdFileChannel[indexBlock],
                                     offsetDocId[indexBlock],

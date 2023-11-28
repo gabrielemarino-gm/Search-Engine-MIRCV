@@ -10,9 +10,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.HashMap;
 import java.util.List;
-import java.util.PriorityQueue;
 
 /**
  * Class that implement the SPIMI algorithm
@@ -32,9 +30,7 @@ public class SPIMI
     private int incrementalBlockNumber;
     private int numBlocksPosting;
 
-    private CollectionInformation ci;
-
-    private int docid = 0;
+    private int INCREMENTAL_DOCID = 0;
 
     /**
      * SPIMI constructor
@@ -95,10 +91,10 @@ public class SPIMI
             // To update AvarageDocumentLenght
             termSum += tokens.size();
 
-            Document document = new Document(pid, docid, tokens);
+            Document document = new Document(pid, INCREMENTAL_DOCID, tokens);
             documentIndex.add(document);
 
-            docid++;
+            INCREMENTAL_DOCID++;
 
             // current document has no tokens inside, skip
             if(document.getTokens().isEmpty()) continue;
@@ -113,20 +109,17 @@ public class SPIMI
                  * has been added in the InvertedIndex
                  */
 
+                // Add to the inverted index the term t for the current document
+                boolean newPostingWasCreated = invertedIndex.add(document.getDocid(), t);
 
-                // Dobbiamo aggiungere all'InvertedIndex il DocId corrente, per il termine t
-                // Di conseguenza nel vocabolario, dobbiamo aggiornare termFrequency e numPosting
-                boolean canCreateNewPosting = invertedIndex.add(document.getDocid(), t, vocabulary, document.getTokenCount());
+                // addNew automatically handle a new term, a new posting or an already existing one
+                vocabulary.addNew(t, newPostingWasCreated);
 
-                // Update the total frequency of the current term
-                vocabulary.getTermInfo(t).incrementTotalFrequency();
+                // Always update maxTF and MaxBM25 parameters
+                vocabulary.get(t).setMaxTF(invertedIndex.getLastPosting(t).getFrequency());
+                vocabulary.get(t).setMaxBM25(invertedIndex.getLastPosting(t).getFrequency(), document.getTokenCount());
 
-                // Update the number of postings of the current term if a new posting list has been added
-                if (canCreateNewPosting) {
-                    vocabulary.getTermInfo(t).incrementNumPosting();
-                    numBlocksPosting++;
-                }
-
+                numBlocksPosting++;
             }
 
             // Memory control
@@ -150,10 +143,10 @@ public class SPIMI
             }
             // End memory control
 
-            if (docid%100000 == 0)
+            if (INCREMENTAL_DOCID %100000 == 0)
             {
                 // printMemInfo();
-                System.out.println("LOG:\t\tDocuments processed " + docid);
+                System.out.println("LOG:\t\tDocuments processed " + INCREMENTAL_DOCID);
             }
         }
 
@@ -172,8 +165,8 @@ public class SPIMI
         }
 
         // Write CollectionDocument number and AvarageDocumentLenght
-        CollectionInformation.setTotalDocuments(docid);
-        CollectionInformation.setAverageDocumentLength(termSum / docid);
+        CollectionInformation.setTotalDocuments(INCREMENTAL_DOCID);
+        CollectionInformation.setAverageDocumentLength(termSum / INCREMENTAL_DOCID);
 
 
         // There will be 'incrementalBlockNumber' blocks, but the last one has index 'incrementalBlockNumber - 1'
@@ -209,7 +202,7 @@ public class SPIMI
             // Create the buffer where write the streams of bytes
             MappedByteBuffer docIdBuffer = docIdFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numBlocksPosting*4L);
             MappedByteBuffer frequencyBuffer = frequencyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numBlocksPosting*4L);
-            MappedByteBuffer vocabularyBuffer = vocabularyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, vocabulary.getTerms().size()*TermInfo.SIZE_PRE_MERGING);
+            MappedByteBuffer vocabularyBuffer = vocabularyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, vocabulary.getTerms().size() * TermInfo.SIZE_PRE_MERGING);
 
             // Used to write TermInfo on the disk, one next to the other
             long partialOffset = 0;
@@ -233,8 +226,6 @@ public class SPIMI
                 vocabularyBuffer.putInt(termInfo.getBM25TF());                  // TFBM25                   4 bytes
                 vocabularyBuffer.putInt(termInfo.getBM25DL());                  // DLBM25                   4 bytes
 
-                System.out.println("DEBUG:\t\t" + termInfo.getTerm() + " " + termInfo.getOffset() + " " + termInfo.getNumPosting() + " " + termInfo.getTotalFrequency() + " " + termInfo.getMaxTF() + " " + termInfo.getBM25TF() + " " + termInfo.getBM25DL());
-
                 // Write the other 2 files for DocId and Frequency
                 for (Posting p: invertedIndex.getPostingList(t))
                 {
@@ -242,12 +233,7 @@ public class SPIMI
                     frequencyBuffer.putInt(p.getFrequency());
                     partialOffset += 4L;
                 }
-
-                // debug
-                if (partialOffset > 775)
-                {
-                    System.out.println("DEBUG:\t\t" + partialOffset);
-                }
+                
             }
         }
         catch (IOException e)

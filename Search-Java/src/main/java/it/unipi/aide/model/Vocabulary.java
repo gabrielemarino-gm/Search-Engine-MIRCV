@@ -4,32 +4,33 @@ import java.util.*;
 
 public class Vocabulary
 {
-    private final TreeMap<String, TermInfo> vocab = new TreeMap<>();
-
+    private final TreeMap<String, TermInfo> vocabulary = new TreeMap<>();
 
     /**
      * Add a new term in the vocabulary it doesn't exist yet,
      * otherwise just update the existing one
      */
-    public void add(String term, boolean addPosting)
+    public void addNew(String term, boolean newPostingAdded)
     {
         // If the term is not in the vocabulary, add it
-        if (!vocab.containsKey(term))
+        if (!vocabulary.containsKey(term))
         {
-            vocab.put(term, new TermInfo(term));
+            vocabulary.put(term, new TermInfo(term));
         }
 
         // Otherwise, update the existing one
         else
         {
-            vocab.get(term).incrementTotalFrequency();
-
             // If the term is in the vocabulary,
             // but it's the first time it's found in the document, add a posting
-            if(addPosting)
+            if(newPostingAdded)
             {
-                vocab.get(term).incrementNumPosting();
+                vocabulary.get(term).incrementNumPosting();
+
             }
+
+            // In any case increments the total frequency
+            vocabulary.get(term).incrementTotalFrequency();
         }
     }
 
@@ -38,7 +39,7 @@ public class Vocabulary
      * */
     public List<String> getTerms()
     {
-        Set<String> keySet = vocab.keySet();
+        Set<String> keySet = vocabulary.keySet();
 
         // Converte l'insieme delle chiavi in una lista
         return new ArrayList<>(keySet);
@@ -51,32 +52,32 @@ public class Vocabulary
      */
     public TermInfo get(String term)
     {
-        return vocab.getOrDefault(term, new TermInfo(term));
+        return vocabulary.getOrDefault(term, new TermInfo(term));
     }
 
     public void set(TermInfo terminfo)
     {
-        vocab.put(terminfo.getTerm(), terminfo);
+        vocabulary.put(terminfo.getTerm(), terminfo);
     }
 
     /**
      * Clear the vocabulary
      */
     public void clear(){
-        vocab.clear();
+        vocabulary.clear();
     }
     public TermInfo getTermInfo(String term)
     {
-        return vocab.get(term);
+        return vocabulary.get(term);
     }
 
     @Override
     public String toString()
     {
         StringBuilder result = new StringBuilder();
-        for (String term: vocab.keySet())
+        for (String term: vocabulary.keySet())
         {
-            TermInfo ti = vocab.get(term);
+            TermInfo ti = vocabulary.get(term);
             result.append(ti.toString()).append('\n');
         }
 
