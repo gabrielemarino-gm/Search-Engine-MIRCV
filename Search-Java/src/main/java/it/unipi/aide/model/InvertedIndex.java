@@ -67,15 +67,22 @@ public class InvertedIndex
         return index.get(t);
     }
 
+    /**
+     * Get the last posting for given term
+     * @param t Term to get the posting
+     * @return
+     */
     public Posting getLastPosting(String t)
     {
         List<Posting> pl = getPostingList(t);
         return pl.get(pl.size() - 1);
     }
+
     /**
      * Clear the inverted index
      */
-    public void clear(){
+    public void clear()
+    {
         index.clear();
     }
 

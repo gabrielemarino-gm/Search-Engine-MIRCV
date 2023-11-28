@@ -25,6 +25,14 @@ public class Merging
     long blockDescriptorOffset = 0;
     long vFinalOffset = 0;
 
+    /**
+     * --------------------------------------------------------------------------
+     *
+     * @param compression
+     * @param blocksCount
+     * @param debug
+     * --------------------------------------------------------------------------
+     */
     public Merging(boolean compression, int blocksCount, boolean debug)
     {
         this.BLOCKS_COUNT = blocksCount;
@@ -39,7 +47,9 @@ public class Merging
     }
 
     /**
+     * --------------------------------------------------------------------------
      * Merge partial blocks into one unique block
+     * --------------------------------------------------------------------------
      */
     public void mergeBlocks()
     {
@@ -362,10 +372,12 @@ public class Merging
     }
 
     /**
+     * --------------------------------------------------------------------------
      * Print the current term in a txt file
      * @param concatenatedDocsBytes Bytes of docIDs
      * @param concatenatedFreqBytes Bytes of frequencies
      * @param term Term to print
+     * --------------------------------------------------------------------------
      */
     private void printDebugInTXT(byte[] concatenatedDocsBytes, byte[] concatenatedFreqBytes, String term)
     {
@@ -395,6 +407,7 @@ public class Merging
     }
 
     /**
+     * --------------------------------------------------------------------------
      * Write the final docID, frequencies and block descriptors on the disk
      * @param finalDocIDChannel FileChannel for docID
      * @param finalFreqChannel FileChannel for frequencies
@@ -403,6 +416,7 @@ public class Merging
      * @param freqBlocks List of frequency blocks
      * @param blockDescriptors List of block descriptors
      * @param finalTerm TermInfo to update
+     * --------------------------------------------------------------------------
      */
     private void writeBlocks(FileChannel finalDocIDChannel,
                              FileChannel finalFreqChannel,
@@ -457,10 +471,12 @@ public class Merging
     }
 
     /**
+     * --------------------------------------------------------------------------
      * Write a TermInfo on the disk, into the final vocabulary file
      * @param finalVocChannel Vocabulary FileChannel
      * @param finalTerm Term to write
      * @throws IOException
+     * --------------------------------------------------------------------------
      */
     private void writeTermToDisk(FileChannel finalVocChannel, TermInfo finalTerm) throws IOException
     {
@@ -484,9 +500,11 @@ public class Merging
     }
 
     /**
+     * --------------------------------------------------------------------------
      * First term in lexicographic order between all terms
      * @param vocs TermInfo array to pick the terms from
      * @return Smallest term in lexicographic order
+     * --------------------------------------------------------------------------
      */
     private String getSmallestTerm(TermInfo[] vocs)
     {
@@ -501,11 +519,13 @@ public class Merging
     }
 
     /**
+     * --------------------------------------------------------------------------
      * Get next TermInfo from that channel
      * @param fileChannel FileChannel to retrieve the Term from
      * @param offsetVocabulary Offset at which the term is
      * @return Next TermInfo in line
      * @throws IOException
+     * --------------------------------------------------------------------------
      */
     private TermInfo getTermFromVoc(FileChannel fileChannel, long offsetVocabulary) throws IOException
     {
@@ -525,15 +545,17 @@ public class Merging
 
         String term = new String(termBytes).trim();
 
-        return new TermInfo(term, frequency, nPosting, 0, offset, maxTF, BM25TF, BM25DL);
+        return new TermInfo(term, frequency, nPosting, offset, maxTF, BM25TF, BM25DL);
     }
     /**
+     * --------------------------------------------------------------------------
      * Extract bytes from given channel at given offset and returns them
      *
      * @param fromChannel File Channel to extract Bytes from
      * @param offset At which offset to extract bytes
      * @param nPosting How many 4-bytes to extract
      * @return Array of Bytes extracted
+     * --------------------------------------------------------------------------
      */
     private byte[] extractBytes(FileChannel fromChannel, long offset, int nPosting) throws IOException
     {
@@ -547,6 +569,13 @@ public class Merging
         return tempBytes;
     }
 
+    /**
+     * --------------------------------------------------------------------------
+     *
+     * @param list
+     * @return
+     * --------------------------------------------------------------------------
+     */
     private int getMaxDocid(byte[] list)
     {
         int max = 0;

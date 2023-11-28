@@ -23,12 +23,12 @@ import java.util.List;
 public class SPIMI 
 {
     private final String INPUT_PATH;
-    private Vocabulary vocabulary;
-    private InvertedIndex invertedIndex;
-    private DocumentIndex documentIndex;
-    private final Preprocesser preprocesser;
-    private int incrementalBlockNumber;
-    private int numBlocksPosting;
+    private final Vocabulary VOCABULARY;
+    private final InvertedIndex INVERTED_INDEX;
+    private final DocumentIndex DOCUMENT_INDEX;
+    private final Preprocesser PREPROCESSER;
+    private int INCREMENTAL_PARTIAL_BLOCK_NUMBER;
+    private int CURRENT_BLOCK_POSTING_COUNT;
 
     private int INCREMENTAL_DOCID = 0;
 
@@ -42,13 +42,13 @@ public class SPIMI
     {
         this.INPUT_PATH = inputPath;
 
-        vocabulary = new Vocabulary();
-        invertedIndex = new InvertedIndex();
-        documentIndex = new DocumentIndex();
+        VOCABULARY = new Vocabulary();
+        INVERTED_INDEX = new InvertedIndex();
+        DOCUMENT_INDEX = new DocumentIndex();
 
-        preprocesser = new Preprocesser(stemming);
-        incrementalBlockNumber = 0;
-        numBlocksPosting = 0;
+        PREPROCESSER = new Preprocesser(stemming);
+        INCREMENTAL_PARTIAL_BLOCK_NUMBER = 0;
+        CURRENT_BLOCK_POSTING_COUNT = 0;
 
         System.out.println(String.format(
                 "-----SPIMI-----\nINPUT_PATH = %s\nSTEMMING = %b\n---------------",
@@ -73,7 +73,7 @@ public class SPIMI
         Corpus corpus = new Corpus(INPUT_PATH);
 
         // Terms in all documents
-        long termSum = 0;
+        long globalTermCountSum = 0;
 
         // For each documents
         for(String doc: corpus)
@@ -86,21 +86,21 @@ public class SPIMI
              */
             String pid = docParts[0];
             String text = docParts[1];
-            List<String> tokens = preprocesser.process(text);
+            List<String> tokens = PREPROCESSER.process(text);
 
             // To update AvarageDocumentLenght
-            termSum += tokens.size();
+            globalTermCountSum += tokens.size();
 
-            Document document = new Document(pid, INCREMENTAL_DOCID, tokens);
-            documentIndex.add(document);
+            Document currentDocument = new Document(pid, INCREMENTAL_DOCID, tokens);
+            DOCUMENT_INDEX.add(currentDocument);
 
             INCREMENTAL_DOCID++;
 
             // current document has no tokens inside, skip
-            if(document.getTokens().isEmpty()) continue;
+            if(currentDocument.getTokens().isEmpty()) continue;
 
 
-            for (String t : document.getTokens())
+            for (String t : currentDocument.getTokens())
             {
                 /*
                  * ADDING A TERM TO INVERTED INDEX AND VOCABULARY
@@ -110,29 +110,29 @@ public class SPIMI
                  */
 
                 // Add to the inverted index the term t for the current document
-                boolean newPostingWasCreated = invertedIndex.add(document.getDocid(), t);
+                boolean newPostingWasCreated = INVERTED_INDEX.add(currentDocument.getDocid(), t);
 
                 // addNew automatically handle a new term, a new posting or an already existing one
-                vocabulary.addNew(t, newPostingWasCreated);
+                VOCABULARY.addNew(t, newPostingWasCreated);
 
                 // Always update maxTF and MaxBM25 parameters
-                vocabulary.get(t).setMaxTF(invertedIndex.getLastPosting(t).getFrequency());
-                vocabulary.get(t).setMaxBM25(invertedIndex.getLastPosting(t).getFrequency(), document.getTokenCount());
+                VOCABULARY.get(t).setMaxTF(INVERTED_INDEX.getLastPosting(t).getFrequency());
+                VOCABULARY.get(t).setMaxBM25(INVERTED_INDEX.getLastPosting(t).getFrequency(), currentDocument.getTokenCount());
 
-                numBlocksPosting++;
+                CURRENT_BLOCK_POSTING_COUNT++;
             }
 
             // Memory control
             if(memoryCheck())
             {
-                System.out.println("LOG:\t\tWriting block #" + incrementalBlockNumber);
+                System.out.println("LOG:\t\tWriting block #" + INCREMENTAL_PARTIAL_BLOCK_NUMBER);
                 if (writeBlockToDisk(debug))
                 {
-                    incrementalBlockNumber++;
-                    numBlocksPosting = 0;
+                    INCREMENTAL_PARTIAL_BLOCK_NUMBER++;
+                    CURRENT_BLOCK_POSTING_COUNT = 0;
 
-                    vocabulary.clear();
-                    invertedIndex.clear();
+                    VOCABULARY.clear();
+                    INVERTED_INDEX.clear();
                     System.gc();
                 }
                 else
@@ -153,11 +153,12 @@ public class SPIMI
         // We need to write the last block
         if (writeBlockToDisk(debug))
         {
-            System.out.println("LOG:\t\tWriting block #" + incrementalBlockNumber);
-            incrementalBlockNumber++;
+            System.out.println("LOG:\t\tWriting block #" + INCREMENTAL_PARTIAL_BLOCK_NUMBER);
+            INCREMENTAL_PARTIAL_BLOCK_NUMBER++;
+
             // Manually free memory
-            vocabulary.clear();
-            invertedIndex.clear();
+            VOCABULARY.clear();
+            INVERTED_INDEX.clear();
         }
         else
         {
@@ -166,22 +167,24 @@ public class SPIMI
 
         // Write CollectionDocument number and AvarageDocumentLenght
         CollectionInformation.setTotalDocuments(INCREMENTAL_DOCID);
-        CollectionInformation.setAverageDocumentLength(termSum / INCREMENTAL_DOCID);
+        CollectionInformation.setAverageDocumentLength(globalTermCountSum / INCREMENTAL_DOCID);
 
 
         // There will be 'incrementalBlockNumber' blocks, but the last one has index 'incrementalBlockNumber - 1'
-        return incrementalBlockNumber;
+        return INCREMENTAL_PARTIAL_BLOCK_NUMBER;
     }
 
     /**
+     * --------------------------------------------------------------------------
      * Write partial Inverted Index on the disk
      * @return true upon success, false otherwise
+     * ---------------------------------------------------------------------------
      */
     public boolean writeBlockToDisk(boolean debug)
     {
-        String docPath = ConfigReader.getPartialDocsPath() + incrementalBlockNumber;
-        String freqPath = ConfigReader.getPartialFrequenciesPath() + incrementalBlockNumber;
-        String vocPath = ConfigReader.getPartialVocabularyPath() + incrementalBlockNumber;
+        String docPath = ConfigReader.getPartialDocsPath() + INCREMENTAL_PARTIAL_BLOCK_NUMBER;
+        String freqPath = ConfigReader.getPartialFrequenciesPath() + INCREMENTAL_PARTIAL_BLOCK_NUMBER;
+        String vocPath = ConfigReader.getPartialVocabularyPath() + INCREMENTAL_PARTIAL_BLOCK_NUMBER;
 
         if(!FileManager.checkFile(docPath)) FileManager.createFile(docPath);
         if(!FileManager.checkFile(freqPath)) FileManager.createFile(freqPath);
@@ -200,17 +203,17 @@ public class SPIMI
             )
         {
             // Create the buffer where write the streams of bytes
-            MappedByteBuffer docIdBuffer = docIdFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numBlocksPosting*4L);
-            MappedByteBuffer frequencyBuffer = frequencyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, numBlocksPosting*4L);
-            MappedByteBuffer vocabularyBuffer = vocabularyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, vocabulary.getTerms().size() * TermInfo.SIZE_PRE_MERGING);
+            MappedByteBuffer docIdBuffer = docIdFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, CURRENT_BLOCK_POSTING_COUNT *4L);
+            MappedByteBuffer frequencyBuffer = frequencyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, CURRENT_BLOCK_POSTING_COUNT *4L);
+            MappedByteBuffer vocabularyBuffer = vocabularyFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, VOCABULARY.getTerms().size() * TermInfo.SIZE_PRE_MERGING);
 
             // Used to write TermInfo on the disk, one next to the other
             long partialOffset = 0;
 
-            for (String t: vocabulary.getTerms())
+            for (String t: VOCABULARY.getTerms())
             {
                 // For each term I have to save into the vocabulary file.
-                TermInfo termInfo = vocabulary.get(t);
+                TermInfo termInfo = VOCABULARY.get(t);
                 // Set the offset at which postings start
                 termInfo.setOffset(partialOffset);
 
@@ -227,7 +230,7 @@ public class SPIMI
                 vocabularyBuffer.putInt(termInfo.getBM25DL());                  // DLBM25                   4 bytes
 
                 // Write the other 2 files for DocId and Frequency
-                for (Posting p: invertedIndex.getPostingList(t))
+                for (Posting p: INVERTED_INDEX.getPostingList(t))
                 {
                     docIdBuffer.putInt(p.getDocId());
                     frequencyBuffer.putInt(p.getFrequency());
@@ -249,16 +252,16 @@ public class SPIMI
             try(
                 // Write inverted index to debug text file
                 BufferedWriter indexWriter = new BufferedWriter(
-                        new FileWriter((ConfigReader.getDebugDir() + "Block-" + incrementalBlockNumber + ".txt"))
+                        new FileWriter((ConfigReader.getDebugDir() + "Block-" + INCREMENTAL_PARTIAL_BLOCK_NUMBER + ".txt"))
                 );
                 // Write vocabulary to debug text file
                 BufferedWriter vocabularyWriter = new BufferedWriter(
-                        new FileWriter((ConfigReader.getDebugDir() + "Vocabulary-" + incrementalBlockNumber + ".txt"))
+                        new FileWriter((ConfigReader.getDebugDir() + "Vocabulary-" + INCREMENTAL_PARTIAL_BLOCK_NUMBER + ".txt"))
                 )
             )
             {
-                indexWriter.write(invertedIndex.toString());
-                vocabularyWriter.write(vocabulary.toString());
+                indexWriter.write(INVERTED_INDEX.toString());
+                vocabularyWriter.write(VOCABULARY.toString());
             }
             catch (IOException e)
             {
@@ -269,8 +272,10 @@ public class SPIMI
     }
 
     /**
+     * --------------------------------------------------------------------------
      * Support function to get used memory in %
      * @return xx.x% of memory used
+     * --------------------------------------------------------------------------
      */
     private boolean memoryCheck(){
 
@@ -296,6 +301,11 @@ public class SPIMI
         return false;
     }
 
+    /**
+     * --------------------------------------------------------------------------
+     * Print current memory status
+     * --------------------------------------------------------------------------
+     */
     private void printMemInfo(){
         double freeVirMemory = Runtime.getRuntime().freeMemory() / Math.pow(10,6);
         double totalVirMemory = Runtime.getRuntime().totalMemory() / Math.pow(10,6);

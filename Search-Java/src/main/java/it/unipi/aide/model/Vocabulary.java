@@ -55,6 +55,10 @@ public class Vocabulary
         return vocabulary.getOrDefault(term, new TermInfo(term));
     }
 
+    /**
+     *
+     * @param terminfo
+     */
     public void set(TermInfo terminfo)
     {
         vocabulary.put(terminfo.getTerm(), terminfo);
@@ -66,6 +70,12 @@ public class Vocabulary
     public void clear(){
         vocabulary.clear();
     }
+
+    /**
+     *
+     * @param term
+     * @return
+     */
     public TermInfo getTermInfo(String term)
     {
         return vocabulary.get(term);

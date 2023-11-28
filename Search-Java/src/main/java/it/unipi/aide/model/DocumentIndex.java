@@ -26,7 +26,8 @@ public class DocumentIndex {
      * Append a document to the DocumentIndex file
      * @param document Document to append
      */
-    public void add(Document document){
+    public void add(Document document)
+    {
         try(
                 FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(PATH),
                         StandardOpenOption.READ,
@@ -45,7 +46,8 @@ public class DocumentIndex {
             buffer.putInt(document.getTokenCount());
 
         }
-        catch (IOException e){
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
     }
@@ -55,15 +57,13 @@ public class DocumentIndex {
      * @param docid DocumentID to retieve
      * @return Needed Document along with all needed information
      */
-    public Document get(int docid){
+    public Document get(int docid)
+    {
         String tempPid;
         int tempDocid;
         int tempTokenCount;
 
-        try(
-                FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(PATH),
-                        StandardOpenOption.READ)
-        )
+        try(FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(PATH), StandardOpenOption.READ))
         {
             MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, docid*Document.SIZE, Document.SIZE);
 

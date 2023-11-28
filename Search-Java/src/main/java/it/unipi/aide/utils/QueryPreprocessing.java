@@ -19,10 +19,8 @@ public class QueryPreprocessing
 
     public QueryPreprocessing() {}
 
-    public void setQuery(String query)
-    {
-        tokens = new Preprocesser(true).process(query);
-    }
+    /* TODO -> Instantiating a new Preprocesser for every new query is time consuming */
+    public void setQuery(String query) { tokens = new Preprocesser(true).process(query); }
 
     /**
      * Retrieve the posting lists of the query terms
@@ -118,11 +116,11 @@ public class QueryPreprocessing
         int totFreq = buffer.getInt();
         int nPost = buffer.getInt();
         int nBlocks = buffer.getInt();
-        long off = buffer.getLong();
+        long offset = buffer.getLong();
         float tfidf = buffer.getFloat();
         float bm25 = buffer.getFloat();
 
-        return new TermInfo(term, totFreq, nPost, nBlocks, off, tfidf, bm25);
+        return new TermInfo(term, totFreq, nPost, offset, nBlocks, tfidf, bm25);
     }
 
     public List<String> getTokens()
