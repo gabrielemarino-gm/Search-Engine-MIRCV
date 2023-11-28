@@ -13,7 +13,7 @@ public class DAAT
 
     HashMap<String, TermInfo> terms = new HashMap<>();
 
-    Cache cache = new Cache();
+    Cache cache = Cache.getCacheInstance();
 
     public DAAT(int k)
     {

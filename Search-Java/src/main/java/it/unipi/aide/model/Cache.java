@@ -6,11 +6,19 @@ public class Cache
 {
     private final Map<List<String>, QueryResults> queriesResults;
     private final Map<String, TermsPostingLists> postingLists;
+    private Map<Integer, TermInfo> binarySearchTerms;
     private final int maxSize = 1200; //tofix
+
+    private static final Cache SearchEngineCache = new Cache();
+
     public Cache()
     {
         this.queriesResults = new HashMap<>();
         this.postingLists = new HashMap<>();
+    }
+
+    public static Cache getCacheInstance() {
+        return SearchEngineCache;
     }
 
     /**
@@ -201,6 +209,12 @@ public class Cache
         {
             return timestamp;
         }
+
+        /* Cached terms for binary search */
+        /*public TermInfo getTermForBinarySearch(int position)
+        {
+
+        }*/
     }
 
     public static class TermsPostingLists
