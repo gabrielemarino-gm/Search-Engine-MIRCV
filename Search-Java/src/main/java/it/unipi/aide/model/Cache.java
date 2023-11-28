@@ -1,8 +1,4 @@
-//Cache
-
 package it.unipi.aide.model;
-
-import com.fasterxml.jackson.databind.util.LRUMap;
 
 import java.util.*;
 
@@ -54,47 +50,51 @@ public class Cache
                 } else {
                     nonCommonStrings.add(term);
                 }
+                query.remove(term);
             }
 
             int commonTerms = commonStrings.size();
 
             if (commonTerms > maxCommonTerms) {
                 maxCommonTerms = commonTerms;
-                result.clear();  // Cancella eventuali risultati precedenti
+                result.clear();
                 result.put("common", commonStrings);
                 result.put("nonCommon", nonCommonStrings);
             }
         }
+
+        result.put("nonCommon", query);
 
         return result;
     }
 
     public void putInQueriesResultsCache(List<String> query, List<ScoredDocument> results) {
 
-        if (isQueriesResultsCacheFull()) {
+        if (isQueriesResultsCacheFull())
             makeSpaceInQueriesResultsCache();
-        }
 
         QueryResults queryResults = new QueryResults(results);
         queriesResults.put(query, queryResults);
     }
 
-    private void makeSpaceInQueriesResultsCache() {
-
+    private void makeSpaceInQueriesResultsCache()
+    {
         long oldestTimestamp = Long.MAX_VALUE;
         List<String> queryToRemove = null;
 
-        for (Map.Entry<List<String>, QueryResults> entry : queriesResults.entrySet()) {
+        for (Map.Entry<List<String>, QueryResults> entry : queriesResults.entrySet())
+        {
             long timestamp = entry.getValue().getTimestamp();
-            if (timestamp < oldestTimestamp) {
+
+            if (timestamp < oldestTimestamp)
+            {
                 oldestTimestamp = timestamp;
                 queryToRemove = entry.getKey();
             }
         }
 
-        if (queryToRemove != null) {
+        if (queryToRemove != null)
             queriesResults.remove(queryToRemove);
-        }
     }
 
     /* Returns True if the QueriesResults Cache is full. */
@@ -120,24 +120,28 @@ public class Cache
         postingLists.put(term, newTermPostingList);
     }
 
-    private void makeSpaceInPostingListsCache() {
+    private void makeSpaceInPostingListsCache()
+    {
         long oldestTimestamp = Long.MAX_VALUE;
         String termToRemove = null;
 
-        for (Map.Entry<String, TermsPostingLists> entry : postingLists.entrySet()) {
+        for (Map.Entry<String, TermsPostingLists> entry : postingLists.entrySet())
+        {
             long timestamp = entry.getValue().getTimestamp();
-            if (timestamp < oldestTimestamp) {
+
+            if (timestamp < oldestTimestamp)
+            {
                 oldestTimestamp = timestamp;
                 termToRemove = entry.getKey();
             }
         }
 
-        if (termToRemove != null) {
+        if (termToRemove != null)
             postingLists.remove(termToRemove);
-        }
     }
 
-    private boolean isTermsPostingListCacheFull() {
+    private boolean isTermsPostingListCacheFull()
+    {
         return (postingLists.size() == maxSize);
     }
 
@@ -146,44 +150,50 @@ public class Cache
         return postingLists.containsKey(term);
     }
 
-    public static class QueryResults {
-
+    public static class QueryResults
+    {
         private final List<ScoredDocument> results;
 
         private long timestamp;
 
-        public QueryResults(List<ScoredDocument> givenResults) {
+        public QueryResults(List<ScoredDocument> givenResults)
+        {
             results = givenResults;
             timestamp = System.currentTimeMillis();
         }
 
-        public List<ScoredDocument> getResults() {
+        public List<ScoredDocument> getResults()
+        {
             timestamp = System.currentTimeMillis();
             return results;
         }
 
-        public long getTimestamp() {
+        public long getTimestamp()
+        {
             return timestamp;
         }
     }
 
-    public static class TermsPostingLists {
-
+    public static class TermsPostingLists
+    {
         private final PostingListSkippable postingList;
 
         private long timestamp;
 
-        public TermsPostingLists (PostingListSkippable givenPostingList) {
+        public TermsPostingLists (PostingListSkippable givenPostingList)
+        {
             postingList = givenPostingList;
             timestamp = System.currentTimeMillis();
         }
 
-        public PostingListSkippable getPostingList() {
+        public PostingListSkippable getPostingList()
+        {
             timestamp = System.currentTimeMillis();
             return postingList;
         }
 
-        public long getTimestamp() {
+        public long getTimestamp()
+        {
             return timestamp;
         }
     }
