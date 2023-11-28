@@ -14,8 +14,10 @@ import java.util.List;
 
 public class QueryPreprocessing
 {
-    private HashMap<String, TermInfo> terms = new HashMap<>();
+    private final HashMap<String, TermInfo> terms = new HashMap<>();
     private List<String> tokens = new ArrayList<>();
+
+    Cache cache = Cache.getCacheInstance();
 
     public QueryPreprocessing() {}
 
@@ -33,7 +35,6 @@ public class QueryPreprocessing
 
         for(String t: queryTerms)
         {
-            /* TODO -> Search inside a cache before performing binary search */
             TermInfo toRetrieve = binarySearch(t);
             if(toRetrieve != null)
             {
@@ -56,7 +57,7 @@ public class QueryPreprocessing
     {
         try(
                 FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(ConfigReader.getVocabularyPath()),
-                        StandardOpenOption.READ);
+                        StandardOpenOption.READ)
         )
         {
             long WIN_DOWN = 0;
@@ -67,10 +68,15 @@ public class QueryPreprocessing
             {
                 long MID_POINT = (WIN_UP - WIN_DOWN)/ 2 + WIN_DOWN;
                 if(WIN_UP == WIN_DOWN || MID_POINT == WIN_DOWN) return null;
-                // if TermCache.contains(MID_TERM)
-                //  TermInfo middleTerm = TermCahce.get(MID_POINT)
-                // else
-                TermInfo middleTerm = getTermFromDisk(channel, MID_POINT);
+
+                TermInfo middleTerm;
+                if(cache.containsTermInfo(MID_POINT)) {
+                    middleTerm = cache.getTermInfo(MID_POINT);
+                }
+                else {
+                    middleTerm = getTermFromDisk(channel, MID_POINT);
+                    cache.putTermIntoTermInfoCache(MID_POINT, middleTerm);
+                }
 
                 int comp = middleTerm.getTerm().compareTo(term);
                 if (comp == 0)
