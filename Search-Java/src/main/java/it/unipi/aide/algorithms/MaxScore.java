@@ -12,25 +12,26 @@ import java.util.*;
 
 public class MaxScore
 {
+    int TOP_K = 10;
     HashMap<String, TermInfo> terms = new HashMap<>();
     List<PostingListSkippable> postingLists= new ArrayList<>();
     boolean BM25;
     /**
      * Initialization method if needed
      */
-    public MaxScore(Boolean bm25)
+    public MaxScore(Boolean bm25, int top_k)
     {
         BM25 = bm25;
-    }       
+        TOP_K = top_k;
+    }
 
     /**
      * Execute the MaxScore algorithm
      * @param queryTerms List of query terms
-     * @param kDocs Top-K documents to retrieve
      * @return List of top-k scored documents
      */
 
-    public PriorityQueue<ScoredDocument> executeMaxScore(List<String> queryTerms, int kDocs)
+    public PriorityQueue<ScoredDocument> executeMaxScore(List<String> queryTerms)
     {
         // Retrieve the posting lists of the query terms
         List<PostingListSkippable> postingLists;
@@ -43,7 +44,7 @@ public class MaxScore
         // Initial pivot for non-essential lists is the first one
         int pivot = 0;
         // Initial priority queue
-        PriorityQueue<ScoredDocument> topKDocs = new PriorityQueue<>(kDocs, ScoredDocument.compareTo());
+        PriorityQueue<ScoredDocument> topKDocs = new PriorityQueue<>(TOP_K, ScoredDocument.compareTo());
 
         // TODO -> Forse è meglio usare una PriorityQueue invece di ordinare ogni volta
         // Make sure that the list of PostingList is ordered by increasing upper bound

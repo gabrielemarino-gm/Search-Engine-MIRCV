@@ -18,7 +18,7 @@ public class QueryHandler
     static Scanner scanner = new Scanner(System.in);
     static Preprocesser preprocesser = new Preprocesser(true);
     static DAAT daat = new DAAT(10);
-    static MaxScore maxScore = new MaxScore(false);
+    static MaxScore maxScore = new MaxScore(false, 10);
 
     public static void main(String[] args)
     {
@@ -47,6 +47,8 @@ public class QueryHandler
             }
 
             processQueryDAAT(input);
+            System.out.println();
+            processQueryMaxScore(input);
         }
 
         // PriorityQueue<ScoredDocument> top_k = maxScore.executeMaxScore(tokens, 5);
@@ -57,9 +59,26 @@ public class QueryHandler
         List<String> tokens = preprocesser.process(query);
         long startTime = System.currentTimeMillis();
 
-        System.out.println("Results:");
+        System.out.println("Results DAAT:");
 
         for (ScoredDocument sd : daat.executeDAAT(tokens)) {
+            System.out.print(sd);
+        }
+
+        long endTime = System.currentTimeMillis();
+        long elapsedTime = endTime - startTime;
+
+        System.out.println(elapsedTime + " ms");
+    }
+
+    private static void processQueryMaxScore(String query)
+    {
+        List<String> tokens = preprocesser.process(query);
+        long startTime = System.currentTimeMillis();
+
+        System.out.println("Results MAX-SCORE:");
+
+        for (ScoredDocument sd : maxScore.executeMaxScore(tokens)) {
             System.out.print(sd);
         }
 

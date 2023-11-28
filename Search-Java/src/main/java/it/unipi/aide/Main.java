@@ -19,7 +19,7 @@ public class Main
 
     public static void main(String[] args)
     {
-        init(args); //to change init to specify preprocessing options
+        // init(args); //to change init to specify preprocessing options
 
         System.out.println("Ready.");
 
@@ -50,8 +50,8 @@ public class Main
         scanner.close();
     }
 
-    private static void processQuery(String input) {
-
+    private static void processQuery(String input)
+    {
         List<String> tokens = preprocesser.process(input);
 
         long startTime = System.currentTimeMillis();
