@@ -381,7 +381,7 @@ public class Merging
      */
     private void printDebugInTXT(byte[] concatenatedDocsBytes, byte[] concatenatedFreqBytes, String term)
     {
-        if(DEBUG && !COMPRESSION)
+        if(DEBUG)
         {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(ConfigReader.getDebugDir() + "invertedIndex.txt", true)))
             {

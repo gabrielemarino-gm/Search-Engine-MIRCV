@@ -52,7 +52,7 @@ public class QueryPreprocessing
     *   @param term String of the term
     *   @return PostingList of the term
     */
-    private TermInfo binarySearch(String term)
+    public TermInfo binarySearch(String term)
     {
         try(
                 FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(ConfigReader.getVocabularyPath()),
