@@ -21,6 +21,6 @@
   "partialFrequenciesPath" : "data/out/partial/frequenciesBlock-",
 
   "compressionEnabled" : false,
-  "compressionBlockSize" : 5,
+  "compressionBlockSize" : 512,
   "blockDivisionEnabled" : true
 }

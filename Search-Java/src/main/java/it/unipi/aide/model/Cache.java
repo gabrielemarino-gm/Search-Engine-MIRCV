@@ -5,18 +5,19 @@ import java.util.*;
 public class Cache
 {
     private final Map<List<String>, QueryResults> queriesResults;
-
     private final Map<String, TermsPostingLists> postingLists;
-
     private final int maxSize = 1200; //tofix
-
     public Cache()
     {
         this.queriesResults = new HashMap<>();
         this.postingLists = new HashMap<>();
     }
 
-    /* Query Results Cache */
+    /**
+     * Returns the list of results of the query if it is contained in the cache, null otherwise.
+     * @param query The query to be searched in the cache.
+     * @return The list of results of the query if it is contained in the cache, null otherwise.
+     */
     public List<ScoredDocument> containsQueryResults(List<String> query)
     {
         List<ScoredDocument> results;
@@ -31,31 +32,39 @@ public class Cache
             }
         }
 
-        return null; // Se non trova una corrispondenza esatta
+        return null;
     }
 
-    public Map<String, List<String>> getTermsInCommonAndNot(List<String> query) {
+    /**
+     * Returns the list of terms in common and not between the query and the cached queries.
+     * @param query The query to be compared with the cached queries.
+     * @return A map containing the list of terms in common and not between the query and the cached queries.
+     */
+    public Map<String, List<String>> getTermsInCommonAndNot(List<String> query)
+    {
         Map<String, List<String>> result = new HashMap<>();
         int maxCommonTerms = 0;
 
-        for (Map.Entry<List<String>, QueryResults> entry : queriesResults.entrySet()) {
+        for (Map.Entry<List<String>, QueryResults> entry : queriesResults.entrySet())
+        {
             List<String> key = entry.getKey();
 
             List<String> commonStrings = new ArrayList<>();
             List<String> nonCommonStrings = new ArrayList<>();
 
-            for (String term : key) {
-                if (query.contains(term)) {
+            for (String term : key)
+            {
+                if (query.contains(term))
                     commonStrings.add(term);
-                } else {
+                else
                     nonCommonStrings.add(term);
-                }
                 query.remove(term);
             }
 
             int commonTerms = commonStrings.size();
 
-            if (commonTerms > maxCommonTerms) {
+            if (commonTerms > maxCommonTerms)
+            {
                 maxCommonTerms = commonTerms;
                 result.clear();
                 result.put("common", commonStrings);
@@ -68,8 +77,13 @@ public class Cache
         return result;
     }
 
-    public void putInQueriesResultsCache(List<String> query, List<ScoredDocument> results) {
-
+    /**
+     * Returns the list of results of the query if it is contained in the cache, null otherwise.
+     * @param query The query to be searched in the cache.
+     * @return The list of results of the query if it is contained in the cache, null otherwise.
+     */
+    public void putInQueriesResultsCache(List<String> query, List<ScoredDocument> results)
+    {
         if (isQueriesResultsCacheFull())
             makeSpaceInQueriesResultsCache();
 
@@ -77,6 +91,9 @@ public class Cache
         queriesResults.put(query, queryResults);
     }
 
+    /**
+     * This method removes the oldest query from the cache.
+     * */
     private void makeSpaceInQueriesResultsCache()
     {
         long oldestTimestamp = Long.MAX_VALUE;
@@ -97,12 +114,16 @@ public class Cache
             queriesResults.remove(queryToRemove);
     }
 
-    /* Returns True if the QueriesResults Cache is full. */
+    /**
+     *  Returns True if the QueriesResults Cache is full.
+     */
     public boolean isQueriesResultsCacheFull() {
         return (queriesResults.size() == maxSize);
     }
 
-    /* Posting Lists Term Cache */
+    /**
+     *  Posting Lists Term Cache
+     */
     public PostingListSkippable getTermsPostingList(String term)
     {
         if(containsTermsPostingList(term))
@@ -111,6 +132,12 @@ public class Cache
             return null;
     }
 
+    /**
+     *  Posting Lists Term Cache
+     *  @param term The term to be searched in the cache.
+     *  @param postingListToBeCached The posting list of the term to be cached.
+     *  @return The posting list of the term if it is contained in the cache, null otherwise.
+     */
     public void putInPostingListsCache(String term, PostingListSkippable postingListToBeCached)
     {
         if(isTermsPostingListCacheFull())
@@ -120,6 +147,9 @@ public class Cache
         postingLists.put(term, newTermPostingList);
     }
 
+    /**
+     * This method removes the oldest term from the cache.
+     * */
     private void makeSpaceInPostingListsCache()
     {
         long oldestTimestamp = Long.MAX_VALUE;
@@ -153,7 +183,6 @@ public class Cache
     public static class QueryResults
     {
         private final List<ScoredDocument> results;
-
         private long timestamp;
 
         public QueryResults(List<ScoredDocument> givenResults)

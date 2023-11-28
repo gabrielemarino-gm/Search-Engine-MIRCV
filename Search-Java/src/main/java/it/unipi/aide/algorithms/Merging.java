@@ -25,6 +25,14 @@ public class Merging
     long blockDescriptorOffset = 0;
     long vFinalOffset = 0;
 
+    /**
+     * --------------------------------------------------------------------------
+     *
+     * @param compression
+     * @param blocksCount
+     * @param debug
+     * --------------------------------------------------------------------------
+     */
     public Merging(boolean compression, int blocksCount, boolean debug)
     {
         this.BLOCKS_COUNT = blocksCount;
@@ -39,7 +47,9 @@ public class Merging
     }
 
     /**
+     * --------------------------------------------------------------------------
      * Merge partial blocks into one unique block
+     * --------------------------------------------------------------------------
      */
     public void mergeBlocks()
     {
@@ -74,7 +84,7 @@ public class Merging
             long nDoc = CollectionInformation.getTotalDocuments();
 
             try (
-                    // Open FileChannels to each file
+                    // Open FileChannels to each file (Vocabulary, DocID, Frequencies, BlockDescriptors)
                     FileChannel finalVocChannel = (FileChannel) Files.newByteChannel(Paths.get(FvocPath),
                             StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE);
                     FileChannel finalDocIDChannel = (FileChannel) Files.newByteChannel(Paths.get(FdocPath),
@@ -101,12 +111,12 @@ public class Merging
                     vocabulariesFileChannel[indexBlock] = (FileChannel) Files.newByteChannel(Paths.get(partialVocPath),
                             StandardOpenOption.READ);
 
-                    // Store in this list at position 'indexBlock', relative to the block with that index, the size of
-                    // the vocabulary correspondent to that block.
+                    // Store in this list at position 'indexBlock', relative to the block with that index,
+                    // the size of the vocabulary correspondent to that block.
                     dimVocabularyFile[indexBlock] = vocabulariesFileChannel[indexBlock].size();
 
                     // Get first term for each block's vocabulary
-                    vocs[indexBlock] = getNextVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
+                    vocs[indexBlock] = getTermFromVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
                     offsetVocabulary[indexBlock] += TermInfo.SIZE_PRE_MERGING;
                 }
 
@@ -133,26 +143,6 @@ public class Merging
                         // ...if current term is equal the smallest (and it's not null)...
                         if(vocs[indexBlock] != null && vocs[indexBlock].getTerm().equals(smallestTerm))
                         {
-
-                            if (offsetDocId[indexBlock] > 775) {
-                                System.out.println("DBG:\t\tsmallestTerm: " + smallestTerm
-                                        + "\n\t\t\t" + "offsetDocId: " + offsetDocId[indexBlock]
-                                        + "\n\t\t\t" + "offsetFrequency: " + offsetFrequency[indexBlock]
-                                        + "\n\t\t\t" + "offsetVocabulary: " + offsetVocabulary[indexBlock]
-                                        + "\n\t\t\t" + "dimVocabularyFile: " + dimVocabularyFile[indexBlock]
-                                        + "\n\t\t\t" + "vocs[indexBlock]: " + vocs[indexBlock].toString()
-                                        + "\n\t\t\t" + "indexBlock: " + indexBlock
-                                        + "\n\t\t\t" + "nDoc: " + nDoc
-                                        + "\n\t\t\t" + "nTerms: " + nTerms
-                                        + "\n\t\t\t" + "totalTermPostings: " + totalTermPostings
-                                        + "\n\t\t\t" + "finalTotalFreq: " + finalTotalFreq
-                                        + "\n\t\t\t" + "finalTerm: " + finalTerm.toString()
-                                        + "\n\t\t\t" + "finalDocidOffset: " + finalDocidOffset
-                                        + "\n\t\t\t" + "finalFreqOffset: " + finalFreqOffset
-                                        + "\n\t\t\t" + "blockDescriptorOffset: " + blockDescriptorOffset
-                                        + "\n\t\t\t" + "vFinalOffset: " + vFinalOffset
-                                        + "\n");
-                            }
                             // ...accumulates bytes from different blocks, for both docId and frequencies...
                             docsAcc.add(extractBytes(docIdFileChannel[indexBlock],
                                     offsetDocId[indexBlock],
@@ -186,7 +176,7 @@ public class Merging
                             }
 
                             // Vocabulary shift: we are going to read the next term
-                            vocs[indexBlock] = getNextVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
+                            vocs[indexBlock] = getTermFromVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
                             offsetVocabulary[indexBlock] += TermInfo.SIZE_PRE_MERGING;
                         }
                     }
@@ -381,9 +371,17 @@ public class Merging
         }
     }
 
+    /**
+     * --------------------------------------------------------------------------
+     * Print the current term in a txt file
+     * @param concatenatedDocsBytes Bytes of docIDs
+     * @param concatenatedFreqBytes Bytes of frequencies
+     * @param term Term to print
+     * --------------------------------------------------------------------------
+     */
     private void printDebugInTXT(byte[] concatenatedDocsBytes, byte[] concatenatedFreqBytes, String term)
     {
-        if(DEBUG && !COMPRESSION)
+        if(DEBUG)
         {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(ConfigReader.getDebugDir() + "invertedIndex.txt", true)))
             {
@@ -409,6 +407,7 @@ public class Merging
     }
 
     /**
+     * --------------------------------------------------------------------------
      * Write the final docID, frequencies and block descriptors on the disk
      * @param finalDocIDChannel FileChannel for docID
      * @param finalFreqChannel FileChannel for frequencies
@@ -417,6 +416,7 @@ public class Merging
      * @param freqBlocks List of frequency blocks
      * @param blockDescriptors List of block descriptors
      * @param finalTerm TermInfo to update
+     * --------------------------------------------------------------------------
      */
     private void writeBlocks(FileChannel finalDocIDChannel,
                              FileChannel finalFreqChannel,
@@ -471,10 +471,12 @@ public class Merging
     }
 
     /**
+     * --------------------------------------------------------------------------
      * Write a TermInfo on the disk, into the final vocabulary file
      * @param finalVocChannel Vocabulary FileChannel
      * @param finalTerm Term to write
      * @throws IOException
+     * --------------------------------------------------------------------------
      */
     private void writeTermToDisk(FileChannel finalVocChannel, TermInfo finalTerm) throws IOException
     {
@@ -484,23 +486,25 @@ public class Merging
         String paddedTerm = String.format(pattern.toString(), finalTerm.getTerm()).substring(0, TermInfo.SIZE_TERM); // Pad with spaces up to 64 characters
 
         // Write
-        tempBuffer.put(paddedTerm.getBytes());
-        tempBuffer.putInt(finalTerm.getTotalFrequency());
-        tempBuffer.putInt(finalTerm.getNumPosting());
-        tempBuffer.putInt(finalTerm.getNumBlocks());
-        tempBuffer.putLong(finalTerm.getOffset());
+        tempBuffer.put(paddedTerm.getBytes());                      // 46
+        tempBuffer.putInt(finalTerm.getTotalFrequency());           // 4
+        tempBuffer.putInt(finalTerm.getNumPosting());               // 4
+        tempBuffer.putInt(finalTerm.getNumBlocks());                // 4
+        tempBuffer.putLong(finalTerm.getOffset());                  // 8
 
         // Evaluate term upper bound fof TFIDF and BM25
-        tempBuffer.putFloat(ScoreFunction.computeTFIDF(finalTerm.getMaxTF(),finalTerm.getNumPosting()));
-        tempBuffer.putFloat(ScoreFunction.computeBM25(finalTerm.getBM25TF(), finalTerm.getBM25DL(), finalTerm.getNumPosting()));
+        tempBuffer.putFloat(ScoreFunction.computeTFIDF(finalTerm.getMaxTF(),finalTerm.getNumPosting()));                            // 4
+        tempBuffer.putFloat(ScoreFunction.computeBM25(finalTerm.getBM25TF(), finalTerm.getBM25DL(), finalTerm.getNumPosting()));    // 4
 
         vFinalOffset += TermInfo.SIZE_POST_MERGING;
     }
 
     /**
+     * --------------------------------------------------------------------------
      * First term in lexicographic order between all terms
      * @param vocs TermInfo array to pick the terms from
      * @return Smallest term in lexicographic order
+     * --------------------------------------------------------------------------
      */
     private String getSmallestTerm(TermInfo[] vocs)
     {
@@ -515,14 +519,17 @@ public class Merging
     }
 
     /**
+     * --------------------------------------------------------------------------
      * Get next TermInfo from that channel
      * @param fileChannel FileChannel to retrieve the Term from
      * @param offsetVocabulary Offset at which the term is
      * @return Next TermInfo in line
      * @throws IOException
+     * --------------------------------------------------------------------------
      */
-    private TermInfo getNextVoc(FileChannel fileChannel, long offsetVocabulary) throws IOException
+    private TermInfo getTermFromVoc(FileChannel fileChannel, long offsetVocabulary) throws IOException
     {
+        // vocs[indexBlock] = getNextVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
         MappedByteBuffer tempBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, offsetVocabulary, TermInfo.SIZE_PRE_MERGING);
 
         byte[] termBytes = new byte[TermInfo.SIZE_TERM];
@@ -532,20 +539,23 @@ public class Merging
         int nPosting = tempBuffer.getInt();
         long offset = tempBuffer.getLong();
         int maxTF = tempBuffer.getInt();
+
         int BM25TF = tempBuffer.getInt();
         int BM25DL = tempBuffer.getInt();
 
         String term = new String(termBytes).trim();
 
-        return new TermInfo(term, frequency, nPosting, 0, offset, maxTF, BM25TF, BM25DL);
+        return new TermInfo(term, frequency, nPosting, offset, maxTF, BM25TF, BM25DL);
     }
     /**
+     * --------------------------------------------------------------------------
      * Extract bytes from given channel at given offset and returns them
      *
      * @param fromChannel File Channel to extract Bytes from
      * @param offset At which offset to extract bytes
      * @param nPosting How many 4-bytes to extract
      * @return Array of Bytes extracted
+     * --------------------------------------------------------------------------
      */
     private byte[] extractBytes(FileChannel fromChannel, long offset, int nPosting) throws IOException
     {
@@ -559,6 +569,13 @@ public class Merging
         return tempBytes;
     }
 
+    /**
+     * --------------------------------------------------------------------------
+     *
+     * @param list
+     * @return
+     * --------------------------------------------------------------------------
+     */
     private int getMaxDocid(byte[] list)
     {
         int max = 0;

@@ -13,7 +13,7 @@ public class InvertedIndex
      * @param term Term contained in that document
      * @return true if a new Posting has been added, 0 otherwise
      */
-    public boolean add(int doc, String term, Vocabulary vocab, int dl)
+    public boolean add(int doc, String term)
     {
         List<Posting> postingList = index.get(term);
 
@@ -22,8 +22,6 @@ public class InvertedIndex
         {
             Posting newPosting = new Posting(doc);
             index.put(term, new ArrayList<>(Collections.singletonList(newPosting)));
-            vocab.add(term, true);
-            // Aggiungi al vocabolario col true
             return true;
         }
 
@@ -36,25 +34,14 @@ public class InvertedIndex
             // if the last posting for that term is about current document
             if (lastPosting.getDocId() == doc)
             {
-                // Check MaxTF
                 lastPosting.incrementFrequency();
-
-                vocab.get(term).setMaxTF (lastPosting.getFrequency());
-                vocab.get(term).setMaxBM25(lastPosting.getFrequency(), dl);
-
-                // Check MaxBM25
-
-                // add to the vocabulary with the flag false, because it's not a new posting
-                vocab.add(term, false);
                 return false;
             }
-
             // Last posting is for another document, create a new posting
             else
             {
                 Posting newPosting = new Posting(doc);
                 postingList.add(newPosting);
-                // Aggiungi al vocabolario con true
                 return true;
             }
         }
@@ -81,9 +68,21 @@ public class InvertedIndex
     }
 
     /**
+     * Get the last posting for given term
+     * @param t Term to get the posting
+     * @return
+     */
+    public Posting getLastPosting(String t)
+    {
+        List<Posting> pl = getPostingList(t);
+        return pl.get(pl.size() - 1);
+    }
+
+    /**
      * Clear the inverted index
      */
-    public void clear(){
+    public void clear()
+    {
         index.clear();
     }
 

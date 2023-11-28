@@ -1,26 +1,19 @@
 package it.unipi.aide;
 
-import it.unipi.aide.algorithms.DAAT;
-import it.unipi.aide.model.ScoredDocument;
-import it.unipi.aide.utils.Preprocesser;
-
-import java.util.List;
+import it.unipi.aide.model.CollectionInformation;
+import it.unipi.aide.model.PostingListSkippable;
+import it.unipi.aide.utils.QueryPreprocessing;
 
 public class MatteFaCose {
 
     public static void main(String[] argv) {
 
-        Preprocesser preprocesser = new Preprocesser(true);
-        DAAT daat = new DAAT(10);
+        QueryPreprocessing qp = new QueryPreprocessing();
 
-        List<String> tokens = preprocesser.process("Folklore tales in the wood");
-        long startTime = System.currentTimeMillis();
-        System.out.println("Folklore tales in the wood Results:");
-        for (ScoredDocument sd : daat.executeDAAT(tokens)) {
-            System.out.print(sd);
+        PostingListSkippable pls = new PostingListSkippable(qp.binarySearch("fentanyl"));
+
+        while(pls.hasNext()) {
+            System.out.print(pls.next() + " ");
         }
-        long endTime = System.currentTimeMillis();
-        long elapsedTime = endTime - startTime;
-        System.out.println("Tempo impiegato: " + elapsedTime + " millisecondi");
     }
 }
