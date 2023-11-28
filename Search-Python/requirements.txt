@@ -1,3 +1,0 @@
-Icecream
-nltk
-psutil

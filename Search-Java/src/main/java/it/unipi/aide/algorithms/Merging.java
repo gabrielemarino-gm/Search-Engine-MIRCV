@@ -146,7 +146,7 @@ public class Merging
                                         + "\n\t\t\t" + "nTerms: " + nTerms
                                         + "\n\t\t\t" + "totalTermPostings: " + totalTermPostings
                                         + "\n\t\t\t" + "finalTotalFreq: " + finalTotalFreq
-                                        + "\n\t\t\t" + "finalTerm: " + finalTerm.toString()
+                                        + "\n\t\t\t" + "finalTerm: " + finalTerm
                                         + "\n\t\t\t" + "finalDocidOffset: " + finalDocidOffset
                                         + "\n\t\t\t" + "finalFreqOffset: " + finalFreqOffset
                                         + "\n\t\t\t" + "blockDescriptorOffset: " + blockDescriptorOffset
