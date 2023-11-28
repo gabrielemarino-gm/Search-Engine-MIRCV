@@ -22,7 +22,6 @@ public class CollectionInformation
     private static long TOTAL_TERMS = 0;                // 1
     private static long AVERAGE_DOCUMENT_LENGTH = 0;    // 2
 
-
     static {
         PATH = ConfigReader.getCollectionStatisticsPath();
     }
@@ -97,7 +96,7 @@ public class CollectionInformation
             return buffer.getLong();
         }
         catch (IOException e){
-            System.err.println(String.format("Collection information file exception: %s",e.getMessage()));
+            System.err.println(String.format("Collection information file exception: %s - %s", e.getClass(), e.getMessage()));
             return 1;
         }
     }

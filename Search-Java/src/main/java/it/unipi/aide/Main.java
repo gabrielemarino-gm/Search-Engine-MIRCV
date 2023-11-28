@@ -10,14 +10,15 @@ import it.unipi.aide.utils.Preprocesser;
 import java.util.List;
 import java.util.Scanner;
 
-public class Main {
+public class Main
+{
 
     static Scanner scanner = new Scanner(System.in);
     static Preprocesser preprocesser = new Preprocesser(true);
     static DAAT daat = new DAAT(10);
 
-    public static void main(String[] args) {
-
+    public static void main(String[] args)
+    {
         init(args); //to change init to specify preprocessing options
 
         System.out.println("Ready.");
@@ -66,8 +67,8 @@ public class Main {
         System.out.println(elapsedTime + " ms");
     }
 
-    public static void init(String[] args) {
-
+    public static void init(String[] args)
+    {
         long startTime = System.currentTimeMillis();
 
         boolean DEBUG = false;
