@@ -6,7 +6,7 @@ public class Cache
 {
     private final Map<List<String>, QueryResults> queriesResults;
     private final Map<String, TermsPostingLists> postingLists;
-    private Map<Integer, TermInfo> binarySearchTerms;
+    private final Map<Long, TermInfo> termInfos;
     private final int maxSize = 1200; //tofix
 
     private static final Cache SearchEngineCache = new Cache();
@@ -15,6 +15,7 @@ public class Cache
     {
         this.queriesResults = new HashMap<>();
         this.postingLists = new HashMap<>();
+        this.termInfos = new HashMap<>();
     }
 
     public static Cache getCacheInstance() {
@@ -188,6 +189,20 @@ public class Cache
         return postingLists.containsKey(term);
     }
 
+    /* Cached terms for binary search */
+    public boolean containsTermInfo(long termPosition)
+    {
+        return termInfos.containsKey(termPosition);
+    }
+
+    public TermInfo getTermInfo(long termPosition) {
+        return termInfos.get(termPosition);
+    }
+
+    public void putTermIntoTermInfoCache(long termPosition, TermInfo termInfo) {
+        termInfos.put(termPosition, termInfo);
+    }
+
     public static class QueryResults
     {
         private final List<ScoredDocument> results;
@@ -209,12 +224,6 @@ public class Cache
         {
             return timestamp;
         }
-
-        /* Cached terms for binary search */
-        /*public TermInfo getTermForBinarySearch(int position)
-        {
-
-        }*/
     }
 
     public static class TermsPostingLists
