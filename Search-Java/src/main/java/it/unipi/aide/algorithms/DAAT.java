@@ -78,14 +78,14 @@ public class DAAT
             for(PostingListSkippable pl : postingLists)
             {
                 // If at least one Posting List has elements, Hypothesis became false
-                if (pl.getCurrent() != null)
+                if (pl.getCurrentPosting() != null)
                 {
                     stop = false;
                     // If Posting List of current term has docId equals to the smallest under consideration, calculate its score
-                    if (pl.getCurrent().getDocId() == firstDoc)
+                    if (pl.getCurrentPosting().getDocId() == firstDoc)
                     {
                         documentToAdd.setScore(ScoreFunction.computeTFIDF(
-                                                    pl.getCurrent().getFrequency(),
+                                                    pl.getCurrentPosting().getFrequency(),
                                                     terms.get(pl.getTerm()).getNumPosting()
                                 )
                         );
@@ -136,9 +136,9 @@ public class DAAT
 
         for(PostingListSkippable pl : postingLists)
         {
-            if(pl.getCurrent() != null && pl.getCurrent().getDocId() < min)
+            if(pl.getCurrentPosting() != null && pl.getCurrentPosting().getDocId() < min)
             {
-                min = pl.getCurrent().getDocId();
+                min = pl.getCurrentPosting().getDocId();
             }
         }
         return min;

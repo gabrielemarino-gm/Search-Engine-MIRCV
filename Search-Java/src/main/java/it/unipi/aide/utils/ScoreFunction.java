@@ -9,7 +9,8 @@ public class ScoreFunction
     static final long N;
     static final long ADL;
 
-    static{
+    static
+    {
         N = CollectionInformation.getTotalDocuments();
         ADL = CollectionInformation.getAverageDocumentLength();
     }

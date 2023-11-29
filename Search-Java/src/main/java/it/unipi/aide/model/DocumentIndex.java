@@ -11,13 +11,16 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 /**
+ * DocumentIndex is a class that manages the DocumentIndex file
  * This is a fake class. It just writes down directly into the disk a document
  */
-public class DocumentIndex {
+public class DocumentIndex
+{
     private static long OFFSET = 0;
     private final String PATH;
 
-    public DocumentIndex(){
+    public DocumentIndex()
+    {
         this.PATH = ConfigReader.getDocumentIndexPath();
         if(!FileManager.checkFile(PATH)) FileManager.createFile(PATH);
     }
@@ -76,7 +79,8 @@ public class DocumentIndex {
 
             return new Document(tempPid, tempDocid, tempTokenCount);
         }
-        catch (IOException e){
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
 

@@ -49,9 +49,8 @@ public class QueryHandler
             processQueryDAAT(input);
             System.out.println();
             processQueryMaxScore(input);
+            System.out.println();
         }
-
-        // PriorityQueue<ScoredDocument> top_k = maxScore.executeMaxScore(tokens, 5);
     }
 
     private static void processQueryDAAT(String query)
@@ -78,7 +77,11 @@ public class QueryHandler
 
         System.out.println("Results MAX-SCORE:");
 
-        for (ScoredDocument sd : maxScore.executeMaxScore(tokens)) {
+        // Print the list of top-k scored documents, in reverse order
+        PriorityQueue<ScoredDocument> topKDocs = maxScore.executeMaxScore(tokens);
+        while (!topKDocs.isEmpty())
+        {
+            ScoredDocument sd = topKDocs.poll();
             System.out.print(sd);
         }
 

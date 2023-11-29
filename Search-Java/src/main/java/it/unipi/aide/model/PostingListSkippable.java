@@ -20,12 +20,12 @@ public class PostingListSkippable  implements Iterator<Posting>
     private List<BlockDescriptor> blockDescriptors = new ArrayList<>();
     private List<Posting> postings = new ArrayList<>();
     private int blockIndexer = 0;
-
+    boolean noMorePostings = false;
 
     public PostingListSkippable(TermInfo termInfo)
     {
         this.term = termInfo;
-        getFromDisk();
+        getBlockDescriptorFromDisk();
     }
 
     public String getTerm() { return term.getTerm(); }
@@ -33,15 +33,12 @@ public class PostingListSkippable  implements Iterator<Posting>
     /**
      * Get the blocks descriptors from disk
      */
-    private void getFromDisk()
+    private void getBlockDescriptorFromDisk()
     {
         String blocksPath = ConfigReader.getBlockDescriptorsPath();
 
-        try
-                (
-                    FileChannel blockChannel = (FileChannel) Files.newByteChannel(Paths.get(blocksPath),
-                            StandardOpenOption.READ);
-                )
+        try (FileChannel blockChannel = (FileChannel) Files.newByteChannel(Paths.get(blocksPath),
+                StandardOpenOption.READ))
         {
             // Get all the block descriptors
             MappedByteBuffer blockBuffer = blockChannel.map(FileChannel.MapMode.READ_ONLY,
@@ -61,8 +58,7 @@ public class PostingListSkippable  implements Iterator<Posting>
                 blockDescriptors.add(block);
             }
 
-            getFromNextBlock();
-
+            getPostingsFromBlock();
         }
         catch (IOException e)
         {
@@ -71,9 +67,9 @@ public class PostingListSkippable  implements Iterator<Posting>
     }
 
     /**
-     * Get the postings from the next block
+     * Get the postings from the block, and increment the block indexer
      */
-    private void getFromNextBlock()
+    private void getPostingsFromBlock()
     {
         String docsPath = ConfigReader.getDocidPath();
         String freqPath = ConfigReader.getFrequencyPath();
@@ -98,6 +94,7 @@ public class PostingListSkippable  implements Iterator<Posting>
                         block.getOffsetFreq(),
                         block.getBytesOccupiedFreq());
 
+                // Using compression
                 if(ConfigReader.compressionEnabled())
                 {
                     byte[] docsBytes = new byte[(int) block.getBytesOccupiedDocid()];
@@ -113,9 +110,12 @@ public class PostingListSkippable  implements Iterator<Posting>
                         postings.add(new Posting(docsInts[i], freqInts[i]));
                     }
                 }
+
+                // Without compression
                 else
                 {
-                    for (int i = 0; i < block.getNumPostings(); i++) {
+                    for (int i = 0; i < block.getNumPostings(); i++)
+                    {
                         int docID = docsBuffer.getInt();
                         int freq = freqBuffer.getInt();
 
@@ -123,6 +123,7 @@ public class PostingListSkippable  implements Iterator<Posting>
                     }
                 }
 
+                // Increase the block indexer
                 blockIndexer++;
             }
             else
@@ -139,13 +140,13 @@ public class PostingListSkippable  implements Iterator<Posting>
 
     public void reset(){ blockIndexer = 0; }
 
-    private Posting current = null;
-    public Posting getCurrent()
+    private Posting currentPosting = null;
+    public Posting getCurrentPosting()
     {
-        if(current == null && hasNext())
-            current = next();
+        if(currentPosting == null && hasNext())
+            currentPosting = next();
 
-        return current;
+        return currentPosting;
     }
     public boolean hasNext()
     {
@@ -158,7 +159,7 @@ public class PostingListSkippable  implements Iterator<Posting>
             if(postings.isEmpty())
             {
                 // Try retrieve from next block
-                getFromNextBlock();
+                getPostingsFromBlock();
                 return hasNext();
             }
             else
@@ -168,18 +169,25 @@ public class PostingListSkippable  implements Iterator<Posting>
         }
     }
 
+    /**
+     * Update the current posting with the next
+     * @return
+     */
     public Posting next()
     {
-
+        // if there is a next posting, keep it in currentPosting
         if(hasNext())
         {
-            current = postings.remove(0);
+            currentPosting = postings.remove(0);
         }
+        // else, set currentPosting to null
         else
         {
-            current = null;
+            currentPosting = null;
+            noMorePostings = true;
         }
-        return current;
+
+        return currentPosting;
     }
 
     public Posting nextGEQ(int docID)
@@ -187,22 +195,22 @@ public class PostingListSkippable  implements Iterator<Posting>
         if (blockDescriptors.get(blockIndexer - 1).getMaxDocid() < docID)
         {
             postings.clear();
-            getFromNextBlock();
+            getPostingsFromBlock();
         }
 
         if (hasNext())
         {
-            while (getCurrent().getDocId() < docID)
+            while (getCurrentPosting().getDocId() < docID)
             {
-                current = next();
+                currentPosting = next();
             }
         }
         else
         {
-            current = null;
+            currentPosting = null;
         }
 
-        return current;
+        return currentPosting;
     }
 
     @Override
@@ -236,4 +244,16 @@ public class PostingListSkippable  implements Iterator<Posting>
         return term.getTermUpperBoundBM25();
     }
 
+    public void printPostingList()
+    {
+        System.out.print("[" + term.getTerm() + "] ");
+        for (Posting p : postings)
+        {
+            System.out.print(p);
+        }
+    }
+    public boolean isNoMorePostings()
+    {
+        return noMorePostings;
+    }
 }

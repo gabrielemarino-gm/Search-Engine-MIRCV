@@ -13,11 +13,19 @@ public class ScoredDocument
         this.score = score;
     }
 
-    public static Comparator<? super ScoredDocument> compareTo() {
-        return new Comparator<ScoredDocument>() {
+    /**
+     * Comparator for ScoredDocument objects.
+     * This method orders the documents by score, from lowest to highest.
+     * @return Comparator object.
+     */
+    public static Comparator<? super ScoredDocument> compareTo()
+    {
+        return new Comparator<ScoredDocument>()
+        {
             @Override
-            public int compare(ScoredDocument o1, ScoredDocument o2) {
-                return Double.compare(o2.getScore(), o1.getScore());
+            public int compare(ScoredDocument o1, ScoredDocument o2)
+            {
+                return Double.compare(o1.getScore(), o2.getScore());
             }
         };
     }

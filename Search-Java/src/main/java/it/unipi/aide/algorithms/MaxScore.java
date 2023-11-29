@@ -30,55 +30,67 @@ public class MaxScore
      * @param queryTerms List of query terms
      * @return List of top-k scored documents
      */
-
     public PriorityQueue<ScoredDocument> executeMaxScore(List<String> queryTerms)
     {
         // Retrieve the posting lists of the query terms
-        List<PostingListSkippable> postingLists;
         QueryPreprocessing qp = new QueryPreprocessing();
-        postingLists = qp.retrievePostingList(queryTerms);
+        this.postingLists = qp.retrievePostingList(queryTerms);
         terms = qp.getTerms();
 
         // Initial threshold sigma is equal to 0
         float sigma = 0;
         // Initial pivot for non-essential lists is the first one
         int pivot = 0;
-        // Initial priority queue
+
+        // Initial priority queue, in increasing order of score
         PriorityQueue<ScoredDocument> topKDocs = new PriorityQueue<>(TOP_K, ScoredDocument.compareTo());
 
-        // TODO -> Forse è meglio usare una PriorityQueue invece di ordinare ogni volta
+        // TODO: Forse è meglio usare una PriorityQueue invece di ordinare ogni volta
         // Make sure that the list of PostingList is ordered by increasing upper bound
         if (BM25)
             Collections.sort(postingLists, PostingListSkippable.compareToBM25());
         else
             Collections.sort(postingLists, PostingListSkippable.compareToTFIDF());
 
-
         // Repeat the followings until the top-k documents are retrieved
         // Get minimum docID from the first posting list
         int currentDoc = getMinimumDocID();
+
         while (pivot < terms.size())
         {
+            if (currentDoc == Integer.MAX_VALUE)
+                break;
+
             float score = 0;
             int nextDoc = Integer.MAX_VALUE;
 
+            // Take the document length of the current document
             DocumentIndex documentIndex = new DocumentIndex();
             Document d = documentIndex.get(currentDoc);
             int docLength = d.getTokenCount();
 
 // ( ESSENTIAL LISTS
             // For current DocID, compute the score of essential lists only
-            for (int i = pivot; i < terms.size() - 1; i++)
+            for (int i = pivot; i < terms.size(); i++)
             {
-                if (postingLists.get(i).getCurrent().getDocId() == currentDoc)
+                if (postingLists.get(i).getCurrentPosting() != null)
                 {
-                    score += computeScore(i, docLength);
-                    nextDoc = postingLists.get(i).next().getDocId();
+                    // if the current docID of the posting list i, is equal to the docID under examination
+                    if (postingLists.get(i).getCurrentPosting().getDocId() == currentDoc)
+                    {
+                        score += computeScore(i, docLength);
+                        // Move to the next posting of the posting list i-th
+                        postingLists.get(i).next();
+                    }
                 }
 
-                if (postingLists.get(i).getCurrent().getDocId() < nextDoc)
+                if (postingLists.get(i).getCurrentPosting() != null)
                 {
-                    nextDoc = postingLists.get(i).getCurrent().getDocId();
+                    // Update the nextDoc with the minimum docID of the posting lists
+                    if (postingLists.get(i).getCurrentPosting().getDocId() < nextDoc)
+                    {
+                        nextDoc = postingLists.get(i).getCurrentPosting().getDocId();
+                    }
                 }
             }
 // )
@@ -99,7 +111,7 @@ public class MaxScore
                 postingLists.get(i).nextGEQ(currentDoc);
 
                 // Compute the score if the current DocID is in the posting list
-                if (postingLists.get(i).getCurrent().getDocId() == currentDoc)
+                if (postingLists.get(i).getCurrentPosting().getDocId() == currentDoc)
                 {
                     score += computeScore(i, docLength);
                 }
@@ -109,7 +121,11 @@ public class MaxScore
 // ( INSERT IN QUEUE AND UPDATE PIVOT
             if (topKDocs.add(new ScoredDocument(currentDoc, score)))
             {
-                // Update the current sigma
+                // If the queue is full, remove the minimum score
+                if (topKDocs.size() > TOP_K)
+                    topKDocs.poll(); // The minimum score is at the top of the queue, because it is ordered in increasing order
+
+                // Update the current sigma with the minimum score in the queue
                 sigma = topKDocs.peek().getScore();
 
                 // Update the pivot
@@ -137,10 +153,11 @@ public class MaxScore
 
         for (PostingListSkippable pl : postingLists)
         {
-            if (pl.getCurrent().getDocId() < min)
+            if (pl.getCurrentPosting().getDocId() < min)
             {
-                min = pl.getCurrent().getDocId();
+                min = pl.getCurrentPosting().getDocId();
             }
+            
         }
         return min;
     }
@@ -152,16 +169,13 @@ public class MaxScore
      */
     private float computeScore(int postingIndex, int docLength)
     {
-        int currentDocId = postingLists.get(postingIndex).getCurrent().getDocId();
-
-
-        float score = 0;
+        float score;
 
         if (BM25)
         {
             // Compute BM25 score
             score = ScoreFunction.computeBM25(
-                    postingLists.get(postingIndex).getCurrent().getFrequency(),
+                    postingLists.get(postingIndex).getCurrentPosting().getFrequency(),
                     terms.get(postingLists.get(postingIndex).getTerm()).getNumPosting(),
                     docLength
             );
@@ -170,11 +184,10 @@ public class MaxScore
         {
             // Compute TF-IDF score
             score = ScoreFunction.computeTFIDF (
-                    postingLists.get(postingIndex).getCurrent().getFrequency(),
+                    postingLists.get(postingIndex).getCurrentPosting().getFrequency(),
                     terms.get(postingLists.get(postingIndex).getTerm()).getNumPosting()
             );
         }
-
 
         return score;
     }

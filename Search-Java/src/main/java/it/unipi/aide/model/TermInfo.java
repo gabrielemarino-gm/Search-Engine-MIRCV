@@ -162,7 +162,7 @@ public class TermInfo {
     @Override
     public String toString()
     {
-        return String.format("[%s](TF: %d, NP: %d, NB: %d, OS: %d)", term, totalFrequency, numPosting, numBlocks, offset);
+        return String.format("[%s](TF: %d, NP: %d, NB: %d, OS: %d, TUB-TFIDF: %f)", term, totalFrequency, numPosting, numBlocks, offset, termUpperboundTFIDF);
     }
 }
 
