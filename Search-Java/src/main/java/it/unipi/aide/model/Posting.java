@@ -9,7 +9,8 @@ public class Posting
      * Create a new Posting with term frequency = 1 (USE IN SPIMI ONLY)
      * @param docId DocID of the document to add
      */
-    public Posting(int docId){
+    public Posting(int docId)
+    {
         this.docId = docId;
         this.frequency = 1;
     }

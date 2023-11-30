@@ -236,7 +236,6 @@ public class SPIMI
                     frequencyBuffer.putInt(p.getFrequency());
                     partialOffset += 4L;
                 }
-                
             }
         }
         catch (IOException e)

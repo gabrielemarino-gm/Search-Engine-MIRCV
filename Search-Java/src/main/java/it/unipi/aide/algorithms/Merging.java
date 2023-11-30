@@ -201,9 +201,6 @@ public class Merging
                         concatenationOffset += v.length;
                     }
 
-                    // ... print in txt format for debug ...
-                    printDebugInTXT(concatenatedDocsBytes, concatenatedFreqBytes, smallestTerm);
-
                     /* Now that we cumulated docids and frequencies for that term, split them in Blocks */
 
                     // ... write sqrt(n) postings in each block ...
@@ -325,8 +322,11 @@ public class Merging
                             finalTerm);
 
                     // First offset of first term Block is updated inside the previous function
+                    if (DEBUG)
+                        writeTermToDisk(finalVocChannel, finalTerm);
 
-                    writeTermToDisk(finalVocChannel, finalTerm);
+                    // ... print in txt format for debug ...
+                    printIndexDebugInTXT(concatenatedDocsBytes, concatenatedFreqBytes, smallestTerm);
 
                     nTerms++;
 
@@ -379,14 +379,14 @@ public class Merging
      * @param term Term to print
      * --------------------------------------------------------------------------
      */
-    private void printDebugInTXT(byte[] concatenatedDocsBytes, byte[] concatenatedFreqBytes, String term)
+    private void printIndexDebugInTXT(byte[] concatenatedDocsBytes, byte[] concatenatedFreqBytes, String term)
     {
         if(DEBUG)
         {
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(ConfigReader.getDebugDir() + "invertedIndex.txt", true)))
+            try (BufferedWriter writerIdex = new BufferedWriter(new FileWriter(ConfigReader.getDebugDir() + "invertedIndex.txt", true)))
             {
-                // write term
-                writer.write(String.format("%s: ", term));
+                // Write term in the index file txt
+                writerIdex.write(String.format("%s: ", term));
 
                 // For each integer in the list
                 for (int i = 0; i < concatenatedDocsBytes.length; i += 4)
@@ -395,9 +395,26 @@ public class Merging
                     int freq = Commons.bytesToInt(Arrays.copyOfRange(concatenatedFreqBytes, i, i + 4));
 
                     // Write it in the file txt
-                    writer.write(String.format("(%d, %d) ", docid, freq));
+                    writerIdex.write(String.format("(%d, %d) ", docid, freq));
                 }
-                writer.newLine();
+                writerIdex.newLine();
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    void printVocabularyDebugInTXT(TermInfo finalTerm)
+    {
+        if(DEBUG)
+        {
+            try (BufferedWriter writerVocs = new BufferedWriter(new FileWriter(ConfigReader.getDebugDir() + "vocabulary.txt", true)))
+            {
+                // Write Vocabulary term
+                writerVocs.write(String.format("%s: ", finalTerm.toString()));
+                writerVocs.newLine();
             }
             catch (IOException e)
             {
@@ -497,6 +514,9 @@ public class Merging
         tempBuffer.putFloat(ScoreFunction.computeBM25(finalTerm.getBM25TF(), finalTerm.getBM25DL(), finalTerm.getNumPosting()));    // 4
 
         vFinalOffset += TermInfo.SIZE_POST_MERGING;
+
+        if (DEBUG)
+            printVocabularyDebugInTXT(finalTerm);
     }
 
     /**

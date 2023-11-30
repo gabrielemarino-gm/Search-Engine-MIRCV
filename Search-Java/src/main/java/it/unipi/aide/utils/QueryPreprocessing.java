@@ -35,12 +35,13 @@ public class QueryPreprocessing
 
         for(String t: queryTerms)
         {
-            TermInfo toRetrieve = binarySearch(t);
-            if(toRetrieve != null)
-            {
-                terms.put(t, toRetrieve);
-                postingLists.add(new PostingListSkippable(toRetrieve));
+            // Binary search on the vocabulary file for the term of the query
+            TermInfo termToRetrieve = binarySearch(t);
 
+            if(termToRetrieve != null)
+            {
+                terms.put(t, termToRetrieve);
+                postingLists.add(new PostingListSkippable(termToRetrieve));
             }
         }
 
@@ -55,30 +56,39 @@ public class QueryPreprocessing
     */
     public TermInfo binarySearch(String term)
     {
-        try(
-                FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(ConfigReader.getVocabularyPath()),
-                        StandardOpenOption.READ)
-        )
+        try(FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(ConfigReader.getVocabularyPath()),
+                        StandardOpenOption.READ))
         {
-            long WIN_DOWN = 0;
-            long WIN_UP = CollectionInformation.getTotalTerms();
+            // Window of the binary search, start from the whole vocabulary file
+            long WIN_LOWER_BOUND = 0;
+            long WIN_UPPER_BOUND = CollectionInformation.getTotalTerms();
 
             // Binary search on the vocabulary file
             while (true)
             {
-                long MID_POINT = (WIN_UP - WIN_DOWN)/ 2 + WIN_DOWN;
-                if(WIN_UP == WIN_DOWN || MID_POINT == WIN_DOWN) return null;
+                // Middle point of the window
+                long WIN_MIDDLE_POINT = (WIN_UPPER_BOUND - WIN_LOWER_BOUND)/ 2 + WIN_LOWER_BOUND;
 
+                // Check if the window is empty
+                if(WIN_UPPER_BOUND == WIN_LOWER_BOUND || WIN_MIDDLE_POINT == WIN_LOWER_BOUND)
+                    return null;
+
+                // Check if the term is in the cache
                 TermInfo middleTerm;
-                if(cache.containsTermInfo(MID_POINT)) {
-                    middleTerm = cache.getTermInfo(MID_POINT);
+                if(cache.containsTermInfo(WIN_MIDDLE_POINT))
+                {
+                    middleTerm = cache.getTermInfo(WIN_MIDDLE_POINT);
                 }
-                else {
-                    middleTerm = getTermFromDisk(channel, MID_POINT);
-                    cache.putTermIntoTermInfoCache(MID_POINT, middleTerm);
+                // If not, get the term from the disk
+                else
+                {
+                    middleTerm = getTermFromDisk(channel, WIN_MIDDLE_POINT);
+                    cache.putTermIntoTermInfoCache(WIN_MIDDLE_POINT, middleTerm);
                 }
 
+                // Compare the term with the middle term
                 int comp = middleTerm.getTerm().compareTo(term);
+
                 if (comp == 0)
                 {
                     // Found
@@ -87,12 +97,12 @@ public class QueryPreprocessing
                 else if (comp > 0)
                 {
                     // Right half
-                    WIN_UP = MID_POINT;
+                    WIN_UPPER_BOUND = WIN_MIDDLE_POINT;
                 }
                 else
                 {
                     // Second half
-                    WIN_DOWN = MID_POINT;
+                    WIN_LOWER_BOUND = WIN_MIDDLE_POINT;
                 }
             }
         }

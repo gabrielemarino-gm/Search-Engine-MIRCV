@@ -18,14 +18,14 @@ public class PostingListSkippable  implements Iterator<Posting>
 {
     private TermInfo term;
     private List<BlockDescriptor> blockDescriptors = new ArrayList<>();
-    private List<Posting> postings = new ArrayList<>();
+    private List<Posting> postingsOfTheCurrentBlock = new ArrayList<>();
     private int blockIndexer = 0;
-
+    boolean noMorePostings = false;
 
     public PostingListSkippable(TermInfo termInfo)
     {
         this.term = termInfo;
-        getFromDisk();
+        getBlockDescriptorFromDisk();
     }
 
     public String getTerm() { return term.getTerm(); }
@@ -33,15 +33,12 @@ public class PostingListSkippable  implements Iterator<Posting>
     /**
      * Get the blocks descriptors from disk
      */
-    private void getFromDisk()
+    private void getBlockDescriptorFromDisk()
     {
         String blocksPath = ConfigReader.getBlockDescriptorsPath();
 
-        try
-                (
-                    FileChannel blockChannel = (FileChannel) Files.newByteChannel(Paths.get(blocksPath),
-                            StandardOpenOption.READ);
-                )
+        try (FileChannel blockChannel = (FileChannel) Files.newByteChannel(Paths.get(blocksPath),
+                StandardOpenOption.READ))
         {
             // Get all the block descriptors
             MappedByteBuffer blockBuffer = blockChannel.map(FileChannel.MapMode.READ_ONLY,
@@ -61,8 +58,7 @@ public class PostingListSkippable  implements Iterator<Posting>
                 blockDescriptors.add(block);
             }
 
-            getFromNextBlock();
-
+            getPostingsFromBlock(false);
         }
         catch (IOException e)
         {
@@ -71,9 +67,9 @@ public class PostingListSkippable  implements Iterator<Posting>
     }
 
     /**
-     * Get the postings from the next block
+     * Get the postings from the block, and increment the block indexer
      */
-    private void getFromNextBlock()
+    private void getPostingsFromBlock(boolean nextGEQ)
     {
         String docsPath = ConfigReader.getDocidPath();
         String freqPath = ConfigReader.getFrequencyPath();
@@ -98,6 +94,7 @@ public class PostingListSkippable  implements Iterator<Posting>
                         block.getOffsetFreq(),
                         block.getBytesOccupiedFreq());
 
+                // Using compression
                 if(ConfigReader.compressionEnabled())
                 {
                     byte[] docsBytes = new byte[(int) block.getBytesOccupiedDocid()];
@@ -110,25 +107,30 @@ public class PostingListSkippable  implements Iterator<Posting>
                     int[] freqInts = Compressor.UnaryDecompression(freqBytes, block.getNumPostings());
 
                     for (int i = 0; i < block.getNumPostings(); i++) {
-                        postings.add(new Posting(docsInts[i], freqInts[i]));
+                        postingsOfTheCurrentBlock.add(new Posting(docsInts[i], freqInts[i]));
                     }
                 }
+
+                // Without compression
                 else
                 {
-                    for (int i = 0; i < block.getNumPostings(); i++) {
+                    for (int i = 0; i < block.getNumPostings(); i++)
+                    {
                         int docID = docsBuffer.getInt();
                         int freq = freqBuffer.getInt();
 
-                        postings.add(new Posting(docID, freq));
+                        postingsOfTheCurrentBlock.add(new Posting(docID, freq));
                     }
                 }
 
-                blockIndexer++;
+                // Increase the block indexer
+                if (!nextGEQ)
+                    blockIndexer++;
             }
             else
             {
                 // No more blocks to read
-                postings = null;
+                postingsOfTheCurrentBlock = null;
             }
         }
         catch (IOException e)
@@ -139,26 +141,30 @@ public class PostingListSkippable  implements Iterator<Posting>
 
     public void reset(){ blockIndexer = 0; }
 
-    private Posting current = null;
-    public Posting getCurrent()
+    private Posting currentPosting = null;
+    public Posting getCurrentPosting()
     {
-        if(current == null && hasNext())
-            current = next();
+        if(currentPosting == null && hasNext())
+            currentPosting = next();
 
-        return current;
+        return currentPosting;
     }
     public boolean hasNext()
     {
-        // Last block
-        if(blockIndexer == term.getNumBlocks()) { return !postings.isEmpty(); }
+        // Last block return true if there are still postings
+        if(blockIndexer == term.getNumBlocks())
+        {
+            return !postingsOfTheCurrentBlock.isEmpty();
+        }
+
         // Not last block
         else
         {
             // If no more posting in current block
-            if(postings.isEmpty())
+            if(postingsOfTheCurrentBlock.isEmpty())
             {
                 // Try retrieve from next block
-                getFromNextBlock();
+                getPostingsFromBlock(false);
                 return hasNext();
             }
             else
@@ -168,41 +174,60 @@ public class PostingListSkippable  implements Iterator<Posting>
         }
     }
 
+    /**
+     * Update the current posting with the next
+     * @return
+     */
     public Posting next()
     {
-
+        // if there is a next posting, keep it as currentPosting
         if(hasNext())
         {
-            current = postings.remove(0);
+            // remove the first posting from the list, and set it as currentPosting
+            currentPosting = postingsOfTheCurrentBlock.remove(0);
         }
+        // else, set currentPosting to null
         else
         {
-            current = null;
+            currentPosting = null;
         }
-        return current;
+
+        return currentPosting;
     }
 
     public Posting nextGEQ(int docID)
     {
-        if (blockDescriptors.get(blockIndexer - 1).getMaxDocid() < docID)
+        int brekPointNextGEQ = 0;
+        int prevBlockIndexer = blockIndexer;
+
+        // Find the block that contains the docID
+        while (docID > blockDescriptors.get(blockIndexer - 1).getMaxDocid())
         {
-            postings.clear();
-            getFromNextBlock();
+            // If the blockIndexer is equal to the number of blocks, there are no more blocks to read
+            if (blockIndexer == term.getNumBlocks())
+                break;
+
+            blockIndexer++;
+            brekPointNextGEQ++;
         }
 
-        if (hasNext())
+        // Get the postings from the block, if the blockIndexer has been increased
+        if (blockIndexer > prevBlockIndexer)
+            getPostingsFromBlock(true);
+
+        // Move the current posting to the first posting with docID >= docID
+        while (docID > currentPosting.getDocId())
         {
-            while (getCurrent().getDocId() < docID)
-            {
-                current = next();
-            }
-        }
-        else
-        {
-            current = null;
+            currentPosting = next();
+
+            if (currentPosting == null)
+                break;
+
+            brekPointNextGEQ++;
         }
 
-        return current;
+
+        return currentPosting;
     }
 
     @Override
@@ -236,4 +261,16 @@ public class PostingListSkippable  implements Iterator<Posting>
         return term.getTermUpperBoundBM25();
     }
 
+    public void printPostingList()
+    {
+        System.out.print("[" + term.getTerm() + "] ");
+        for (Posting p : postingsOfTheCurrentBlock)
+        {
+            System.out.print(p);
+        }
+    }
+    public boolean isNoMorePostings()
+    {
+        return noMorePostings;
+    }
 }

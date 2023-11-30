@@ -8,8 +8,9 @@ import java.util.List;
 public class Document
 {
     public static final int PID_SIZE = 64;
-    public static final long SIZE = PID_SIZE + 4L + 4L;
-
+    public static final long SIZE = PID_SIZE
+                                    + 4L        // docid
+                                    + 4L;       // tokenCount
     private String pid;
     private int docid;
     private int tokenCount;
@@ -32,7 +33,8 @@ public class Document
     /**
      * Builder class for a document AFTER being indexed (retrieved during query processing)
      */
-    public Document(String pid, int docid, int tokenCount){
+    public Document(String pid, int docid, int tokenCount)
+    {
         this.pid = pid;
         this.docid = docid;
         this.tokenCount = tokenCount;
@@ -59,9 +61,9 @@ public class Document
 
 /*
  * La seguente classe rappresenta un documento della collezione gia preprocessato e inserito nel Document Index
- *  Contiene le informazioni principali ai fini della ricerca e del calcolo degli score:
- *  - tokenCount
+ * Contiene le informazioni principali ai fini della ricerca e del calcolo degli score:
+ *      - tokenCount
  *
- * Ai fini della programmazione ad oggetti, contiene anche una lista di token, in quanto tale classe e' istanziata
- *  alla fine della fase di preprocessing
+ * Ai fini della programmazione a oggetti, contiene anche una lista di token, in quanto tale classe è istanziata
+ * alla fine della fase di preprocessing
  */
