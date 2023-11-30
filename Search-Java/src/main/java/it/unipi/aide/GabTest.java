@@ -20,6 +20,11 @@ public class GabTest
     static MaxScore maxScore = new MaxScore(false, 10);
     public static void main(String[] argv)
     {
+        queryHandler();
+    }
+
+    private static void priorityQueueTest()
+    {
         // Provare la priority queue di dimensione massima 5
         PriorityQueue<ScoredDocument> priorityQueue = new PriorityQueue<>(5, ScoredDocument.compareTo());
 
@@ -39,9 +44,7 @@ public class GabTest
 
         System.out.println("END:");
         System.out.println(priorityQueue);
-
     }
-
     private static void queryHandler()
     {
         String query = "manhattan project scientists";
@@ -52,20 +55,27 @@ public class GabTest
         List<PostingListSkippable> postingLists = qp.retrievePostingList(queryTerms);
         HashMap<String, TermInfo> terms = new HashMap<String, TermInfo>();
         terms = qp.getTerms();
+        System.out.println("QUERY: " + query);
 
-        // Print the posting lists
-        for (PostingListSkippable p: postingLists)
-        {
-            System.out.println("Term: " + p.getTerm()
-                    + "\nNumBlocks: " + terms.get(p.getTerm()).getNumBlocks()
-                    + "\nNumPostings: " + terms.get(p.getTerm()).getNumPosting()
-                    + "\nTermUpperBound: " + terms.get(p.getTerm()).getTermUpperBoundTFIDF());
-            p.printPostingList();
-            System.out.println();
-            System.out.println();
+        processQueryDAAT(queryTerms);
+        System.out.println();
+        processQueryMaxScore(queryTerms);
+    }
+
+    private static void processQueryDAAT(List<String> queryTerms)
+    {
+        long startTime = System.currentTimeMillis();
+
+        System.out.println("Results DAAT:");
+
+        for (ScoredDocument sd : daat.executeDAAT(queryTerms)) {
+            System.out.print(sd);
         }
 
-        processQueryMaxScore(queryTerms);
+        long endTime = System.currentTimeMillis();
+        long elapsedTime = endTime - startTime;
+
+        System.out.println(elapsedTime + " ms");
     }
 
     private static void processQueryMaxScore(List<String> tokens)

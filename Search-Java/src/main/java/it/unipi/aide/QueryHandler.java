@@ -78,10 +78,7 @@ public class QueryHandler
         System.out.println("Results MAX-SCORE:");
 
         // Print the list of top-k scored documents, in reverse order
-        PriorityQueue<ScoredDocument> topKDocs = maxScore.executeMaxScore(tokens);
-        while (!topKDocs.isEmpty())
-        {
-            ScoredDocument sd = topKDocs.poll();
+        for (ScoredDocument sd : maxScore.executeMaxScore(tokens)) {
             System.out.print(sd);
         }
 

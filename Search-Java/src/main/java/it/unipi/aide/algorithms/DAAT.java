@@ -49,13 +49,14 @@ public class DAAT
 
             postingLists = mergeLists(postingLists,cachedPostingLists);
         }
-        else {
+        else
+        {
             postingLists = qp.retrievePostingList(queryTerms);
-
             cachePostingLists(postingLists);
         }
 
-        if(postingLists.isEmpty()) {
+        if(postingLists.isEmpty())
+        {
             System.err.println("No posting lists found");
             return new ArrayList<>();
         }
@@ -84,7 +85,7 @@ public class DAAT
                     // If Posting List of current term has docId equals to the smallest under consideration, calculate its score
                     if (pl.getCurrentPosting().getDocId() == firstDoc)
                     {
-                        documentToAdd.setScore(ScoreFunction.computeTFIDF(
+                        documentToAdd.setScore(ScoreFunction.computeTFIDF (
                                                     pl.getCurrentPosting().getFrequency(),
                                                     terms.get(pl.getTerm()).getNumPosting()
                                 )
