@@ -23,37 +23,10 @@ public class DAAT
 
     public List<ScoredDocument> executeDAAT(List<String> queryTerms)
     {
-        /* Check the existence of the results already in cache: */
-        //cache.printQueriesResultsCache();
-        List<ScoredDocument> cachedResults = cache.containsQueryResults(queryTerms);
-        if(cachedResults!=null)
-            return cachedResults;
+        //todo search in cache
 
-        List<PostingListSkippable> postingLists;
         QueryPreprocessing qp = new QueryPreprocessing();
-
-        Map<String, List<String>> result = cache.getTermsInCommonAndNot(queryTerms);
-        List<String> cachedTerms = result.get("common");
-        if(cachedTerms!=null)
-        {
-            List<PostingListSkippable> cachedPostingLists = new ArrayList<>();
-            for (String cachedTerm : cachedTerms) {
-                PostingListSkippable currentPostingList = cache.getTermsPostingList(cachedTerm);
-                if(currentPostingList!=null)
-                    cachedPostingLists.add(currentPostingList);
-            }
-
-            List<String> notCachedTerms = result.get("nonCommon");
-            postingLists = qp.retrievePostingList(notCachedTerms);
-            cachePostingLists(postingLists);
-
-            postingLists = mergeLists(postingLists,cachedPostingLists);
-        }
-        else {
-            postingLists = qp.retrievePostingList(queryTerms);
-
-            cachePostingLists(postingLists);
-        }
+        List<PostingListSkippable> postingLists = qp.retrievePostingList(queryTerms);
 
         if(postingLists.isEmpty()) {
             System.err.println("No posting lists found");
@@ -107,27 +80,10 @@ public class DAAT
         });
 
         if (scoredDocuments.size() > K)
-        {
-            List<ScoredDocument> firstKResults = scoredDocuments.subList(0, K);
-            cache.putInQueriesResultsCache(queryTerms, firstKResults);
-
-            return firstKResults;
-        }
+            return scoredDocuments.subList(0, K);
         else
-        {
-            cache.putInQueriesResultsCache(queryTerms, scoredDocuments);
             return scoredDocuments;
-        }
 
-    }
-
-    private void cachePostingLists(List<PostingListSkippable> notCachedTerms) {
-
-        for (PostingListSkippable notCachedTerm : notCachedTerms) {
-
-            String term = notCachedTerm.getTerm();
-            cache.putInPostingListsCache(term, notCachedTerm);
-        }
     }
 
     private int getSmallestDocid(List<PostingListSkippable> postingLists)
@@ -142,14 +98,5 @@ public class DAAT
             }
         }
         return min;
-    }
-
-    public List<PostingListSkippable> mergeLists(List<PostingListSkippable> list1, List<PostingListSkippable> list2) {
-        List<PostingListSkippable> mergedList = new ArrayList<>();
-
-        mergedList.addAll(list1);
-        mergedList.addAll(list2);
-
-        return mergedList;
     }
 }
