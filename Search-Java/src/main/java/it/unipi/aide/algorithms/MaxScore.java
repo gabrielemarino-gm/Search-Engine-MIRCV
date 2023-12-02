@@ -59,6 +59,7 @@ public class MaxScore
 
         while (pivot < terms.size())
         {
+            // If the current docID is equal to the maximum integer value, it means that there are no more documents
             if (currentDoc == Integer.MAX_VALUE)
                 break;
 
@@ -75,18 +76,26 @@ public class MaxScore
             // int docLength = d.getTokenCount();
             int docLength = 0;
 
+            int breakPoint = 0;
 // ( ESSENTIAL LISTS
             // For current DocID, compute the score of essential lists only
             for (int i = pivot; i < terms.size(); i++)
             {
+                if (currentDoc == 2616692)
+                    breakPoint++;
                 if (postingLists.get(i).getCurrentPosting() != null)
                 {
+                    if (currentDoc == 2616692)
+                        breakPoint++;
                     // if the current docID of the posting list i, is equal to the docID under examination
                     if (postingLists.get(i).getCurrentPosting().getDocId() == currentDoc)
                     {
                         score += computeScore(i, docLength);
+
                         // Move to the next posting of the posting list i-th
                         postingLists.get(i).next();
+                        if (currentDoc == 2616692)
+                            breakPoint++;
                     }
                 }
 
@@ -97,6 +106,8 @@ public class MaxScore
                     if (postingLists.get(i).getCurrentPosting().getDocId() < nextDoc)
                     {
                         nextDoc = postingLists.get(i).getCurrentPosting().getDocId();
+                        if (currentDoc == 2616692)
+                            breakPoint++;
                     }
                 }
             }
@@ -104,14 +115,14 @@ public class MaxScore
 
 // ( NON-ESSENTIAL LISTS
             // For current DocID, compute the score of non-essential lists only
-            int breakPointNonEss = 0;
             for (int i = pivot - 1; i >= 0; i--)
             {
-                breakPointNonEss++;
                 // If score + upper bound of the first non-essential list is lower than the current sigma,
                 // skip the document
                 if (score + postingLists.get(i).getTermUpperBoundTFIDF() <= sigma)
                 {
+                    if (currentDoc == 2616692)
+                        breakPoint++;
                     break;
                 }
 
@@ -119,18 +130,18 @@ public class MaxScore
                 // to the posting with the DocID equal to the first docid equal to the next in the essential lists
                 if (postingLists.get(i).nextGEQ(currentDoc) != null)
                 {
-                    breakPointNonEss++;
+                    // prima di GEQ - DocID 2604949 | BlockIndexer 90
                     // Compute the score if the current DocID is in the posting list
                     if (postingLists.get(i).getCurrentPosting().getDocId() == currentDoc)
                     {
                         score += computeScore(i, docLength);
-                        breakPointNonEss++;
+                        if (currentDoc == 2616692)
+                            breakPoint++;
                     }
                 }
             }
 // )
 
-            int breakPointPivot = 0;
 // ( INSERT IN QUEUE AND UPDATE PIVOT
             if (topKDocs.add(new ScoredDocument(currentDoc, score)))
             {
@@ -145,18 +156,25 @@ public class MaxScore
                     topKDocs.remove(TOP_K); // The minimum score is at the top of the queue, because it is ordered in increasing order
                     sigma = topKDocs.get(TOP_K - 1).getScore();
                 }
+                // else just update the current sigma with the minimum score in the queue
                 else
                 {
-                    // Update the current sigma with the minimum score in the queue
                     sigma = topKDocs.get(topKDocs.size() - 1).getScore();
                 }
 
                 // Update the pivot
-                while (pivot < terms.size() && postingLists.get(pivot).getTermUpperBoundTFIDF() <= sigma)
+                // TODO: AGGIONAMENTO PIVOT DA RIVEDERE, SI FERMA PRIMA DEL DOVUTO, PERCHÉ ARRIVA A queryTerms.size().
+                while (pivot < terms.size()-1 && postingLists.get(pivot).getTermUpperBoundTFIDF() <= sigma)
                 {
+                    if (currentDoc == 2616692)
+                        breakPoint++;
                     pivot++;
-                    breakPointPivot++;
+                    if (currentDoc == 2616692)
+                        breakPoint++;
                 }
+
+                if (currentDoc == 2616692)
+                    breakPoint++;
             }
 // )
             // Update the current docID

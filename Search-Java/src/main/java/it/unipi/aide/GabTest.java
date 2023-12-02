@@ -20,7 +20,14 @@ public class GabTest
     static MaxScore maxScore = new MaxScore(false, 10);
     public static void main(String[] argv)
     {
-        queryHandler();
+        String query = "manhattan project scientists";
+        List<String> queryTerms = preprocesser.process(query);
+        System.out.println("QUERY: " + query);
+
+        System.out.println();
+        processQueryDAAT(queryTerms);
+        System.out.println();
+        processQueryMaxScore(queryTerms);
     }
 
     private static void priorityQueueTest()
@@ -45,23 +52,6 @@ public class GabTest
         System.out.println("END:");
         System.out.println(priorityQueue);
     }
-    private static void queryHandler()
-    {
-        String query = "manhattan project scientists";
-        List<String> queryTerms = preprocesser.process(query);
-
-        // Retrieve the posting lists of the query terms
-        QueryPreprocessing qp = new QueryPreprocessing();
-        List<PostingListSkippable> postingLists = qp.retrievePostingList(queryTerms);
-        HashMap<String, TermInfo> terms = new HashMap<String, TermInfo>();
-        terms = qp.getTerms();
-        System.out.println("QUERY: " + query);
-
-        processQueryDAAT(queryTerms);
-        System.out.println();
-        processQueryMaxScore(queryTerms);
-    }
-
     private static void processQueryDAAT(List<String> queryTerms)
     {
         long startTime = System.currentTimeMillis();

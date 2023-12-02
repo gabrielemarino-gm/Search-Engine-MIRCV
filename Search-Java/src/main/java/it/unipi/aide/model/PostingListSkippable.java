@@ -130,7 +130,8 @@ public class PostingListSkippable  implements Iterator<Posting>
             else
             {
                 // No more blocks to read
-                postingsOfTheCurrentBlock = null;
+                postingsOfTheCurrentBlock = new ArrayList<>();
+
             }
         }
         catch (IOException e)
@@ -208,24 +209,27 @@ public class PostingListSkippable  implements Iterator<Posting>
                 break;
 
             blockIndexer++;
-            brekPointNextGEQ++;
         }
 
         // Get the postings from the block, if the blockIndexer has been increased
         if (blockIndexer > prevBlockIndexer)
             getPostingsFromBlock(true);
 
+        brekPointNextGEQ++;
+
         // Move the current posting to the first posting with docID >= docID
-        while (docID > currentPosting.getDocId())
+        if (currentPosting != null)
         {
-            currentPosting = next();
+            while (docID > currentPosting.getDocId())
+            {
+                currentPosting = next();
 
-            if (currentPosting == null)
-                break;
+                if (currentPosting == null)
+                    break;
 
-            brekPointNextGEQ++;
+                brekPointNextGEQ++;
+            }
         }
-
 
         return currentPosting;
     }
