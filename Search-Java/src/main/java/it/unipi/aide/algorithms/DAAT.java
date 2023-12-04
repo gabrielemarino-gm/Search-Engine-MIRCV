@@ -1,7 +1,8 @@
 package it.unipi.aide.algorithms;
 
 import it.unipi.aide.model.*;
-import it.unipi.aide.utils.*;
+import it.unipi.aide.testfilespartial.utils.QueryPreprocessing;
+import it.unipi.aide.testfilespartial.utils.ScoreFunction;
 
 import java.util.*;
 import java.util.List;
@@ -13,8 +14,6 @@ public class DAAT
 
     HashMap<String, TermInfo> terms = new HashMap<>();
 
-    Cache cache = Cache.getCacheInstance();
-
     public DAAT(int k)
     {
         this.K = k;
@@ -23,9 +22,8 @@ public class DAAT
 
     public List<ScoredDocument> executeDAAT(List<String> queryTerms)
     {
-        //todo search in cache
-
         QueryPreprocessing qp = new QueryPreprocessing();
+
         List<PostingListSkippable> postingLists = qp.retrievePostingList(queryTerms);
 
         if(postingLists.isEmpty()) {
@@ -51,14 +49,14 @@ public class DAAT
             for(PostingListSkippable pl : postingLists)
             {
                 // If at least one Posting List has elements, Hypothesis became false
-                if (pl.getCurrent() != null)
+                if (pl.getCurrentPosting() != null)
                 {
                     stop = false;
                     // If Posting List of current term has docId equals to the smallest under consideration, calculate its score
-                    if (pl.getCurrent().getDocId() == firstDoc)
+                    if (pl.getCurrentPosting().getDocId() == firstDoc)
                     {
                         documentToAdd.setScore(ScoreFunction.computeTFIDF(
-                                                    pl.getCurrent().getFrequency(),
+                                                    pl.getCurrentPosting().getFrequency(),
                                                     terms.get(pl.getTerm()).getNumPosting()
                                 )
                         );
@@ -92,9 +90,9 @@ public class DAAT
 
         for(PostingListSkippable pl : postingLists)
         {
-            if(pl.getCurrent() != null && pl.getCurrent().getDocId() < min)
+            if(pl.getCurrentPosting() != null && pl.getCurrentPosting().getDocId() < min)
             {
-                min = pl.getCurrent().getDocId();
+                min = pl.getCurrentPosting().getDocId();
             }
         }
         return min;

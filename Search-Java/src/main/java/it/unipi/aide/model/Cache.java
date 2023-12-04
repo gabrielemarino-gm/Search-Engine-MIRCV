@@ -4,23 +4,17 @@ import java.util.*;
 
 public class Cache
 {
-    private final Map<Long, TermCacheInfo> termInfos;
-    private final Map<Integer, DocCacheInfo> docInfos;
-    private final int maxSize = 1200; //tofix
-
+    /* Cached terms for binary search: */
+    private final LRUCache<Long, TermInfo> termInfos = new LRUCache<>();
+    private static final int MAX_SIZE = 1200; //todo tocheck
     private static final Cache SearchEngineCache = new Cache();
 
-    public Cache()
-    {
-        this.termInfos = new HashMap<>();
-        this.docInfos = new HashMap<>();
-    }
-
+    /* Returns the cache instance. Used to make all classes refer to the same cache instance. */
     public static Cache getCacheInstance() {
         return SearchEngineCache;
     }
 
-    /* Cached terms for binary search */
+    /* TermInfo handling methods: */
     public boolean containsTermInfo(long termPosition)
     {
         return termInfos.containsKey(termPosition);
@@ -28,58 +22,25 @@ public class Cache
 
     public TermInfo getTermInfo(long termPosition)
     {
-        return termInfos.get(termPosition).getTermInfo();
+        return termInfos.get(termPosition);
     }
 
     public void putTermIntoTermInfoCache(long termPosition, TermInfo termInfo)
     {
-        termInfos.put(termPosition, new TermCacheInfo(termInfo));
+        termInfos.put(termPosition, termInfo);
     }
 
-    public static class TermCacheInfo
+    /* Class used to implement a LRUCache with removing operation defined when the cache is full. In that case,
+    * the least recently used/accessed element will be removed.  */
+    public static class LRUCache<K, V> extends LinkedHashMap<K, V>
     {
-        private final TermInfo termInfo;
-        private long timestamp;
-
-        public TermCacheInfo(TermInfo ti)
-        {
-            termInfo = ti;
-            timestamp = System.currentTimeMillis();
+        public LRUCache() {
+            super(MAX_SIZE, 0.75f, true);
         }
 
-        public TermInfo getTermInfo()
-        {
-            timestamp = System.currentTimeMillis();
-            return termInfo;
-        }
-
-        public long getTimestamp()
-        {
-            return timestamp;
-        }
-    }
-
-    public static class DocCacheInfo
-    {
-        private final Integer docLenght;
-
-        private long timestamp;
-
-        public DocCacheInfo (int dl)
-        {
-            docLenght = dl;
-            timestamp = System.currentTimeMillis();
-        }
-
-        public Integer getDocInfo()
-        {
-            timestamp = System.currentTimeMillis();
-            return docLenght;
-        }
-
-        public long getTimestamp()
-        {
-            return timestamp;
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+            return size() > MAX_SIZE;
         }
     }
 }
