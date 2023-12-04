@@ -10,10 +10,8 @@ public class MatteFaCose {
 
         QueryPreprocessing qp = new QueryPreprocessing();
 
-        PostingListSkippable pls = new PostingListSkippable(qp.binarySearch("fentanyl"));
+        PostingListSkippable pls = new PostingListSkippable(qp.binarySearch("abandon"));
 
-        while(pls.hasNext()) {
-            System.out.print(pls.next() + " ");
-        }
+        System.out.println(pls);
     }
 }

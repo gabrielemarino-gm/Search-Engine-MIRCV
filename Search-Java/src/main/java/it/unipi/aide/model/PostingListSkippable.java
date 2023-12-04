@@ -140,7 +140,10 @@ public class PostingListSkippable  implements Iterator<Posting>
         }
     }
 
-    public void reset(){ blockIndexer = 0; }
+    public void reset(){
+        blockIndexer = 0;
+        postingsOfTheCurrentBlock.clear();
+    }
 
     private Posting currentPosting = null;
     public Posting getCurrentPosting()
