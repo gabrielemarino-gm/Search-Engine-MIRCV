@@ -70,6 +70,7 @@ public class DAAT
                 scoredDocuments.add(documentToAdd);
         }
 
+        // TODO -> Time Consuming
         // Sort the documents by score
         scoredDocuments.sort((o1, o2) ->
         {

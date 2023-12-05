@@ -323,8 +323,7 @@ public class Merging
                             finalTerm);
 
                     // First offset of first term Block is updated inside the previous function
-                    if (DEBUG)
-                        writeTermToDisk(finalVocChannel, finalTerm);
+                    writeTermToDisk(finalVocChannel, finalTerm);
 
                     // ... print in txt format for debug ...
                     printIndexDebugInTXT(concatenatedDocsBytes, concatenatedFreqBytes, smallestTerm);
@@ -344,7 +343,7 @@ public class Merging
                     for(TermInfo t: vocs)
                     {
                         // If at least one is not null, just continue
-                        if(t != null )
+                        if(t != null)
                         {
                             allNull = false;
                             break;

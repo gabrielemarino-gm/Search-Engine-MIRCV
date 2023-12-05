@@ -59,9 +59,10 @@ public class MaxScore
         for(int i = postingLists.size() - 1; i <= 0 ; i--)
         {
             sigma += postingLists.get(i).getTermUpperBoundTFIDF();
-            s[i] = postingLists.get(i).getTermUpperBoundTFIDF();
+            s[i] = sigma;
         }
 
+        sigma = 0;
 
         /* le posting sono ordinate in ordine decrescente */
         /* ESSENTIAL -> (fine - 1, pivot) -> (pivot, fine - 1)*/
@@ -176,7 +177,7 @@ public class MaxScore
 
                 // Update the pivot
                 // TODO: AGGIONAMENTO PIVOT DA RIVEDERE, SI FERMA PRIMA DEL DOVUTO, PERCHÉ ARRIVA A queryTerms.size().
-                while (pivot < terms.size() - 1 && postingLists.get(pivot).getTermUpperBoundTFIDF() <= sigma)
+                while (pivot < terms.size() - 1 && s[pivot] <= sigma)
                 {
 //                    if (currentDoc == 2616692)
 //                        breakPoint++;
