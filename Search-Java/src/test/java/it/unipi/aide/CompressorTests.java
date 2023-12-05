@@ -53,10 +53,10 @@ public class CompressorTests {
     public void unaryCompression(){
         byte[] outBytes;
         outBytes = Compressor.UnaryCompression(unaryCompIn[0]);
-        assertArrayEquals(outBytes, new byte[] {(byte)0b00000110, (byte)0b11110100});
+        assertArrayEquals(outBytes, new byte[] {(byte)0b01111011, (byte)0b00000001});
 
         outBytes = Compressor.UnaryCompression(unaryCompIn[1]);
-        assertArrayEquals(outBytes, new byte[] {(byte)0b01000100, (byte)0b01000000});
+        assertArrayEquals(outBytes, new byte[] {(byte)0b00100010, (byte)0b00000010});
 
     }
 

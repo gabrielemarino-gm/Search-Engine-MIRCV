@@ -2,7 +2,7 @@ package it.unipi.aide.algorithms;
 
 import it.unipi.aide.model.*;
 import it.unipi.aide.utils.QueryPreprocessing;
-import it.unipi.aide.utils.ScoreFunction;
+import it.unipi.aide.testfilespartial.utils.ScoreFunction;
 
 import java.util.*;
 

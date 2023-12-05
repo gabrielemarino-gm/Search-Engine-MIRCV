@@ -14,6 +14,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import it.unipi.aide.testfilespartial.utils.ScoreFunction;
 
 public class Merging
 {
