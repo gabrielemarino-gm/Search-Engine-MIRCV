@@ -1,4 +1,4 @@
-package it.unipi.aide.utils;
+package it.unipi.aide.testfilespartial.utils;
 
 import it.unipi.aide.model.CollectionInformation;
 
@@ -20,7 +20,7 @@ public class ScoreFunction
         float score = 0;
 
         if (tf > 0)
-            score = (float) ((1 + Math.log(tf)) * Math.log((double) N / df));
+            score = (float) ((1 + Math.log10(tf)) * Math.log10((double) N / df));
 
         return score;
     }
@@ -30,7 +30,7 @@ public class ScoreFunction
         float score = 0;
 
         if (tf > 0)
-            score = (float) (tf / (k1*((1-b) + b*(docLength/ADL)) + tf) * Math.log((double) N / df));
+            score = (float) (tf / (k1*((1-b) + b*(docLength/ADL)) + tf) * Math.log10((double) N / df));
 
         return score;
     }
