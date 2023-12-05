@@ -93,7 +93,7 @@ public class Preprocesser
 
     /**
      * Remove Stopwords from a list of tokens
-     * @param tokens List of tokens
+     * @param tokens Set of tokens
      * @return List of tokens without Stopwords
      */
     private ArrayList<String> removeStopwords(ArrayList<String> tokens)

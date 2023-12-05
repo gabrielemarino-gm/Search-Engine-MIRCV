@@ -37,14 +37,13 @@ public class MaxScore
         this.postingLists = qp.retrievePostingList(queryTerms);
         terms = qp.getTerms();
 
-        // Initial threshold sigma is equal to 0
-        float sigma = 0;
         // Initial pivot for non-essential lists is the first one
         int pivot = 0;
 
         // Initial priority queue, in increasing order of score
         // PriorityQueue<ScoredDocument> topKDocs =  new PriorityQueue<>(TOP_K, ScoredDocument.compareTo());
         List<ScoredDocument> topKDocs =  new ArrayList<>();
+        PriorityQueue<Integer> priorityQueue = new PriorityQueue<>(TOP_K, Comparator.comparingInt(o -> o));
 
         // TODO: Forse è meglio usare una PriorityQueue invece di ordinare ogni volta
         // Make sure that the list of PostingList is ordered by increasing upper bound
@@ -52,6 +51,21 @@ public class MaxScore
             Collections.sort(postingLists, PostingListSkippable.compareToBM25());
         else
             Collections.sort(postingLists, PostingListSkippable.compareToTFIDF());
+
+
+        float[] s = new float[postingLists.size()];
+        float sigma = 0;
+        for(int i = postingLists.size() - 1; i <= 0 ; i--)
+        {
+            sigma += postingLists.get(i).getTermUpperBoundTFIDF();
+            s[i] = postingLists.get(i).getTermUpperBoundTFIDF();
+        }
+
+
+        /* le posting sono ordinate in ordine decrescente */
+        /* ESSENTIAL -> (fine - 1, pivot) -> (pivot, fine - 1)*/
+        /* NESSENTIA -> (inizio, pivot - 1) -> (pivor - 1, inizio)*/
+
 
         // Repeat the followings until the top-k documents are retrieved
         // Get minimum docID from the first posting list
@@ -79,14 +93,11 @@ public class MaxScore
             int breakPoint = 0;
 // ( ESSENTIAL LISTS
             // For current DocID, compute the score of essential lists only
-            for (int i = pivot; i < terms.size(); i++)
+//            for (int i = pivot; i < terms.size(); i++)
+            for (int i = terms.size() - 1; i >= pivot; i--)
             {
-                if (currentDoc == 2616692)
-                    breakPoint++;
                 if (postingLists.get(i).getCurrentPosting() != null)
                 {
-                    if (currentDoc == 2616692)
-                        breakPoint++;
                     // if the current docID of the posting list i, is equal to the docID under examination
                     if (postingLists.get(i).getCurrentPosting().getDocId() == currentDoc)
                     {
@@ -94,8 +105,6 @@ public class MaxScore
 
                         // Move to the next posting of the posting list i-th
                         postingLists.get(i).next();
-                        if (currentDoc == 2616692)
-                            breakPoint++;
                     }
                 }
 
@@ -106,8 +115,6 @@ public class MaxScore
                     if (postingLists.get(i).getCurrentPosting().getDocId() < nextDoc)
                     {
                         nextDoc = postingLists.get(i).getCurrentPosting().getDocId();
-                        if (currentDoc == 2616692)
-                            breakPoint++;
                     }
                 }
             }
@@ -126,8 +133,12 @@ public class MaxScore
                     break;
                 }
 
+
                 // Every time we calculate a score, we also have to increase the posting list pointer
                 // to the posting with the DocID equal to the first docid equal to the next in the essential lists
+
+                // If i get there, the currentDoc still has a chance to surpass the threshold
+                // Calculate it's score
                 if (postingLists.get(i).nextGEQ(currentDoc) != null)
                 {
                     // prima di GEQ - DocID 2604949 | BlockIndexer 90
@@ -164,13 +175,13 @@ public class MaxScore
 
                 // Update the pivot
                 // TODO: AGGIONAMENTO PIVOT DA RIVEDERE, SI FERMA PRIMA DEL DOVUTO, PERCHÉ ARRIVA A queryTerms.size().
-                while (pivot < terms.size()-1 && postingLists.get(pivot).getTermUpperBoundTFIDF() <= sigma)
+                while (pivot < terms.size() - 1 && postingLists.get(pivot).getTermUpperBoundTFIDF() <= sigma)
                 {
-                    if (currentDoc == 2616692)
-                        breakPoint++;
+//                    if (currentDoc == 2616692)
+//                        breakPoint++;
                     pivot++;
-                    if (currentDoc == 2616692)
-                        breakPoint++;
+//                    if (currentDoc == 2616692)
+//                        breakPoint++;
                 }
 
                 if (currentDoc == 2616692)

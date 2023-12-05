@@ -1,8 +1,8 @@
 package it.unipi.aide.algorithms;
 
 import it.unipi.aide.model.*;
-import it.unipi.aide.testfilespartial.utils.QueryPreprocessing;
-import it.unipi.aide.testfilespartial.utils.ScoreFunction;
+import it.unipi.aide.utils.QueryPreprocessing;
+import it.unipi.aide.utils.ScoreFunction;
 
 import java.util.*;
 import java.util.List;
@@ -30,6 +30,7 @@ public class DAAT
             System.err.println("No posting lists found");
             return new ArrayList<>();
         }
+
         terms = qp.getTerms();
 
         // If searched terms are not in the vocabulary, return null
