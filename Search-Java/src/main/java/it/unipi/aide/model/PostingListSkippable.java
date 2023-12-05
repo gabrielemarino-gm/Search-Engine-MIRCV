@@ -179,7 +179,7 @@ public class PostingListSkippable  implements Iterator<Posting>
 
     /**
      * Update the current posting with the next
-     * @return
+     * @return the next posting
      */
     public Posting next()
     {
@@ -226,9 +226,10 @@ public class PostingListSkippable  implements Iterator<Posting>
             return null;
 
         // Get the postings from the block, if the blockIndexer has been increased
-        if (currentBlockIndexer > prevBlockIndexer) {
+        if (currentBlockIndexer > prevBlockIndexer)
+        {
             getPostingsFromBlock();
-//            currentPosting = next();
+            // currentPosting = next();
         }
 
         // While current posting has docID less than the one i need for

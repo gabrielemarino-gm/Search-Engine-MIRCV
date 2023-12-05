@@ -56,6 +56,7 @@ public class MaxScore
         float[] s = new float[postingLists.size()];
         float sigma = 0;
 
+        // Compute the upper bound of each posting list
         for(int i = 0; i < postingLists.size() ; i++)
         {
             sigma += postingLists.get(i).getTermUpperBoundTFIDF();
@@ -63,11 +64,6 @@ public class MaxScore
         }
 
         sigma = 0;
-
-        /* le posting sono ordinate in ordine decrescente */
-        /* ESSENTIAL -> (fine - 1, pivot) -> (pivot, fine - 1)*/
-        /* NESSENTIA -> (inizio, pivot - 1) -> (pivor - 1, inizio)*/
-
 
         // Repeat the followings until the top-k documents are retrieved
         // Get minimum docID from the first posting list
@@ -87,15 +83,13 @@ public class MaxScore
             //          volta devo prendere la lunghezza del documento
 
             // Take the document length of the current document
-            // DocumentIndex documentIndex = new DocumentIndex();
-            // Document d = documentIndex.get(currentDoc);
-            // int docLength = d.getTokenCount();
+            //DocumentIndex documentIndex = new DocumentIndex();
+            //Document d = documentIndex.get(currentDoc);
+            //int docLength = d.getTokenCount();
             int docLength = 0;
 
-            int breakPoint = 0;
 // ( ESSENTIAL LISTS
             // For current DocID, compute the score of essential lists only
-//            for (int i = terms.size() - 1; i >= pivot; i--)
             for (int i = pivot; i < terms.size(); i++)
             {
                 if (postingLists.get(i).getCurrentPosting() != null)
@@ -170,18 +164,10 @@ public class MaxScore
                 }
 
                 // Update the pivot
-                // TODO: AGGIONAMENTO PIVOT DA RIVEDERE, SI FERMA PRIMA DEL DOVUTO, PERCHÉ ARRIVA A queryTerms.size().
                 while (pivot < terms.size() - 1 && s[pivot] <= sigma)
                 {
-//                    if (currentDoc == 2616692)
-//                        breakPoint++;
                     pivot++;
-//                    if (currentDoc == 2616692)
-//                        breakPoint++;
                 }
-
-                if (currentDoc == 2616692)
-                    breakPoint++;
             }
 // )
             // Update the current docID
@@ -197,7 +183,6 @@ public class MaxScore
      */
     private int getMinimumDocID()
     {
-        // TODO -> Check if this is correct
         int min = Integer.MAX_VALUE;
 
         for (PostingListSkippable pl : postingLists)
@@ -206,8 +191,8 @@ public class MaxScore
             {
                 min = pl.getCurrentPosting().getDocId();
             }
-            
         }
+
         return min;
     }
 
