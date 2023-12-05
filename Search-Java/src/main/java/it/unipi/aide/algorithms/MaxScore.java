@@ -56,7 +56,7 @@ public class MaxScore
         float[] s = new float[postingLists.size()];
         float sigma = 0;
 
-        for(int i = postingLists.size() - 1; i <= 0 ; i--)
+        for(int i = 0; i < postingLists.size() ; i++)
         {
             sigma += postingLists.get(i).getTermUpperBoundTFIDF();
             s[i] = sigma;
@@ -95,8 +95,8 @@ public class MaxScore
             int breakPoint = 0;
 // ( ESSENTIAL LISTS
             // For current DocID, compute the score of essential lists only
-//            for (int i = pivot; i < terms.size(); i++)
-            for (int i = terms.size() - 1; i >= pivot; i--)
+//            for (int i = terms.size() - 1; i >= pivot; i--)
+            for (int i = pivot; i < terms.size(); i++)
             {
                 if (postingLists.get(i).getCurrentPosting() != null)
                 {
@@ -128,14 +128,10 @@ public class MaxScore
             {
                 // If score + upper bound of the first non-essential list is lower than the current sigma,
                 // skip the document
-                if (score + postingLists.get(i).getTermUpperBoundTFIDF() <= sigma)
+                if (score + s[i] <= sigma)
                 {
-                    if (currentDoc == 2616692)
-                        breakPoint++;
                     break;
                 }
-
-
                 // Every time we calculate a score, we also have to increase the posting list pointer
                 // to the posting with the DocID equal to the first docid equal to the next in the essential lists
 
@@ -148,8 +144,6 @@ public class MaxScore
                     if (postingLists.get(i).getCurrentPosting().getDocId() == currentDoc)
                     {
                         score += computeScore(i, docLength);
-                        if (currentDoc == 2616692)
-                            breakPoint++;
                     }
                 }
             }
