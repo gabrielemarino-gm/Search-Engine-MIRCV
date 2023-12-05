@@ -55,6 +55,7 @@ public class MaxScore
 
         float[] s = new float[postingLists.size()];
         float sigma = 0;
+
         for(int i = postingLists.size() - 1; i <= 0 ; i--)
         {
             sigma += postingLists.get(i).getTermUpperBoundTFIDF();

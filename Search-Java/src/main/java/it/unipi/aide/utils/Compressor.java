@@ -51,34 +51,29 @@ public class Compressor {
         // Unary decompression
         public static int[] UnaryDecompression(byte[] compressed, int qty)
         {
-            List<Integer> decompressed = new ArrayList<>();
-            int count = 0;
+            int[] toRet = new int[qty];
+            int idx = 0;
+            int count = 1;
+
             boolean inNumber = false;
 
             for (byte b : compressed) {
-                for (int i = 0; i < 8; i++) {
+                for (int i = 0; i < 8; i++){
                     boolean isSet = (b & (1 << i)) != 0;
                     if (isSet) {
                         count++;
-                    } else {
-                        if (inNumber) {
-                            decompressed.add(count);
-                            count = 0;
-                        }
-                        inNumber = false;
+                    }
+                    else
+                    {
+                        toRet[idx] = count;
+                        count = 1;
+                        idx++;
+                        if(idx == qty)
+                            return toRet;
                     }
                 }
-                inNumber = true;
             }
 
-            if (inNumber) {
-                decompressed.add(count);
-            }
-            int[] toRet = new int[qty];
-            for(int i = 0; i < qty; i++)
-            {
-                toRet[qty-1-i] = decompressed.get(i);
-            }
             return toRet;
         }
 
