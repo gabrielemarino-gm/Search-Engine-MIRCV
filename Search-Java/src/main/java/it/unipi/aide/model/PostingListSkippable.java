@@ -17,15 +17,15 @@ import java.util.List;
 public class PostingListSkippable  implements Iterator<Posting>
 {
 
-    private static String blocksPath = ConfigReader.getBlockDescriptorsPath();
-    private static String docsPath = ConfigReader.getDocidPath();
-    private static String freqPath = ConfigReader.getFrequencyPath();
+    private static final String blocksPath = ConfigReader.getBlockDescriptorsPath();
+    private static final String docsPath = ConfigReader.getDocidPath();
+    private static final String freqPath = ConfigReader.getFrequencyPath();
 
 
 
-    private TermInfo term;
-    private List<BlockDescriptor> blockDescriptors = new ArrayList<>();
-    private List<Posting> postingsOfTheCurrentBlock = new ArrayList<>();
+    private final TermInfo term;
+    private final List<BlockDescriptor> blockDescriptors = new ArrayList<>();
+    private final List<Posting> postingsOfTheCurrentBlock = new ArrayList<>();
     private int currentBlockIndexer = 0;
     boolean noMorePostings = false;
 
@@ -127,12 +127,6 @@ public class PostingListSkippable  implements Iterator<Posting>
                     }
                 }
             }
-            else
-            {
-                // No more blocks to read
-                postingsOfTheCurrentBlock = new ArrayList<>();
-
-            }
         }
         catch (IOException e)
         {
@@ -211,11 +205,17 @@ public class PostingListSkippable  implements Iterator<Posting>
      * --------------------
      */
 
+
+    /**
+     * Get the next posting with docID >= docID
+     * @param docID docID to search
+     * @return Posting with docID >= docID
+     */
     public Posting nextGEQ(int docID)
     {
         int prevBlockIndexer = currentBlockIndexer;
 
-        // Find the block that contains the docID
+        // Find the block that may contain the docID
         while (currentBlockIndexer < term.getNumBlocks() && docID > blockDescriptors.get(currentBlockIndexer).getMaxDocid())
         {
            currentBlockIndexer++;
@@ -225,33 +225,17 @@ public class PostingListSkippable  implements Iterator<Posting>
         if (currentBlockIndexer == term.getNumBlocks())
             return null;
 
-        if (docID == 8165088 && term.getTerm().equals("will"))
-            System.out.println("DEBUG");
-
         // Get the postings from the block, if the blockIndexer has been increased
-        if (currentBlockIndexer > prevBlockIndexer)
+        if (currentBlockIndexer > prevBlockIndexer) {
             getPostingsFromBlock();
+//            currentPosting = next();
+        }
 
-
-        do
+        // While current posting has docID less than the one i need for
+        while(hasNext() && currentPosting.getDocId() < docID)
         {
             currentPosting = next();
         }
-        while(hasNext() && currentPosting.getDocId() < docID);
-
-//        // Move the current posting to the first posting with docID >= docID
-//        if (currentPosting != null)
-//        {
-//            while (docID > currentPosting.getDocId())
-//            {
-//                currentPosting = next();
-//
-//                if (currentPosting == null)
-//                    break;
-//
-//                brekPointNextGEQ++;
-//            }
-//        }
 
         return currentPosting;
     }
