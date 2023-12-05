@@ -20,7 +20,7 @@ public class GabTest
     static MaxScore maxScore = new MaxScore(false, 10);
     public static void main(String[] argv)
     {
-        String query = "manhattan project scientists";
+        String query = "who proposed the mathematical relationship on how gases physically mixed will generate pressure";
         List<String> queryTerms = preprocesser.process(query);
         System.out.println("QUERY: " + query);
 

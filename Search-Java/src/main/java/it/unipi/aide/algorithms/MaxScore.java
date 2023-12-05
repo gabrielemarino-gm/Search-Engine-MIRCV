@@ -126,6 +126,7 @@ public class MaxScore
                     break;
                 }
 
+
                 // Every time we calculate a score, we also have to increase the posting list pointer
                 // to the posting with the DocID equal to the first docid equal to the next in the essential lists
                 if (postingLists.get(i).nextGEQ(currentDoc) != null)
