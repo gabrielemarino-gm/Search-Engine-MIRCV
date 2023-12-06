@@ -2,10 +2,14 @@ package it.unipi.aide;
 
 import it.unipi.aide.algorithms.DAAT;
 import it.unipi.aide.algorithms.MaxScore;
+import it.unipi.aide.model.CollectionInformation;
+import it.unipi.aide.model.Document;
+import it.unipi.aide.model.DocumentIndex;
 import it.unipi.aide.model.ScoredDocument;
 import it.unipi.aide.utils.Preprocesser;
 import it.unipi.aide.utils.QueryPreprocessing;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Scanner;

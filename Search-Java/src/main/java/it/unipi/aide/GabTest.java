@@ -2,13 +2,12 @@ package it.unipi.aide;
 
 import it.unipi.aide.algorithms.DAAT;
 import it.unipi.aide.algorithms.MaxScore;
-import it.unipi.aide.model.PostingListSkippable;
-import it.unipi.aide.model.ScoredDocument;
-import it.unipi.aide.model.TermInfo;
+import it.unipi.aide.model.*;
 import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.Preprocesser;
 import it.unipi.aide.utils.QueryPreprocessing;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -17,15 +16,15 @@ public class GabTest
 {
     static Preprocesser preprocesser = new Preprocesser(true);
     static DAAT daat = new DAAT(10);
-    static MaxScore maxScore = new MaxScore(false, 10);
+    static MaxScore maxScore = new MaxScore(true, 10);
     public static void main(String[] argv)
     {
         String query = "who proposed the mathematical relationship on how gases physically mixed will generate pressure";
         List<String> queryTerms = preprocesser.process(query);
         System.out.println("QUERY: " + query);
 
-        System.out.println();
-        processQueryDAAT(queryTerms);
+        //System.out.println();
+        //processQueryDAAT(queryTerms);
         System.out.println();
         processQueryMaxScore(queryTerms);
     }
@@ -58,7 +57,8 @@ public class GabTest
 
         System.out.println("Results DAAT:");
 
-        for (ScoredDocument sd : daat.executeDAAT(queryTerms)) {
+        for (ScoredDocument sd : daat.executeDAAT(queryTerms))
+        {
             System.out.print(sd);
         }
 
@@ -74,13 +74,19 @@ public class GabTest
 
         System.out.println("Results MAX-SCORE:");
 
+        long endTime = System.currentTimeMillis();
+        long elapsedTime = endTime - startTime;
+
+        System.out.println(elapsedTime + " ms for reading docLengths");
+
+        startTime = System.currentTimeMillis();
         for (ScoredDocument sd : maxScore.executeMaxScore(tokens)) {
             System.out.print(sd);
         }
 
-        long endTime = System.currentTimeMillis();
-        long elapsedTime = endTime - startTime;
+        endTime = System.currentTimeMillis();
+        elapsedTime = endTime - startTime;
 
-        System.out.println(elapsedTime + " ms");
+        System.out.println(elapsedTime + " ms for executing maxScore");
     }
 }

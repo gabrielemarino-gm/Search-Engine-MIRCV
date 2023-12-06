@@ -2,26 +2,45 @@ package it.unipi.aide;
 
 import it.unipi.aide.algorithms.DAAT;
 import it.unipi.aide.algorithms.MaxScore;
+import it.unipi.aide.model.CollectionInformation;
+import it.unipi.aide.model.Document;
+import it.unipi.aide.model.DocumentIndex;
 import it.unipi.aide.model.ScoredDocument;
 import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
 import it.unipi.aide.utils.Preprocesser;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class TrecEval
 {
     static Preprocesser preprocesser = new Preprocesser(true);
-    static MaxScore maxScore = new MaxScore(false, 10);
+    static MaxScore maxScore = new MaxScore(false, 20);
     static final String queryFile = ConfigReader.getTrecEvalPath() + "/msmarco-test2020-queries.tsv";
     static final String resultsFile = ConfigReader.getTrecEvalPath() + "/resultsTrecEval.txt";
+
     public static void main(String[] args)
     {
         // Remove the file if already exists, then create it
         FileManager.removeFile(resultsFile);
         FileManager.createFile(resultsFile);
+
+        // Load the documents length in memory
+        //List<Integer> docLengths = new ArrayList<>();
+
+        //DocumentIndex documentIndex = new DocumentIndex();
+        //Document d = documentIndex.get(0);
+        //docLengths.add(d.getTokenCount());
+
+        //System.out.println("DBG:\t\tReading docLengths...");
+        //for (int docId = 1; docId < CollectionInformation.getTotalDocuments(); docId++)
+        //{
+        //    d = documentIndex.get(docId);
+        //    docLengths.add(d.getTokenCount());
+        //}
 
         try (BufferedReader reader = new BufferedReader(new FileReader(queryFile)))
         {
@@ -35,23 +54,21 @@ public class TrecEval
                 // tokens[0] is the query id
                 // tokens[1] is the query text
 
-                //  execute daat
-                System.out.println("LOG:\t\t Execute DAAT for: " + Collections.singletonList(tokens[1]));
+                //  execute the algorithm
+                System.out.println("LOG:\t\t Execute Algorithm for: " + Collections.singletonList(tokens[1]));
                 List<String> queryTerms = preprocesser.process(tokens[1]);
-                List<ScoredDocument> results = maxScore.executeMaxScore(queryTerms);
+                List<ScoredDocument> resultsMaxScore = maxScore.executeMaxScore(queryTerms);
 
                 // write results to file
-                if (!results.isEmpty())
-                    writeResults(tokens[0], results);
+                if (!resultsMaxScore.isEmpty())
+                    writeResults(tokens[0], resultsMaxScore);
+
             }
         }
         catch (IOException e)
         {
             e.printStackTrace();
         }
-
-        // Per ogni query, eseguire un algoritmo
-        // Scrivere i risultati su un file
     }
 
 
