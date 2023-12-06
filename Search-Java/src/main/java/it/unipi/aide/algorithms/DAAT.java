@@ -26,7 +26,8 @@ public class DAAT
 
         List<PostingListSkippable> postingLists = qp.retrievePostingList(queryTerms);
 
-        if(postingLists.isEmpty()) {
+        if(postingLists.isEmpty())
+        {
             System.err.println("No posting lists found");
             return new ArrayList<>();
         }

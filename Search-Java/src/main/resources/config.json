@@ -20,7 +20,9 @@
   "partialDocsPath" : "data/out/partial/docidsBlock-",
   "partialFrequenciesPath" : "data/out/partial/frequenciesBlock-",
 
-  "compressionEnabled" : true,
+  "trecEvalPath" : "data/trec-eval",
+
+  "compressionEnabled" : false,
   "compressionBlockSize" : 512,
   "blockDivisionEnabled" : true
 }

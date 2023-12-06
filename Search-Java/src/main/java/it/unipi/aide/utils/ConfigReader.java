@@ -23,6 +23,7 @@ public class ConfigReader
     private static String partialVocabularyPath;
     private static String partialDocsPath;
     private static String partialFrequenciesPath;
+    private static String trecEvalPath;
     private static boolean compressionEnabled;
     private static int compressionBlockSize;
     private static boolean blockDivisionEnabled;
@@ -58,6 +59,8 @@ public class ConfigReader
             partialVocabularyPath = rootNode.get("partialVocabularyPath").asText();
             partialDocsPath = rootNode.get("partialDocsPath").asText();
             partialFrequenciesPath = rootNode.get("partialFrequenciesPath").asText();
+
+            trecEvalPath = rootNode.get("trecEvalPath").asText();
 
             compressionEnabled = rootNode.get("compressionEnabled").asBoolean();
 
@@ -99,6 +102,8 @@ public class ConfigReader
     public static String getPartialDocsPath() { return partialDocsPath; }
 
     public static String getPartialFrequenciesPath() { return partialFrequenciesPath; }
+
+    public static String getTrecEvalPath() { return trecEvalPath; }
 
     public static boolean compressionEnabled() { return compressionEnabled; }
 
