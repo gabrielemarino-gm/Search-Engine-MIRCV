@@ -5,7 +5,7 @@ import java.util.*;
 public class Cache
 {
     /* Cached terms for binary search: */
-    private final LRUCache<Long, TermInfo> termInfos = new LRUCache<>();
+    private final LRUCache<Long, String> termInfos = new LRUCache<>();
     private static final int MAX_SIZE = 1200; //todo tocheck
     private static final Cache SearchEngineCache = new Cache();
 
@@ -20,12 +20,12 @@ public class Cache
         return termInfos.containsKey(termPosition);
     }
 
-    public TermInfo getTermInfo(long termPosition)
+    public String getTermInfo(long termPosition)
     {
         return termInfos.get(termPosition);
     }
 
-    public void putTermIntoTermInfoCache(long termPosition, TermInfo termInfo)
+    public void putTermIntoTermInfoCache(long termPosition, String termInfo)
     {
         termInfos.put(termPosition, termInfo);
     }
