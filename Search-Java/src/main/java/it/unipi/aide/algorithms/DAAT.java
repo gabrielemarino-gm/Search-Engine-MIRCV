@@ -2,7 +2,7 @@ package it.unipi.aide.algorithms;
 
 import it.unipi.aide.model.*;
 import it.unipi.aide.utils.QueryPreprocessing;
-import it.unipi.aide.utils.ScoreFunction;
+import it.unipi.aide.testfilespartial.utils.ScoreFunction;
 
 import java.util.*;
 import java.util.List;
@@ -26,7 +26,8 @@ public class DAAT
 
         List<PostingListSkippable> postingLists = qp.retrievePostingList(queryTerms);
 
-        if(postingLists.isEmpty()) {
+        if(postingLists.isEmpty())
+        {
             System.err.println("No posting lists found");
             return new ArrayList<>();
         }
@@ -70,6 +71,7 @@ public class DAAT
                 scoredDocuments.add(documentToAdd);
         }
 
+        // TODO -> Time Consuming
         // Sort the documents by score
         scoredDocuments.sort((o1, o2) ->
         {

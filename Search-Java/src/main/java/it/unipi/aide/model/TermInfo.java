@@ -1,7 +1,6 @@
 package it.unipi.aide.model;
 
-import it.unipi.aide.utils.ScoreFunction;
-
+import it.unipi.aide.testfilespartial.utils.ScoreFunction;
 public class TermInfo {
     public final static int SIZE_TERM = 46;
 

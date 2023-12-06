@@ -22,17 +22,20 @@ public class PostingListSkippable  implements Iterator<Posting>
     private static final String freqPath = ConfigReader.getFrequencyPath();
 
 
-
     private final TermInfo term;
     private final List<BlockDescriptor> blockDescriptors = new ArrayList<>();
     private final List<Posting> postingsOfTheCurrentBlock = new ArrayList<>();
     private int currentBlockIndexer = 0;
     boolean noMorePostings = false;
 
+    FileChannel docsChannel;
+    FileChannel freqChannel;
+
     public PostingListSkippable(TermInfo termInfo)
     {
         this.term = termInfo;
         getBlockDescriptorsFromDisk();
+        openChannels();
     }
 
     public String getTerm() { return term.getTerm(); }
@@ -75,12 +78,7 @@ public class PostingListSkippable  implements Iterator<Posting>
      */
     private void getPostingsFromBlock()
     {
-        try(
-                FileChannel docsChannel = (FileChannel) Files.newByteChannel(Paths.get(docsPath),
-                        StandardOpenOption.READ);
-                FileChannel freqChannel = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
-                        StandardOpenOption.READ);
-        )
+        try
         {
             // clear the current posting list
             postingsOfTheCurrentBlock.clear();
@@ -137,6 +135,7 @@ public class PostingListSkippable  implements Iterator<Posting>
     public void reset(){
         currentBlockIndexer = 0;
         postingsOfTheCurrentBlock.clear();
+        openChannels();
     }
 
     /**
@@ -180,7 +179,7 @@ public class PostingListSkippable  implements Iterator<Posting>
 
     /**
      * Update the current posting with the next
-     * @return
+     * @return the next posting
      */
     public Posting next()
     {
@@ -194,6 +193,7 @@ public class PostingListSkippable  implements Iterator<Posting>
         else
         {
             currentPosting = null;
+            closeChannels();
         }
 
         return currentPosting;
@@ -226,9 +226,10 @@ public class PostingListSkippable  implements Iterator<Posting>
             return null;
 
         // Get the postings from the block, if the blockIndexer has been increased
-        if (currentBlockIndexer > prevBlockIndexer) {
+        if (currentBlockIndexer > prevBlockIndexer)
+        {
             getPostingsFromBlock();
-//            currentPosting = next();
+            // currentPosting = next();
         }
 
         // While current posting has docID less than the one i need for
@@ -283,4 +284,32 @@ public class PostingListSkippable  implements Iterator<Posting>
     {
         return noMorePostings;
     }
+
+    private void openChannels(){
+        try
+        {
+            docsChannel = (FileChannel) Files.newByteChannel(Paths.get(docsPath),
+                    StandardOpenOption.READ);
+            freqChannel = (FileChannel) Files.newByteChannel(Paths.get(freqPath),
+                    StandardOpenOption.READ);
+        }
+        catch (IOException io)
+        {
+            io.printStackTrace();
+        }
+    }
+
+    private void closeChannels()
+    {
+        try
+        {
+            docsChannel.close();
+            freqChannel.close();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
 }

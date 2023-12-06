@@ -42,9 +42,9 @@ public class CompressorTests {
         };
 
         unaryDecompIn = new byte[][]{
-                {(byte) 0b00011101, (byte) 0b10110110}, // {1,1,1,4,3,3,3}
-                {(byte) 0b11111000, (byte) 0b01110011, (byte) 0b10110100}, // {1,2,3,4,1,4,1,1,1,5}
-                {(byte) 0b01000100, (byte) 0b01000000}, // 1 2 1 1 2 1 1 2 1 1 1 1 1
+                {(byte) 0b10111000, (byte) 0b01101101}, // {1,1,1,4,3,3,3}
+                {(byte) 0b11011010, (byte) 0b00111001, (byte) 0b00111100}, // {1,2,3,4,1,4,1,1,1,5}
+                {(byte) 0b00100010, (byte) 0b00000010}, // 1 2 1 1 2 1 1 2 1 1 1 1 1
         };
 
     }
@@ -53,10 +53,10 @@ public class CompressorTests {
     public void unaryCompression(){
         byte[] outBytes;
         outBytes = Compressor.UnaryCompression(unaryCompIn[0]);
-        assertArrayEquals(outBytes, new byte[] {(byte)0b00000110, (byte)0b11110100});
+        assertArrayEquals(outBytes, new byte[] {(byte)0b01111011, (byte)0b00000001});
 
         outBytes = Compressor.UnaryCompression(unaryCompIn[1]);
-        assertArrayEquals(outBytes, new byte[] {(byte)0b01000100, (byte)0b01000000});
+        assertArrayEquals(outBytes, new byte[] {(byte)0b00100010, (byte)0b00000010});
 
     }
 
@@ -65,13 +65,13 @@ public class CompressorTests {
         int[] outInts;
 
         outInts = Compressor.UnaryDecompression(unaryDecompIn[0], 5);
-        assertArrayEquals(outInts, new int[] {1,4,3,3,3});
+        assertArrayEquals(outInts, new int[] {1,1,1,4,3});
 
         outInts = Compressor.UnaryDecompression(unaryDecompIn[1], 6);
-        assertArrayEquals(outInts, new int[] {4,1,4,3,2,1});
+        assertArrayEquals(outInts, new int[] {1,2,3,4,1,4});
 
         outInts = Compressor.UnaryDecompression(unaryDecompIn[2], 8);
-        assertArrayEquals(outInts, new int[] {1,1,2,1,1,1,1,1});
+        assertArrayEquals(outInts, new int[] {1, 2, 1, 1, 2, 1, 1, 2});
     }
 
     @Before
