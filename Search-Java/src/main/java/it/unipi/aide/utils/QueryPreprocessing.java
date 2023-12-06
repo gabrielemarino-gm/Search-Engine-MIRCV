@@ -62,15 +62,20 @@ public class QueryPreprocessing
             // Window of the binary search, start from the whole vocabulary file
             long WIN_LOWER_BOUND = 0;
             long WIN_UPPER_BOUND = CollectionInformation.getTotalTerms();
+            long prev = -1;
 
             // Binary search on the vocabulary file
             while (true)
             {
                 // Middle point of the window
                 long WIN_MIDDLE_POINT = (WIN_UPPER_BOUND - WIN_LOWER_BOUND)/ 2 + WIN_LOWER_BOUND;
+                if(prev == WIN_MIDDLE_POINT)
+                    break;
+                prev = WIN_MIDDLE_POINT;
+
 
                 // Check if the window is empty
-                if(WIN_UPPER_BOUND == WIN_LOWER_BOUND || WIN_MIDDLE_POINT == WIN_LOWER_BOUND)
+                if(WIN_UPPER_BOUND == WIN_LOWER_BOUND)
                     return null;
 
                 // Check if the term is in the cache
