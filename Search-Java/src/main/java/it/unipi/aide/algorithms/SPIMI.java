@@ -6,6 +6,7 @@ import it.unipi.aide.utils.FileManager;
 import it.unipi.aide.utils.Preprocesser;
 import me.tongfei.progressbar.ProgressBar;
 
+import javax.xml.bind.SchemaOutputResolver;
 import java.io.*;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -70,11 +71,13 @@ public class SPIMI
         pb.start();
         // System.out.println("SPIMI > Starting SPIMI algorithm...");
 
+
         // Starting cleaning the folder
         FileManager.cleanFolder(ConfigReader.getWorkingDir());
         FileManager.cleanFolder(ConfigReader.getDebugDir());
 
         Corpus corpus = new Corpus(INPUT_PATH);
+        System.out.println(corpus.iterator().hasNext());
 
         // Terms in all documents
         long globalTermCountSum = 0;
@@ -177,6 +180,7 @@ public class SPIMI
         CollectionInformation.setAverageDocumentLength(globalTermCountSum / INCREMENTAL_DOCID);
 
         pb.stop();
+
 
         // There will be 'incrementalBlockNumber' blocks, but the last one has index 'incrementalBlockNumber - 1'
         return INCREMENTAL_PARTIAL_BLOCK_NUMBER;
