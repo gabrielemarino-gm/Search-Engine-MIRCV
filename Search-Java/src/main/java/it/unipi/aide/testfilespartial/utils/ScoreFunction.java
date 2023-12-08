@@ -1,11 +1,12 @@
 package it.unipi.aide.testfilespartial.utils;
 
 import it.unipi.aide.model.CollectionInformation;
+import it.unipi.aide.utils.ConfigReader;
 
 public class ScoreFunction
 {
-    static final float k1 = 1.2f;
-    static final float b = 0.75f;
+    static final float k1 = ConfigReader.getK();
+    static final float b = ConfigReader.getB();
     static final long N;
     static final long ADL;
 

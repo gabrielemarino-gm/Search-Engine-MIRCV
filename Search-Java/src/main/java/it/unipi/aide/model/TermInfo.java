@@ -1,6 +1,8 @@
 package it.unipi.aide.model;
 
 import it.unipi.aide.testfilespartial.utils.ScoreFunction;
+import it.unipi.aide.utils.ConfigReader;
+
 public class TermInfo {
     public final static int SIZE_TERM = 46;
 
@@ -131,11 +133,18 @@ public class TermInfo {
             this.BM25DL = dl;
             this.BM25TF = tf;
         }
-        else if (((double)tf / (double)(tf + dl)) > ((double)this.BM25TF / (double)(this.BM25TF + this.BM25DL)))
+        else if (BMApproximation(tf, dl) > BMApproximation(this.BM25TF, this.BM25DL))
         {
             this.BM25DL = dl;
             this.BM25TF = tf;
         }
+    }
+
+    private float BMApproximation(int tf, int dl){
+        float k = ConfigReader.getK();
+        float b = ConfigReader.getB();
+
+        return (float)tf / (tf + k*(1 - b) + k*b*dl);
     }
 
     public float getTermUpperBoundTFIDF() { return this.termUpperboundTFIDF; }

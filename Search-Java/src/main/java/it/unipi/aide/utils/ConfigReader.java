@@ -28,6 +28,8 @@ public class ConfigReader
     private static boolean compressionEnabled;
     private static int compressionBlockSize;
     private static boolean blockDivisionEnabled;
+    private static float k;
+    private static float b;
 
     static
     {
@@ -68,6 +70,10 @@ public class ConfigReader
 
             compressionBlockSize = rootNode.get("compressionBlockSize").asInt();
             blockDivisionEnabled = rootNode.get("blockDivisionEnabled").asBoolean();
+
+            k = (float) rootNode.get("k").asDouble();
+            b = (float) rootNode.get("b").asDouble();
+
         }
         catch (IOException e)
         {
@@ -112,4 +118,8 @@ public class ConfigReader
     public static int getCompressionBlockSize() { return compressionBlockSize; }
 
     public static boolean blockDivisionEnabled() { return blockDivisionEnabled; }
+
+    public static float getK() { return k; }
+
+    public static float getB() { return b; }
 }

@@ -25,5 +25,7 @@
 
   "compressionEnabled" : true,
   "compressionBlockSize" : 512,
-  "blockDivisionEnabled" : true
+  "blockDivisionEnabled" : true,
+  "k": 1.20,
+  "b": 0.75
 }
