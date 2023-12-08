@@ -71,6 +71,24 @@ public class ModelEvaluation
 
             pb.stepTo(200);
             pb.stop();
+
+            String trecEvalPath = "../../Trec-Eval/trec_eval-main";
+            Process out = Runtime.getRuntime().exec(trecEvalPath + "/trec_eval -m all_trec " + trecEvalPath + "/2020qrels-pass.txt " + resultsFile);
+            BufferedReader stdout = new BufferedReader(new InputStreamReader(out.getInputStream()));
+            try
+            {
+                StringBuilder sb = new StringBuilder();
+                String riga;
+
+                while ((riga = stdout.readLine()) != null)
+                    sb.append(riga).append("\n");
+
+                System.out.println(sb);
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
         }
         catch (IOException e)
         {
