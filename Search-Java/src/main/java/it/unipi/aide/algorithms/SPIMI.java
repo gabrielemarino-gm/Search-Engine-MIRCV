@@ -4,6 +4,8 @@ import it.unipi.aide.model.*;
 import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
 import it.unipi.aide.utils.Preprocesser;
+import me.tongfei.progressbar.ProgressBar;
+
 import java.io.*;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -64,7 +66,9 @@ public class SPIMI
      */
     public int algorithm(boolean debug)
     {
-        System.out.println("SPIMI > Starting SPIMI algorithm...");
+        ProgressBar pb = new ProgressBar("SPIMI > ", 8841823);
+        pb.start();
+        // System.out.println("SPIMI > Starting SPIMI algorithm...");
 
         // Starting cleaning the folder
         FileManager.cleanFolder(ConfigReader.getWorkingDir());
@@ -125,7 +129,7 @@ public class SPIMI
             // Memory control
             if(memoryCheck())
             {
-                System.out.println("SPIMI > Writing block #" + INCREMENTAL_PARTIAL_BLOCK_NUMBER);
+                // System.out.println("SPIMI > Writing block #" + INCREMENTAL_PARTIAL_BLOCK_NUMBER);
                 if (writeBlockToDisk(debug))
                 {
                     INCREMENTAL_PARTIAL_BLOCK_NUMBER++;
@@ -137,23 +141,25 @@ public class SPIMI
                 }
                 else
                 {
+                    pb.stop();
                     System.err.println("SPIMI ERROR > Not able to write the binary file");
                     break;
                 }
             }
             // End memory control
 
-            if (INCREMENTAL_DOCID %1000000 == 0)
+            if (INCREMENTAL_DOCID %10_000 == 0)
             {
+                pb.stepBy(10000);
                 // printMemInfo();
-                System.out.println("SPIMI > Documents processed " + INCREMENTAL_DOCID);
+                //System.out.println("SPIMI > Documents processed " + INCREMENTAL_DOCID);
             }
         }
 
         // We need to write the last block
         if (writeBlockToDisk(debug))
         {
-            System.out.println("SPIMI > Writing block #" + INCREMENTAL_PARTIAL_BLOCK_NUMBER);
+            // System.out.println("SPIMI > Writing block #" + INCREMENTAL_PARTIAL_BLOCK_NUMBER);
             INCREMENTAL_PARTIAL_BLOCK_NUMBER++;
 
             // Manually free memory
@@ -162,12 +168,15 @@ public class SPIMI
         }
         else
         {
+            pb.stop();
             System.out.println("SPIMI ERROR > Not able to write the binary file");
         }
 
         // Write CollectionDocument number and AvarageDocumentLenght
         CollectionInformation.setTotalDocuments(INCREMENTAL_DOCID);
         CollectionInformation.setAverageDocumentLength(globalTermCountSum / INCREMENTAL_DOCID);
+
+        pb.stop();
 
         // There will be 'incrementalBlockNumber' blocks, but the last one has index 'incrementalBlockNumber - 1'
         return INCREMENTAL_PARTIAL_BLOCK_NUMBER;

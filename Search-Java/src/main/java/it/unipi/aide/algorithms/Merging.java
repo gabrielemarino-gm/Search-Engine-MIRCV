@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import it.unipi.aide.testfilespartial.utils.ScoreFunction;
+import me.tongfei.progressbar.ProgressBar;
 
 public class Merging
 {
@@ -54,6 +55,8 @@ public class Merging
      */
     public void mergeBlocks()
     {
+        ProgressBar pb = new ProgressBar("MERGING > ", 912028);
+        pb.start();
         long nTerms = 0;
 
         // Check if the directory with the blocks results exists
@@ -171,7 +174,7 @@ public class Merging
                             // Null is used as break condition.
                             if (offsetVocabulary[indexBlock] >= dimVocabularyFile[indexBlock])
                             {
-                                System.err.println("MERGING > Block #" + indexBlock + " exhausted.");
+                                // System.err.println("MERGING > Block #" + indexBlock + " exhausted.");
                                 vocs[indexBlock] = null;
                                 continue;
                             }
@@ -330,8 +333,9 @@ public class Merging
 
                     nTerms++;
 
-                    if(nTerms % 100_000 == 0) {
-                        System.out.println(String.format("MERGING > %d terms have been processed", nTerms));
+                    if(nTerms % 100 == 0) {
+                        pb.stepBy(100);
+                        // System.out.println(String.format("MERGING > %d terms have been processed", nTerms));
                     }
 
                     /*
@@ -367,6 +371,7 @@ public class Merging
         }
         else
         {
+            pb.stop();
             System.err.println("MERGING ERROR > Merge error, directory " + ConfigReader.getPartialPath() + " doesn't exists!");
         }
     }
