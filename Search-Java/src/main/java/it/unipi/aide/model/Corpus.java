@@ -18,7 +18,6 @@ import java.util.Iterator;
 public class Corpus implements Iterable<String>
 {
     private String INPUT_PATH;
-
     public Corpus(String in_path) {
         INPUT_PATH = in_path;
     }
@@ -53,13 +52,13 @@ public class Corpus implements Iterable<String>
             }
             catch (FileNotFoundException e)
             {
-                System.err.println("Input File Not Found");
-                System.exit(1);
+                System.err.println("SPIMI ERROR > Input File Not Found");
+                return;
             }
             catch (IOException ioe)
             {
-                System.err.println("Error while reading the input file");
-                System.exit(1);
+                System.err.println("SPIMI ERROR > Error while reading the input file");
+                return;
             }
         }
 
@@ -72,10 +71,12 @@ public class Corpus implements Iterable<String>
             {
                 toRet = br.ready();
             }
-            catch (IOException e)
+            catch (IOException | NullPointerException e)
             {
-                e.printStackTrace();
+                // e.printStackTrace();
+                return false;
             }
+
             return toRet;
         }
 

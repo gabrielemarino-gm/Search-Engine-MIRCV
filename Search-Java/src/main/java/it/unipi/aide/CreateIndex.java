@@ -35,8 +35,10 @@ public class CreateIndex
         SPIMI spimi = new SPIMI(INPUT_PATH, STOPSTEM);
         int nBlocks  = spimi.algorithm(DEBUG);
 
-        //int nBlocks = 72;
-        System.out.println("Search Engine LOG > Index created. Merging...");
+        if (nBlocks == 0)
+        {
+            return;
+        }
 
         // Index merging
         Merging merge = new Merging(COMPRESSION, nBlocks, DEBUG);

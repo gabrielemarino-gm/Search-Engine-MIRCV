@@ -41,11 +41,11 @@ public class Merging
         this.COMPRESSION = compression;
         this.DEBUG = debug;
 
-        System.out.println(String.format(
-                "MERGING > COMPRESSION = %b\nMERGING > BLOCKS_TO_COMPRESS = %d",
-                COMPRESSION,
-                BLOCKS_COUNT
-        ));
+        // System.out.println(String.format(
+        //         "MERGING > COMPRESSION = %b\nMERGING > BLOCKS_TO_COMPRESS = %d",
+        //         COMPRESSION,
+        //         BLOCKS_COUNT
+        // ));
     }
 
     /**
@@ -358,6 +358,9 @@ public class Merging
                         break;
 
                 }
+
+                pb.stepTo(912028);
+                pb.stop();
 
                 // Delete temporary blocks
 //              FileManager.deleteDir(ConfigReader.getPartialPath());

@@ -52,11 +52,11 @@ public class SPIMI
         INCREMENTAL_PARTIAL_BLOCK_NUMBER = 0;
         CURRENT_BLOCK_POSTING_COUNT = 0;
 
-        System.out.println(String.format(
-                "SPIMI >\tINPUT_PATH = %s\nSPIMI >\tSTEMMING = %b",
-                INPUT_PATH,
-                stemming
-        ));
+        // System.out.println(String.format(
+        //         "SPIMI >\tINPUT_PATH = %s\nSPIMI >\tSTEMMING = %b",
+        //         INPUT_PATH,
+        //         stemming
+        // ));
     }
 
     /**
@@ -66,8 +66,7 @@ public class SPIMI
      */
     public int algorithm(boolean debug)
     {
-        ProgressBar pb = new ProgressBar("SPIMI > ", 8841823);
-        pb.start();
+
         // System.out.println("SPIMI > Starting SPIMI algorithm...");
 
         // Starting cleaning the folder
@@ -75,10 +74,14 @@ public class SPIMI
         FileManager.cleanFolder(ConfigReader.getDebugDir());
 
         Corpus corpus = new Corpus(INPUT_PATH);
+        if (!corpus.iterator().hasNext())
+            return 0;
 
         // Terms in all documents
         long globalTermCountSum = 0;
 
+        ProgressBar pb = new ProgressBar("SPIMI > ", 8841823);
+        pb.start();
         // For each documents
         for(String doc: corpus)
         {
@@ -176,6 +179,7 @@ public class SPIMI
         CollectionInformation.setTotalDocuments(INCREMENTAL_DOCID);
         CollectionInformation.setAverageDocumentLength(globalTermCountSum / INCREMENTAL_DOCID);
 
+        pb.stepTo(8841823);
         pb.stop();
 
         // There will be 'incrementalBlockNumber' blocks, but the last one has index 'incrementalBlockNumber - 1'
