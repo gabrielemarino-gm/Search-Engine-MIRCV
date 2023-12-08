@@ -6,6 +6,7 @@ import it.unipi.aide.utils.FileManager;
 import it.unipi.aide.utils.Preprocesser;
 import me.tongfei.progressbar.ProgressBar;
 
+import javax.xml.bind.SchemaOutputResolver;
 import java.io.*;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -68,6 +69,7 @@ public class SPIMI
     {
 
         // System.out.println("SPIMI > Starting SPIMI algorithm...");
+
 
         // Starting cleaning the folder
         FileManager.cleanFolder(ConfigReader.getWorkingDir());
@@ -181,6 +183,7 @@ public class SPIMI
 
         pb.stepTo(8841823);
         pb.stop();
+
 
         // There will be 'incrementalBlockNumber' blocks, but the last one has index 'incrementalBlockNumber - 1'
         return INCREMENTAL_PARTIAL_BLOCK_NUMBER;

@@ -81,16 +81,12 @@ public class Corpus implements Iterable<String>
         }
 
         @Override
-        public String next()
-        {
+        public String next() {
             String toRet = null;
 
-            try
-            {
+            try {
                 toRet = br.readLine();
-            }
-            catch (IOException e)
-            {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
             return toRet;
