@@ -1,4 +1,4 @@
-package it.unipi.aide.testfilespartial.utils;
+package it.unipi.aide.utils;
 
 import it.unipi.aide.model.CollectionInformation;
 import it.unipi.aide.utils.ConfigReader;

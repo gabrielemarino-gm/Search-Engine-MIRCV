@@ -45,9 +45,7 @@ public class Document
     public int getDocid() {return docid;}
     public void setDocid(int docid) {this.docid = docid;}
     public List<String> getTokens() {return tokens;}
-    public void setTokens(List<String> tokens) {this.tokens = tokens;}
     public int getTokenCount() {return tokenCount;}
-    public void setTokenCount(int tokenCount) {this.tokenCount = tokenCount;}
 
     @Override
     public String toString() {
@@ -58,12 +56,3 @@ public class Document
                 '}';
     }
 }
-
-/*
- * La seguente classe rappresenta un documento della collezione gia preprocessato e inserito nel Document Index
- * Contiene le informazioni principali ai fini della ricerca e del calcolo degli score:
- *      - tokenCount
- *
- * Ai fini della programmazione a oggetti, contiene anche una lista di token, in quanto tale classe è istanziata
- * alla fine della fase di preprocessing
- */

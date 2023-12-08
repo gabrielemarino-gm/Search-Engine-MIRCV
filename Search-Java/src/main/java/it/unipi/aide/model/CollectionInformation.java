@@ -17,7 +17,7 @@ import java.nio.file.StandardOpenOption;
  */
 public class CollectionInformation
 {
-    private static String PATH;
+    private static final String PATH;
     private static long TOTAL_DOCUMENTS = 0;            // 0
     private static long TOTAL_TERMS = 0;                // 1
     private static long AVERAGE_DOCUMENT_LENGTH = 0;    // 2
@@ -77,7 +77,7 @@ public class CollectionInformation
         }
         catch (IOException e)
         {
-            System.err.println(String.format("Collection information file exception: %s", e.getMessage()));
+            System.err.printf("Collection information file exception: %s%n", e.getMessage());
         }
      }
 
@@ -96,19 +96,8 @@ public class CollectionInformation
             return buffer.getLong();
         }
         catch (IOException e){
-            System.err.println(String.format("Collection information file exception: %s - %s", e.getClass(), e.getMessage()));
+            System.err.printf("Collection information file exception: %s - %s%n", e.getClass(), e.getMessage());
             return 1;
         }
     }
 }
-
-/*
- * Tale classe contiene le informazioni globali dell'intera collezione, generate in fase di SPIMI/Merging
- *
- * Tali valori sono scritti su file non appena settati, e recuperati dallo stesso quando richiesti
- *  Si noti che se tali documenti non dovessero essere presenti, viene ritornto il valore 1, per evitare eventuali
- *  errori di divisione per 0 qualora fossero presenti divisioni utilizzando tali valori
- *
- * L'utilizzo principale che se ne fa e' la ricerca binaria dei vocaboli e il calcolo dello score BM25 e TFIDF
- *
- */

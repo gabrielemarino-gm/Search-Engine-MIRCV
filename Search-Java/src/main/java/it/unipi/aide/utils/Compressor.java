@@ -1,12 +1,15 @@
 package it.unipi.aide.utils;
 
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Compressor {
 
-        // Unary compression
+    /**
+     * Compress an array of bytes in an array of Unary Compressed bytes
+     * @param fromBytes Array of bytes to compress
+     * @return Array of bytes representing the compressed numbers
+     */
         public static byte[] UnaryCompression(byte[] fromBytes) {
             // In Merging, we directly use arrays of Bytes
             // In order to use Unary, we have to temporary switch back to integers
@@ -48,7 +51,12 @@ public class Compressor {
             return toRet;
         }
 
-        // Unary decompression
+    /**
+     * Decompress an Array of bytes into an Array of Integers, using Unary Decompression
+     * @param compressed Array of bytes to decompress
+     * @param qty Number of integers to decompress
+     * @return Array of integer decompressed
+     */
         public static int[] UnaryDecompression(byte[] compressed, int qty)
         {
             int[] toRet = new int[qty];
@@ -81,64 +89,6 @@ public class Compressor {
         private static byte setBit(byte num, int pos) {
             return (byte) (num | (1 << pos));
         }
-    /**
-     * Compress an array of bytes in an array of Unary Compressed bytes
-     * @param fromBytes Array of bytes to compress
-     * @return Array of bytes representing the compressed numbers
-     */
-   //public static byte[] UnaryCompression(byte[] fromBytes){
-   //    // In Merging, we directly use arrays of Bytes
-   //    // In order to use Unary, we have to temporary switch back to integers
-   //    int[] ints = toIntArray(fromBytes);
-   //    int bytesNeeded = bytesNeeded(ints);
-   //    byte[] toBytes = new byte[bytesNeeded];
-   //    // Pushes from the left to the right of the array
-   //    // n-1 ones and 1 zero for every number n
-   //    for(int j = 0; j < ints.length; j++){
-   //        for(int i = ints[j]-1; i >= 0; i--){
-   //            if(i>0) toBytes[bytesNeeded-1] = (byte)(toBytes[bytesNeeded-1] | 0x01);
-   //            if(!(j==ints.length-1 && i == 0)) shiftLeft(toBytes);
-   //        }
-   //    }
-   //    return toBytes;
-   //}
-
-    /**
-     * Decompress an Array of bytes into an Array of Integers, using Unary Decompression
-     * @param fromBytes Array of bytes to decompress
-     * @return Array of integer decompressed
-     */
-    //public static int[] UnaryDecompression(byte[] fromBytes, int qty){
-    //    List<Integer> toRet = new ArrayList<>();
-    //    int counter = 1;
-//
-    //    // Shift to the right: when we encounter a 0 on the second place we print
-    //    // Otherwise, we accumulate on an accumulator
-    //    for(int i = 0; i < fromBytes.length * 8; i++)
-    //    {
-    //        if ((fromBytes[fromBytes.length - 1] & 0b00000010) == 0b00000000 ||
-    //                ((fromBytes[fromBytes.length - 1] & 0b00000011) == 0b00000011) && i == fromBytes.length*8 - 2)
-    //        {
-    //            toRet.add(counter);
-    //            counter = 1;
-    //        }
-    //        else
-    //        {
-    //            counter += 1;
-    //        }
-    //        shiftRight(fromBytes);
-    //    }
-//
-    //    toRet.add(counter);
-//
-    //    // We want to return an Array, not a List
-    //    int[] temp = new int[qty];
-    //    for(int i = 0; i < qty; i++)
-    //    {
-    //        temp[qty-1-i] = toRet.get(i);
-    //    }
-    //    return temp;
-    //}
 
     /**
      * Compress an Array of bytes into an Array of Variable Byte compressed numbers

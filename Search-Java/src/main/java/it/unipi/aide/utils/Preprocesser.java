@@ -1,17 +1,22 @@
 package it.unipi.aide.utils;
 
-import java.io.*;
-import java.util.*;
-import java.util.regex.Pattern;
-
 import ca.rmen.porterstemmer.PorterStemmer;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Class to perform preprocessing on a string
  */
 public class Preprocesser
 {
-
     private final Pattern urlPattern;
     private final Pattern htmlPattern;
     private final Pattern nonDigitPattern;

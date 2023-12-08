@@ -1,6 +1,9 @@
 package it.unipi.aide.model;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeMap;
 
 public class Vocabulary
 {
@@ -54,29 +57,10 @@ public class Vocabulary
     }
 
     /**
-     *
-     * @param terminfo
-     */
-    public void set(TermInfo terminfo)
-    {
-        vocabulary.put(terminfo.getTerm(), terminfo);
-    }
-
-    /**
      * Clear the vocabulary
      */
     public void clear(){
         vocabulary.clear();
-    }
-
-    /**
-     *
-     * @param term
-     * @return
-     */
-    public TermInfo getTermInfo(String term)
-    {
-        return vocabulary.get(term);
     }
 
     @Override
@@ -92,10 +76,3 @@ public class Vocabulary
         return result.toString();
     }
 }
-
-/*
- * Tale classe rappresenta il vocabolario di tutti i termini presenti nel Corpus o in partizioni di esso
- *  Eventuali occorrenze multiple di ogni termine nello stesso o in diversi documenti, e' gestita automaticamente
- *  consentendo quindi di tarare il calcolo del numero dei Posting e di TF per quel termine nella partizione
- *
- */

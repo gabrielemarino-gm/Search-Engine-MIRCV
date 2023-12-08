@@ -1,11 +1,16 @@
 package it.unipi.aide.algorithms;
 
-import it.unipi.aide.model.*;
+import it.unipi.aide.model.DocumentIndex;
+import it.unipi.aide.model.PostingListSkippable;
+import it.unipi.aide.model.ScoredDocument;
+import it.unipi.aide.model.TermInfo;
+import it.unipi.aide.utils.ScoreFunction;
 import it.unipi.aide.utils.QueryPreprocessing;
-import it.unipi.aide.testfilespartial.utils.ScoreFunction;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.PriorityQueue;
 
 public class DAAT
 {
@@ -13,7 +18,7 @@ public class DAAT
     private boolean BM25;
     boolean COMPRESSION;
     HashMap<String, TermInfo> terms = new HashMap<>();
-    private DocumentIndex DOCUMENTINDEX;
+    private final DocumentIndex DOCUMENTINDEX;
 
     public DAAT()
     {
@@ -41,7 +46,8 @@ public class DAAT
         if(postingLists.isEmpty())
             return null;
 
-        List<ScoredDocument> scoredDocuments = new ArrayList<>();
+        PriorityQueue<ScoredDocument> scoredDocuments = new PriorityQueue<>(TOP_K, ScoredDocument.compareTo());
+
         boolean stop = false;
 
         while(!stop)
@@ -85,19 +91,12 @@ public class DAAT
                 scoredDocuments.add(documentToAdd);
         }
 
-        // TODO -> Time Consuming
-        // Sort the documents by score
-        scoredDocuments.sort((o1, o2) ->
+        ArrayList<ScoredDocument> result = new ArrayList<>();
+        for(int i = 0; i < TOP_K && !scoredDocuments.isEmpty(); i++)
         {
-            if(o1.getScore() > o2.getScore()) return -1;
-            else if(o1.getScore() < o2.getScore()) return 1;
-            else return 0;
-        });
-
-        if (scoredDocuments.size() > TOP_K)
-            return scoredDocuments.subList(0, TOP_K);
-        else
-            return scoredDocuments;
+            result.add(scoredDocuments.poll());
+        }
+        return result;
 
     }
 

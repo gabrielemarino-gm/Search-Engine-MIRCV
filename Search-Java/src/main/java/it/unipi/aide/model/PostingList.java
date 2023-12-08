@@ -59,12 +59,4 @@ public class PostingList
                 ", postingList=" + postingList +
                 '}';
     }
-
-    /* getCurrent is used to memorize the first element
-    *  next is invoked only when we want to shift our list
-    *   as we don't need current anymore
-    *  hasNext is used to check if the list has remaining
-    *   Postings or not
-    */
-
 }

@@ -1,6 +1,5 @@
 package it.unipi.aide.model;
 
-import it.unipi.aide.testfilespartial.utils.ScoreFunction;
 import it.unipi.aide.utils.ConfigReader;
 
 public class TermInfo {
@@ -23,7 +22,7 @@ public class TermInfo {
                                                  4L;   // BM25
 
 
-    private String term;
+    private final String term;
     private int totalFrequency;
     private int numPosting;
     private int numBlocks; // Only post-merging
@@ -139,7 +138,6 @@ public class TermInfo {
             this.BM25TF = tf;
         }
     }
-
     private float BMApproximation(int tf, int dl){
         float k = ConfigReader.getK();
         float b = ConfigReader.getB();
@@ -165,7 +163,6 @@ public class TermInfo {
     public void setTotalFrequency(int f) {this.totalFrequency = f;}
     public void setNumBlocks(int n) {this.numBlocks = n;}
     public void setOffset(long o) {this.offset = o;}
-    public void setTermFrequency(int f) {this.termFrequency = f;}
 
     @Override
     public String toString()
@@ -173,13 +170,3 @@ public class TermInfo {
         return String.format("[%s](TF: %d, NP: %d, NB: %d, OS: %d, TUB-TFIDF: %f)", term, totalFrequency, numPosting, numBlocks, offset, termUpperboundTFIDF);
     }
 }
-
-/*
- * Tale classe rappresenta un termine del vocabolario.
- *  Essa include tutte le informazioni utili su tale termine da utilizzare in fase di calcolo dello score, nonche
- *  altre informazioni per recuperare le posting list di tale termine dal file principale
- *
- * Si noti come spiegato in Merge.java che per via dello spazio occupato da ogni posting list con o senza compressione,
- *  sono specificati due campi che aiutano a recuperare le liste nel caso in cui fosse stata utilizzata la compressione
- *
- */

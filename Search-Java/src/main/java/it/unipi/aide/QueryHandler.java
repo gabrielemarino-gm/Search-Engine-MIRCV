@@ -2,16 +2,10 @@ package it.unipi.aide;
 
 import it.unipi.aide.algorithms.DAAT;
 import it.unipi.aide.algorithms.MaxScore;
-import it.unipi.aide.model.CollectionInformation;
-import it.unipi.aide.model.Document;
-import it.unipi.aide.model.DocumentIndex;
 import it.unipi.aide.model.ScoredDocument;
 import it.unipi.aide.utils.Preprocesser;
-import it.unipi.aide.utils.QueryPreprocessing;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.Scanner;
 
 /**
@@ -38,7 +32,7 @@ public class QueryHandler
                 continue;
             }
 
-            System.out.print(String.format("Query Handler: Type query (%s, %s) > ", ALGORITHM, BM25? "BM25" : "TF-IDF"));
+            System.out.printf("Query Handler: Type query (%s, %s) > ", ALGORITHM, BM25? "BM25" : "TF-IDF");
             String input = scanner.nextLine();
 
             if (input.equalsIgnoreCase("q"))
@@ -155,7 +149,7 @@ public class QueryHandler
         List<String> tokens = preprocesser.process(query);
         long startTime = System.currentTimeMillis();
 
-        System.out.println(String.format("Query Handler Results (%s, %s) > ", ALGORITHM, BM25? "BM25" : "TF-IDF"));
+        System.out.printf("Query Handler Results (%s, %s) > %n", ALGORITHM, BM25? "BM25" : "TF-IDF");
 
         for (ScoredDocument sd : daat.executeDAAT(tokens, BM25, TOP_K)) {
             System.out.print("\t\t\t\t\t\t" + sd);
@@ -172,7 +166,7 @@ public class QueryHandler
         List<String> tokens = preprocesser.process(query);
         long startTime = System.currentTimeMillis();
 
-        System.out.println(String.format("Query Handler Results (%s, %s) > ", ALGORITHM, BM25? "BM25" : "TF-IDF"));
+        System.out.printf("Query Handler Results (%s, %s) > %n", ALGORITHM, BM25? "BM25" : "TF-IDF");
         // Print the list of top-k scored documents, in reverse order
         for (ScoredDocument sd : maxScore.executeMaxScore(tokens, BM25, TOP_K)) {
             System.out.print("\t\t\t\t\t\t" + sd);

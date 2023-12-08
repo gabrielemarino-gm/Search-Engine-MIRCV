@@ -1,10 +1,9 @@
 package it.unipi;
 
 import it.unipi.aide.CreateIndex;
-import it.unipi.aide.QueryHandler;
 import it.unipi.aide.ModelEvaluation;
+import it.unipi.aide.QueryHandler;
 
-import javax.sql.rowset.serial.SerialStruct;
 import java.util.Scanner;
 
 public class Driver

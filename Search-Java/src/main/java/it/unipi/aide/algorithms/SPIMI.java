@@ -6,7 +6,9 @@ import it.unipi.aide.utils.FileManager;
 import it.unipi.aide.utils.Preprocesser;
 import me.tongfei.progressbar.ProgressBar;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -231,8 +233,7 @@ public class SPIMI
                 termInfo.setOffset(partialOffset);
 
                 // Write vocabulary entry
-                StringBuilder pattern = new StringBuilder("%-").append(TermInfo.SIZE_TERM).append("s");
-                String paddedTerm = String.format(pattern.toString(), termInfo.getTerm()).substring(0, TermInfo.SIZE_TERM); // Pad with spaces up to 46 characters
+                String paddedTerm = String.format("%-" + TermInfo.SIZE_TERM + "s", termInfo.getTerm()).substring(0, TermInfo.SIZE_TERM); // Pad with spaces up to 46 characters
 
                 vocabularyBuffer.put(paddedTerm.getBytes());                    // Term                     46 bytes
                 vocabularyBuffer.putInt(termInfo.getTotalFrequency());          // TotalFrequency           4 bytes
@@ -307,12 +308,8 @@ public class SPIMI
         }
 
         // Not enough FreeVirtual to fill with OccupiedVirtual
-        if(occVirMemory > maxVirMemory * 40 / 100) {
-//            System.out.println("Free virtual memory security limit");
-            return true;
-        }
-
-        return false;
+        //            System.out.println("Free virtual memory security limit");
+        return occVirMemory > maxVirMemory * 40 / 100;
     }
 }
 

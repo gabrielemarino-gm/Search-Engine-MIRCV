@@ -1,6 +1,9 @@
 package it.unipi.aide.utils;
 
-import it.unipi.aide.model.*;
+import it.unipi.aide.model.Cache;
+import it.unipi.aide.model.CollectionInformation;
+import it.unipi.aide.model.PostingListSkippable;
+import it.unipi.aide.model.TermInfo;
 
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
@@ -144,11 +147,6 @@ public class QueryPreprocessing
         float bm25 = buffer.getFloat();
 
         return new TermInfo(term, totFreq, nPost, offset, nBlocks, tfidf, bm25);
-    }
-
-    public List<String> getTokens()
-    {
-        return tokens;
     }
 
     public HashMap<String, TermInfo> getTerms()

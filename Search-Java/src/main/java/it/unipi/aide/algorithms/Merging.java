@@ -1,7 +1,14 @@
 package it.unipi.aide.algorithms;
 
-import it.unipi.aide.model.*;
-import it.unipi.aide.utils.*;
+import it.unipi.aide.model.BlockDescriptor;
+import it.unipi.aide.model.CollectionInformation;
+import it.unipi.aide.model.TermInfo;
+import it.unipi.aide.utils.ScoreFunction;
+import it.unipi.aide.utils.Commons;
+import it.unipi.aide.utils.Compressor;
+import it.unipi.aide.utils.ConfigReader;
+import it.unipi.aide.utils.FileManager;
+import me.tongfei.progressbar.ProgressBar;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -14,13 +21,11 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import it.unipi.aide.testfilespartial.utils.ScoreFunction;
-import me.tongfei.progressbar.ProgressBar;
 
 public class Merging
 {
     private boolean COMPRESSION = false;
-    private int BLOCKS_COUNT; // Number of blocks to merge
+    private final int BLOCKS_COUNT; // Number of blocks to merge
     private boolean DEBUG = false;
     long finalDocidOffset = 0;
     long finalFreqOffset = 0;
@@ -364,7 +369,7 @@ public class Merging
 
                 // Delete temporary blocks
 //              FileManager.deleteDir(ConfigReader.getPartialPath());
-                System.out.println(String.format("MERGING > Total terms in the Lexicon is %d", nTerms));
+                System.out.printf("MERGING > Total terms in the Lexicon is %d%n", nTerms);
                 CollectionInformation.setTotalTerms(nTerms);
             }
             catch (Exception e)
@@ -507,8 +512,7 @@ public class Merging
     {
         MappedByteBuffer tempBuffer = finalVocChannel.map(FileChannel.MapMode.READ_WRITE, vFinalOffset, TermInfo.SIZE_POST_MERGING);
 
-        StringBuilder pattern = new StringBuilder("%-").append(TermInfo.SIZE_TERM).append("s");
-        String paddedTerm = String.format(pattern.toString(), finalTerm.getTerm()).substring(0, TermInfo.SIZE_TERM); // Pad with spaces up to 64 characters
+        String paddedTerm = String.format("%-" + TermInfo.SIZE_TERM + "s", finalTerm.getTerm()).substring(0, TermInfo.SIZE_TERM); // Pad with spaces up to 64 characters
 
         // Write
         tempBuffer.put(paddedTerm.getBytes());                      // 46

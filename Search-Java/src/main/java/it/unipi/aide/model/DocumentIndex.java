@@ -70,8 +70,7 @@ public class DocumentIndex
                 MappedByteBuffer buffer = index_channel.map(FileChannel.MapMode.READ_WRITE, OFFSET, Document.SIZE);
                 OFFSET += Document.SIZE;
 
-                StringBuilder pattern = new StringBuilder("%-").append(Document.PID_SIZE).append("s");
-                String padded = String.format(pattern.toString(), document.getPid()).substring(0, Document.PID_SIZE);
+                String padded = String.format("%-" + Document.PID_SIZE + "s", document.getPid()).substring(0, Document.PID_SIZE);
 
                 buffer.put(padded.getBytes());
                 buffer.putInt(document.getDocid());
@@ -95,10 +94,9 @@ public class DocumentIndex
     {
         try(
                 FileChannel index_channel = (FileChannel) Files.newByteChannel(Paths.get(DOCLENS_PATH),
-                        StandardOpenOption.READ);
+                        StandardOpenOption.READ)
         )
         {
-            // System.out.println("Loading lengths...");
             MappedByteBuffer buffer = index_channel.map(FileChannel.MapMode.READ_ONLY, 0, index_channel.size());
 
             byte[] byteArray = new byte[buffer.remaining()];
@@ -150,13 +148,3 @@ public class DocumentIndex
         return null;
     }
 }
-
-/*
- * La seguente e' una classe fantasma:
- *  non contiene nessun tipo di lista in quanto i Documenti sono scritti in append al file apposito
- *
- * In fase di inserimento infatti vengono inseriti in maniera incrementale uno dietro l'altro
- *
- * In fase di estrazione, sfruttando il fatto che ogni Documenti si trova all'offset docID*Document.SIZE
- *  sono estratti dal file direttamente a quella posizione
- */

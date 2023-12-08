@@ -138,7 +138,7 @@ public class PostingListSkippable  implements Iterator<Posting>
         openChannels();
     }
 
-    /**
+    /*
      * ----------------
      * ITERABLE SECTION
      * ----------------
@@ -199,7 +199,7 @@ public class PostingListSkippable  implements Iterator<Posting>
         return currentPosting;
     }
     
-    /**
+    /*
      * --------------------
      * END ITERABLE SECTION
      * --------------------
@@ -244,14 +244,13 @@ public class PostingListSkippable  implements Iterator<Posting>
     @Override
     public String toString()
     {
-        StringBuilder toReturn = new StringBuilder();
-        toReturn.append("PostingListSkippable{\n")
-                .append(term.toString()+"\n")
-                .append(blockDescriptors.toString())
-                .append(", blockIndexer=" + currentBlockIndexer)
-                .append("\n}");
+        String toReturn = "PostingListSkippable{\n" +
+                term.toString() + "\n" +
+                blockDescriptors +
+                ", blockIndexer=" + currentBlockIndexer +
+                "\n}";
 
-        return toReturn.toString();
+        return toReturn;
     }
 
     public static Comparator<PostingListSkippable> compareToTFIDF() {
@@ -270,19 +269,6 @@ public class PostingListSkippable  implements Iterator<Posting>
     public float getTermUpperBoundBM25()
     {
         return term.getTermUpperBoundBM25();
-    }
-
-    public void printPostingList()
-    {
-        System.out.print("[" + term.getTerm() + "] ");
-        for (Posting p : postingsOfTheCurrentBlock)
-        {
-            System.out.print(p);
-        }
-    }
-    public boolean isNoMorePostings()
-    {
-        return noMorePostings;
     }
 
     private void openChannels(){

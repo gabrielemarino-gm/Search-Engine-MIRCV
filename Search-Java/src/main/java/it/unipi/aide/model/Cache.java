@@ -1,6 +1,7 @@
 package it.unipi.aide.model;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class Cache
 {

@@ -1,8 +1,11 @@
 package it.unipi.aide.algorithms;
 
-import it.unipi.aide.model.*;
+import it.unipi.aide.model.DocumentIndex;
+import it.unipi.aide.model.PostingListSkippable;
+import it.unipi.aide.model.ScoredDocument;
+import it.unipi.aide.model.TermInfo;
+import it.unipi.aide.utils.ScoreFunction;
 import it.unipi.aide.utils.QueryPreprocessing;
-import it.unipi.aide.testfilespartial.utils.ScoreFunction;
 
 import java.util.*;
 
@@ -16,7 +19,7 @@ public class MaxScore
     private HashMap<String, TermInfo> terms = new HashMap<>();
     private List<PostingListSkippable> postingLists= new ArrayList<>();
     private boolean BM25;
-    private DocumentIndex DOCUMENTINDEX;
+    private final DocumentIndex DOCUMENTINDEX;
     /**
      * Initialization method if needed
      */
@@ -80,10 +83,6 @@ public class MaxScore
             float score = 0;
             int nextDoc = Integer.MAX_VALUE;
 
-            // TODO:    L'ho commentato perché non sto usando BM25,
-            //          ma rallenta drasticamente tutto, perché ogni
-            //          volta devo prendere la lunghezza del documento
-
             // Take the document length of the current document
             int docLength = 0;
             if(BM25) docLength = DOCUMENTINDEX.getLen(currentDoc);
@@ -102,16 +101,8 @@ public class MaxScore
                         // Move to the next posting of the posting list i-th
                         postingLists.get(i).next();
                     }
-                }
-
-                // Need to remake this control because the method next() could set the currentPosting to null
-                if (postingLists.get(i).getCurrentPosting() != null)
-                {
-                    // Update the nextDoc with the minimum docID of the posting lists
-                    if (postingLists.get(i).getCurrentPosting().getDocId() < nextDoc)
-                    {
-                        nextDoc = postingLists.get(i).getCurrentPosting().getDocId();
-                    }
+                    if (postingLists.get(i).getCurrentPosting() != null)
+                        nextDoc = Math.min(nextDoc, postingLists.get(i).getCurrentPosting().getDocId());
                 }
             }
 // )
@@ -144,31 +135,31 @@ public class MaxScore
 // )
 
 // ( INSERT IN QUEUE AND UPDATE PIVOT
-            if (topKDocs.add(new ScoredDocument(currentDoc, score)))
+            topKDocs.add(new ScoredDocument(currentDoc, score));
+
+            // Order the List in increasing order of score
+            topKDocs.sort((o1, o2) -> {
+                return Float.compare(o2.getScore(), o1.getScore());
+            });
+
+            // If the queue is full, remove the minimum score
+            if (topKDocs.size() > TOP_K)
             {
-                // Order the List in increasing order of score
-                topKDocs.sort((o1, o2) -> {
-                    return Float.compare(o2.getScore(), o1.getScore());
-                });
-
-                // If the queue is full, remove the minimum score
-                if (topKDocs.size() > TOP_K)
-                {
-                    topKDocs.remove(TOP_K); // The minimum score is at the top of the queue, because it is ordered in increasing order
-                    sigma = topKDocs.get(TOP_K - 1).getScore();
-                }
-                // else just update the current sigma with the minimum score in the queue
-                else
-                {
-                    sigma = topKDocs.get(topKDocs.size() - 1).getScore();
-                }
-
-                // Update the pivot
-                while (pivot < terms.size() - 1 && s[pivot] <= sigma)
-                {
-                    pivot++;
-                }
+                topKDocs.remove(TOP_K); // The minimum score is at the top of the queue, because it is ordered in increasing order
+                sigma = topKDocs.get(TOP_K - 1).getScore();
             }
+            // else just update the current sigma with the minimum score in the queue
+            else
+            {
+                sigma = topKDocs.get(topKDocs.size() - 1).getScore();
+            }
+
+            // Update the pivot
+            while (pivot < terms.size() - 1 && s[pivot] <= sigma)
+            {
+                pivot++;
+            }
+
 // )
             // Update the current docID
             currentDoc = nextDoc;
@@ -185,11 +176,9 @@ public class MaxScore
     {
         int min = Integer.MAX_VALUE;
 
-        for (PostingListSkippable pl : postingLists)
+        for(PostingListSkippable pl : postingLists)
         {
-            Posting posting = pl.getCurrentPosting();
-
-            if (posting.getDocId() < min)
+            if(pl.getCurrentPosting() != null && pl.getCurrentPosting().getDocId() < min)
             {
                 min = pl.getCurrentPosting().getDocId();
             }

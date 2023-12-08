@@ -1,9 +1,8 @@
 package it.unipi.aide.utils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class ConfigReader
@@ -87,10 +86,6 @@ public class ConfigReader
 
     public static String getWorkingDir() { return workingDir; }
     public static String getDebugDir() { return debugDir; }
-    public static String getRawCollectionPath() { return rawCollectionPath; }
-
-    public static String getCompressedCollectionPath() { return compressedCollectionPath; }
-
     public static String getStopwordsPath() { return stopwordsPath;}
 
     public static String getCollectionStatisticsPath() { return collectionStatisticsPath; }

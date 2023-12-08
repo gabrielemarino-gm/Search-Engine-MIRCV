@@ -17,16 +17,11 @@ import java.util.Iterator;
  */
 public class Corpus implements Iterable<String>
 {
-    private String INPUT_PATH;
-    public Corpus(String in_path) {
-        INPUT_PATH = in_path;
-    }
+    private final String INPUT_PATH;
+    public Corpus(String in_path) { INPUT_PATH = in_path; }
 
     @Override
-    public Iterator<String> iterator()
-    {
-        return new DocIterator();
-    }
+    public Iterator<String> iterator() { return new DocIterator(); }
 
     private class DocIterator implements Iterator<String>
     {
@@ -53,12 +48,10 @@ public class Corpus implements Iterable<String>
             catch (FileNotFoundException e)
             {
                 System.err.println("SPIMI ERROR > Input File Not Found");
-                return;
             }
             catch (IOException ioe)
             {
                 System.err.println("SPIMI ERROR > Error while reading the input file");
-                return;
             }
         }
 
@@ -76,7 +69,6 @@ public class Corpus implements Iterable<String>
                 // e.printStackTrace();
                 return false;
             }
-
             return toRet;
         }
 
@@ -93,13 +85,3 @@ public class Corpus implements Iterable<String>
         }
     }
 }
-
-/*
- * Tale classe rappresenta un Corpus
- *
- * In fase di creazione viene aperto un BufferReader verso un path specificato
- *  La classe quindi implementa l'interfaccia Iterator, e tramite il corretto uso nei for-each, si possono scorrere
- *  le righe del documento da processare come se fosse un array di stringhe
- *
- * la funzione next() restituira semplicemente la prossima riga, finche hasNext() e' true.
- */

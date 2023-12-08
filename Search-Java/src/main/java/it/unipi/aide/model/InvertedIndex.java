@@ -1,6 +1,9 @@
 package it.unipi.aide.model;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.TreeMap;
 
 public class InvertedIndex
 {
@@ -45,16 +48,6 @@ public class InvertedIndex
                 return true;
             }
         }
-    }
-
-    /**
-     * Add a Posting List for given document
-     * @param t Term inside the Inverted Index
-     * @param pl Posting List to add
-     */
-    public void addPostingList(String t, PostingList pl)
-    {
-        index.put(t, pl.getPostings());
     }
 
     /**
@@ -103,13 +96,3 @@ public class InvertedIndex
         return result.toString();
     }
 }
-
-/*
- * Tale classe rappresenta l'Inverted Index
- *
- * Ogni volta che un termine viene aggiunto, vengono gestiti automaticamente i casi in cui il termine non ci fosse,
- *  fosse gia presente, oppure fosse gia presente e con lo stesso docid del documento corrente.
- *
- * Viene implementata anche una funzione clear() per liberare la memoria in fase di SPIMI in maniera sicura
- *
- */

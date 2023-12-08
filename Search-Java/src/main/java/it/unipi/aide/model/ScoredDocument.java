@@ -25,7 +25,7 @@ public class ScoredDocument
             @Override
             public int compare(ScoredDocument o1, ScoredDocument o2)
             {
-                return Float.compare(o1.getScore(), o2.getScore());
+                return -Float.compare(o1.getScore(), o2.getScore());
             }
         };
     }

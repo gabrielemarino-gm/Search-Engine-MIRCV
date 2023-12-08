@@ -1,10 +1,7 @@
 package it.unipi.aide;
 
-import it.unipi.aide.algorithms.DAAT;
 import it.unipi.aide.algorithms.MaxScore;
-import it.unipi.aide.model.CollectionInformation;
-import it.unipi.aide.model.Document;
-import it.unipi.aide.model.DocumentIndex;
+import it.unipi.aide.algorithms.DAAT;
 import it.unipi.aide.model.ScoredDocument;
 import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
@@ -12,8 +9,6 @@ import it.unipi.aide.utils.Preprocesser;
 import me.tongfei.progressbar.ProgressBar;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
@@ -115,10 +110,7 @@ public class ModelEvaluation
             input = scanner.nextLine();
         }
 
-        if (input.equals("1"))
-            BM25 = false;
-        else
-            BM25 = true;
+        BM25 = !input.equals("1");
 
         
         System.out.println("Model Evaluation > Choose the number of documents to retrieve for each query");
@@ -133,7 +125,6 @@ public class ModelEvaluation
         catch (NumberFormatException e)
         {
             System.err.println("MODEL EVALUATION ERR > Invalid input. Try again.");
-            return;
         }
     }
 
