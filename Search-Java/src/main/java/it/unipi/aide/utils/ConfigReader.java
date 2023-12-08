@@ -15,6 +15,7 @@ public class ConfigReader
     private static String stopwordsPath;
     private static String collectionStatisticsPath;
     private static String documentIndexPath;
+    private static String doclens;
     private static String blockDescriptorsPath;
     private static String vocabularyPath;
     private static String docidPath;
@@ -49,6 +50,7 @@ public class ConfigReader
 
             collectionStatisticsPath = rootNode.get("collectionStatisticsPath").asText();
             documentIndexPath = rootNode.get("documentIndexPath").asText();
+            doclens = rootNode.get("doclens").asText();
             blockDescriptorsPath = rootNode.get("blockDescriptorsPath").asText();
 
             vocabularyPath = rootNode.get("vocabularyPath").asText();
@@ -87,7 +89,7 @@ public class ConfigReader
 
     public static String getCollectionStatisticsPath() { return collectionStatisticsPath; }
     public static String getDocumentIndexPath() { return documentIndexPath; }
-
+    public static String getDoclens() { return doclens; }
     public static String getBlockDescriptorsPath() { return blockDescriptorsPath; }
     public static String getVocabularyPath() { return vocabularyPath; }
 

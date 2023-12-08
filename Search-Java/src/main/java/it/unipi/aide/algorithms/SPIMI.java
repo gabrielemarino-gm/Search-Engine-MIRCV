@@ -169,7 +169,6 @@ public class SPIMI
         CollectionInformation.setTotalDocuments(INCREMENTAL_DOCID);
         CollectionInformation.setAverageDocumentLength(globalTermCountSum / INCREMENTAL_DOCID);
 
-
         // There will be 'incrementalBlockNumber' blocks, but the last one has index 'incrementalBlockNumber - 1'
         return INCREMENTAL_PARTIAL_BLOCK_NUMBER;
     }
@@ -237,6 +236,7 @@ public class SPIMI
                     partialOffset += 4L;
                 }
             }
+            DOCUMENT_INDEX.bulkWrite();
         }
         catch (IOException e)
         {
@@ -267,6 +267,7 @@ public class SPIMI
                 e.printStackTrace();
             }
         }
+
         return true;
     }
 
@@ -298,27 +299,6 @@ public class SPIMI
         }
 
         return false;
-    }
-
-    /**
-     * --------------------------------------------------------------------------
-     * Print current memory status
-     * --------------------------------------------------------------------------
-     */
-    private void printMemInfo(){
-        double freeVirMemory = Runtime.getRuntime().freeMemory() / Math.pow(10,6);
-        double totalVirMemory = Runtime.getRuntime().totalMemory() / Math.pow(10,6);
-        double maxVirMemory = Runtime.getRuntime().maxMemory() / Math.pow(10,6);
-        double occVirMemory = totalVirMemory - freeVirMemory;
-        double percentOccVirMemory = (occVirMemory/maxVirMemory) * 100;
-
-        System.out.println(String.format("LOG:\t\tMaxVir: %.2f\tTotalVir: %.2f\tFreeVir: %.2f\tOccupiedVir: %.2f\tPercentVir: %.2f",
-                maxVirMemory,
-                totalVirMemory,
-                freeVirMemory,
-                occVirMemory,
-                percentOccVirMemory
-        ));
     }
 }
 

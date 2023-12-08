@@ -12,10 +12,11 @@ import java.util.*;
 
 public class MaxScore
 {
-    int TOP_K = 10;
-    HashMap<String, TermInfo> terms = new HashMap<>();
-    List<PostingListSkippable> postingLists= new ArrayList<>();
-    boolean BM25;
+    private int TOP_K = 10;
+    private HashMap<String, TermInfo> terms = new HashMap<>();
+    private List<PostingListSkippable> postingLists= new ArrayList<>();
+    private boolean BM25;
+    private DocumentIndex DOCUMENTINDEX;
     /**
      * Initialization method if needed
      */
@@ -23,6 +24,7 @@ public class MaxScore
     {
         BM25 = bm25;
         TOP_K = top_k;
+        DOCUMENTINDEX = new DocumentIndex(true);
     }
 
     /**
@@ -83,10 +85,8 @@ public class MaxScore
             //          volta devo prendere la lunghezza del documento
 
             // Take the document length of the current document
-            //DocumentIndex documentIndex = new DocumentIndex();
-            //Document d = documentIndex.get(currentDoc);
-            //int docLength = d.getTokenCount();
             int docLength = 0;
+            if(BM25) docLength = DOCUMENTINDEX.getLen(currentDoc);
 
 // ( ESSENTIAL LISTS
             // For current DocID, compute the score of essential lists only

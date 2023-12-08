@@ -36,10 +36,10 @@ public class CreateIndex
         int nBlocks  = spimi.algorithm(DEBUG);
 
 //        int nBlocks = 72;
-//        System.out.println("LOG:\t\tIndex created. Merging...");
-//
-//        // Index merging
-//        Merging merge = new Merging(COMPRESSION, nBlocks, DEBUG);
-//        merge.mergeBlocks();
+        System.out.println("LOG:\t\tIndex created. Merging...");
+
+        // Index merging
+        Merging merge = new Merging(COMPRESSION, nBlocks, DEBUG);
+        merge.mergeBlocks();
     }
 }

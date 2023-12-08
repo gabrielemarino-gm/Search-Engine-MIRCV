@@ -9,6 +9,7 @@
 
   "collectionStatisticsPath" : "data/out/collectionStatistics",
   "documentIndexPath" : "data/out/documentIndex",
+  "doclens": "data/out/doclens",
   "blockDescriptorsPath" : "data/out/blockDescriptors",
 
   "vocabularyPath" : "data/out/vocabulary",

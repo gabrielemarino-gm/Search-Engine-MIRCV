@@ -15,14 +15,11 @@ import java.util.List;
 public class QueryPreprocessing
 {
     private final HashMap<String, TermInfo> terms = new HashMap<>();
-    private List<String> tokens = new ArrayList<>();
+    private final List<String> tokens = new ArrayList<>();
 
     Cache cache = Cache.getCacheInstance();
 
     public QueryPreprocessing() {}
-
-    /* TODO -> Instantiating a new Preprocesser for every new query is time consuming */
-    public void setQuery(String query) { tokens = new Preprocesser(true).process(query); }
 
     /**
      * Retrieve the posting lists of the query terms

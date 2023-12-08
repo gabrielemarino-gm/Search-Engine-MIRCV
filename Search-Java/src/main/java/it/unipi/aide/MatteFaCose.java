@@ -7,11 +7,10 @@ public class MatteFaCose {
 
     public static void main(String[] argv) {
 
-        DocumentIndex documentIndex = new DocumentIndex();
-        int max = 0;
-        for(int i = 0; i < CollectionInformation.getTotalDocuments(); i++){
-            max = Math.max(max, documentIndex.get(i).getTokenCount());
+        DocumentIndex documentIndex = new DocumentIndex(true);
+        for(int i = 8790000; i < CollectionInformation.getTotalDocuments(); i++){
+            System.out.println(String.format("Document %d has length %d, but real lenght is %d", i, documentIndex.getLen(i), documentIndex.get(i).getTokenCount()));
         }
-        System.out.println(max);
+
     }
 }

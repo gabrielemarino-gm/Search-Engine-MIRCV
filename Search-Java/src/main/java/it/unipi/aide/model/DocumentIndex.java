@@ -1,5 +1,6 @@
 package it.unipi.aide.model;
 
+import it.unipi.aide.utils.Compressor;
 import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
 
@@ -9,6 +10,9 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * DocumentIndex is a class that manages the DocumentIndex file
@@ -17,12 +21,26 @@ import java.nio.file.StandardOpenOption;
 public class DocumentIndex
 {
     private static long OFFSET = 0;
-    private final String PATH;
+    private static long LENS_OFFSET = 0;
+    private static final String DOCINDEX_PATH;
+    private static final String DOCLENS_PATH;
+    private static final List<Document> docList = new ArrayList<>();
+    private static List<Integer> lengths;
+
+    static{
+        DOCINDEX_PATH = ConfigReader.getDocumentIndexPath();
+        DOCLENS_PATH = ConfigReader.getDoclens();
+    }
 
     public DocumentIndex()
     {
-        this.PATH = ConfigReader.getDocumentIndexPath();
-        if(!FileManager.checkFile(PATH)) FileManager.createFile(PATH);
+        if(!FileManager.checkFile(DOCINDEX_PATH)) FileManager.createFile(DOCINDEX_PATH);
+        if(!FileManager.checkFile(DOCLENS_PATH)) FileManager.createFile(DOCLENS_PATH);
+    }
+
+    public DocumentIndex(boolean loadLengths){
+        this();
+        if(loadLengths) loadLengths();
     }
 
     /**
@@ -31,28 +49,72 @@ public class DocumentIndex
      */
     public void add(Document document)
     {
+        docList.add(document);
+    }
+
+    public void bulkWrite(){
         try(
-                FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(PATH),
+                FileChannel index_channel = (FileChannel) Files.newByteChannel(Paths.get(DOCINDEX_PATH),
+                        StandardOpenOption.READ,
+                        StandardOpenOption.WRITE,
+                        StandardOpenOption.CREATE);
+
+                FileChannel doclens_channel = (FileChannel) Files.newByteChannel(Paths.get(DOCLENS_PATH),
                         StandardOpenOption.READ,
                         StandardOpenOption.WRITE,
                         StandardOpenOption.CREATE)
-                )
+        )
         {
-            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, OFFSET, Document.SIZE);
-            OFFSET += Document.SIZE;
+            for(Document document : docList)
+            {
+                MappedByteBuffer buffer = index_channel.map(FileChannel.MapMode.READ_WRITE, OFFSET, Document.SIZE);
+                OFFSET += Document.SIZE;
 
-            StringBuilder pattern = new StringBuilder("%-").append(Document.PID_SIZE).append("s");
-            String padded = String.format(pattern.toString(), document.getPid()).substring(0, Document.PID_SIZE);
+                StringBuilder pattern = new StringBuilder("%-").append(Document.PID_SIZE).append("s");
+                String padded = String.format(pattern.toString(), document.getPid()).substring(0, Document.PID_SIZE);
 
-            buffer.put(padded.getBytes());
-            buffer.putInt(document.getDocid());
-            buffer.putInt(document.getTokenCount());
+                buffer.put(padded.getBytes());
+                buffer.putInt(document.getDocid());
+                buffer.putInt(document.getTokenCount());
 
+                byte[] doclen = Compressor.compressIntToVariableByte(document.getTokenCount());
+                MappedByteBuffer doclens_buffer = doclens_channel.map(FileChannel.MapMode.READ_WRITE, LENS_OFFSET, doclen.length);
+
+                doclens_buffer.put(doclen);
+                LENS_OFFSET += doclen.length;
+            }
+            docList.clear();
         }
         catch (IOException e)
         {
             e.printStackTrace();
         }
+    }
+
+    private void loadLengths(){
+        try(
+                FileChannel index_channel = (FileChannel) Files.newByteChannel(Paths.get(DOCLENS_PATH),
+                        StandardOpenOption.READ);
+        )
+        {
+            System.out.println("Loading lengths...");
+            MappedByteBuffer buffer = index_channel.map(FileChannel.MapMode.READ_ONLY, 0, index_channel.size());
+
+            byte[] byteArray = new byte[buffer.remaining()];
+            buffer.get(byteArray);
+
+            int[] decomp = Compressor.VariableByteDecompression(byteArray);
+
+            lengths = Arrays.stream(decomp).boxed().collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public int getLen(int docid){
+        return lengths.get(docid);
     }
 
     /**
@@ -66,7 +128,7 @@ public class DocumentIndex
         int tempDocid;
         int tempTokenCount;
 
-        try(FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(PATH), StandardOpenOption.READ))
+        try(FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(DOCINDEX_PATH), StandardOpenOption.READ))
         {
             MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, docid*Document.SIZE, Document.SIZE);
 
