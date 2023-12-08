@@ -35,6 +35,6 @@ public class ScoredDocument
     public void setScore(double newScore) { this.score += newScore; }
     public String toString()
     {
-        return "<docid: " + docId + ", score: " + score + ";\n";
+        return "docid: " + docId + " | score: " + score + "\n";
     }
 }

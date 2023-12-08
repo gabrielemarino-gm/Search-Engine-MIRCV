@@ -13,7 +13,7 @@ public class CreateIndex
         boolean STOPSTEM = false;
         String INPUT_PATH = null;
 
-        int i = 0;
+        int i = 1;
         int maxArgs = args.length;
         while(i < maxArgs)
         {
@@ -22,21 +22,21 @@ public class CreateIndex
             if (args[i].equals("-d")) {DEBUG = true; i += 1; continue;}
             if (args[i].equals("-c")) {COMPRESSION = true; i += 1; continue;}
 
-            else {i++; System.err.println("Unknown command. Continuing.");}
+            else {i++; System.err.println("Search Engine ERR > Unknown key for the command createIndex. Try again.");}
         }
 
         if(INPUT_PATH == null)
         {
-            System.err.println("Input path not specified. Exiting.");
-            System.exit(1);
+            System.err.println("Search Engine ERR > Input path not specified. Exiting.");
+            System.out.println();
         }
 
         // Index building
         SPIMI spimi = new SPIMI(INPUT_PATH, STOPSTEM);
         int nBlocks  = spimi.algorithm(DEBUG);
 
-//        int nBlocks = 72;
-        System.out.println("LOG:\t\tIndex created. Merging...");
+        //int nBlocks = 72;
+        System.out.println("Search Engine LOG > Index created. Merging...");
 
         // Index merging
         Merging merge = new Merging(COMPRESSION, nBlocks, DEBUG);

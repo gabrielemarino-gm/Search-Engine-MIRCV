@@ -41,7 +41,7 @@ public class Merging
         this.DEBUG = debug;
 
         System.out.println(String.format(
-                "-----MERGING-----\nCOMPRESSION = %b\nBLOCKS_TO_COMPRESS = %d\n-----------------",
+                "MERGING > COMPRESSION = %b\nMERGING > BLOCKS_TO_COMPRESS = %d",
                 COMPRESSION,
                 BLOCKS_COUNT
         ));
@@ -171,7 +171,7 @@ public class Merging
                             // Null is used as break condition.
                             if (offsetVocabulary[indexBlock] >= dimVocabularyFile[indexBlock])
                             {
-                                System.err.println("LOG:\t\tBlock #" + indexBlock + " exhausted.");
+                                System.err.println("MERGING > Block #" + indexBlock + " exhausted.");
                                 vocs[indexBlock] = null;
                                 continue;
                             }
@@ -331,7 +331,7 @@ public class Merging
                     nTerms++;
 
                     if(nTerms % 100_000 == 0) {
-                        System.out.println(String.format("LOG:\t\t%d terms have been processed", nTerms));
+                        System.out.println(String.format("MERGING > %d terms have been processed", nTerms));
                     }
 
                     /*
@@ -357,7 +357,7 @@ public class Merging
 
                 // Delete temporary blocks
 //              FileManager.deleteDir(ConfigReader.getPartialPath());
-                System.out.println(String.format("LOG:\t\tTotal terms in the Lexicon is %d", nTerms));
+                System.out.println(String.format("MERGING > Total terms in the Lexicon is %d", nTerms));
                 CollectionInformation.setTotalTerms(nTerms);
             }
             catch (Exception e)
@@ -367,7 +367,7 @@ public class Merging
         }
         else
         {
-            System.err.println("ERR\t\tMerge error, directory " + ConfigReader.getPartialPath() + " doesn't exists!");
+            System.err.println("MERGING ERROR > Merge error, directory " + ConfigReader.getPartialPath() + " doesn't exists!");
         }
     }
 

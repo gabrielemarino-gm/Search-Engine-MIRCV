@@ -19,12 +19,14 @@ public class GabTest
     static MaxScore maxScore = new MaxScore(true, 10);
     public static void main(String[] argv)
     {
-        String query = "who proposed the mathematical relationship on how gases physically mixed will generate pressure";
+        // String query = "who proposed the mathematical relationship on how gases physically mixed will generate pressure";
+        String query = "the cat is on the little table where there is a red flower";
+
         List<String> queryTerms = preprocesser.process(query);
         System.out.println("QUERY: " + query);
 
-        //System.out.println();
-        //processQueryDAAT(queryTerms);
+        System.out.println();
+        processQueryDAAT(queryTerms);
         System.out.println();
         processQueryMaxScore(queryTerms);
     }

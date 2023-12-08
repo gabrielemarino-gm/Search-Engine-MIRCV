@@ -51,7 +51,7 @@ public class SPIMI
         CURRENT_BLOCK_POSTING_COUNT = 0;
 
         System.out.println(String.format(
-                "-----SPIMI-----\nINPUT_PATH = %s\nSTEMMING = %b\n---------------",
+                "SPIMI >\tINPUT_PATH = %s\nSPIMI >\tSTEMMING = %b",
                 INPUT_PATH,
                 stemming
         ));
@@ -64,7 +64,7 @@ public class SPIMI
      */
     public int algorithm(boolean debug)
     {
-        System.out.println("Starting SPIMI algorithm...");
+        System.out.println("SPIMI > Starting SPIMI algorithm...");
 
         // Starting cleaning the folder
         FileManager.cleanFolder(ConfigReader.getWorkingDir());
@@ -125,7 +125,7 @@ public class SPIMI
             // Memory control
             if(memoryCheck())
             {
-                System.out.println("LOG:\t\tWriting block #" + INCREMENTAL_PARTIAL_BLOCK_NUMBER);
+                System.out.println("SPIMI > Writing block #" + INCREMENTAL_PARTIAL_BLOCK_NUMBER);
                 if (writeBlockToDisk(debug))
                 {
                     INCREMENTAL_PARTIAL_BLOCK_NUMBER++;
@@ -137,23 +137,23 @@ public class SPIMI
                 }
                 else
                 {
-                    System.err.println("ERROR:\t\tNot able to write the binary file");
+                    System.err.println("SPIMI ERROR > Not able to write the binary file");
                     break;
                 }
             }
             // End memory control
 
-            if (INCREMENTAL_DOCID %100000 == 0)
+            if (INCREMENTAL_DOCID %1000000 == 0)
             {
                 // printMemInfo();
-                System.out.println("LOG:\t\tDocuments processed " + INCREMENTAL_DOCID);
+                System.out.println("SPIMI > Documents processed " + INCREMENTAL_DOCID);
             }
         }
 
         // We need to write the last block
         if (writeBlockToDisk(debug))
         {
-            System.out.println("LOG:\t\tWriting block #" + INCREMENTAL_PARTIAL_BLOCK_NUMBER);
+            System.out.println("SPIMI > Writing block #" + INCREMENTAL_PARTIAL_BLOCK_NUMBER);
             INCREMENTAL_PARTIAL_BLOCK_NUMBER++;
 
             // Manually free memory
@@ -162,7 +162,7 @@ public class SPIMI
         }
         else
         {
-            System.out.println("ERROR:\t\tNot able to write the binary file");
+            System.out.println("SPIMI ERROR > Not able to write the binary file");
         }
 
         // Write CollectionDocument number and AvarageDocumentLenght

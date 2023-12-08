@@ -7,6 +7,14 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
+/**
+ * This class represents a Corpus
+ * During the creation of the object, a BufferedReader is opened towards a specified path
+ * The class implements the Iterator interface, and through the correct use in the for-each, you can scroll
+ * the lines of the document to be processed as if it were an array of strings
+ *
+ * the next() function will simply return the next line, as long as hasNext() is true.
+ */
 public class Corpus implements Iterable<String>
 {
     private String INPUT_PATH;

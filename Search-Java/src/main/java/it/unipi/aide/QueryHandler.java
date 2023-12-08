@@ -19,21 +19,31 @@ import java.util.Scanner;
  */
 public class QueryHandler
 {
+    static boolean SETUP = false;
+    static boolean BM25 = false;
+    static String ALGORITHM = "DAAT";
+    static int TOP_K = 10;
     static Scanner scanner = new Scanner(System.in);
     static Preprocesser preprocesser = new Preprocesser(true);
-    static DAAT daat = new DAAT(10);
-    static MaxScore maxScore = new MaxScore(false, 10);
+    static DAAT daat;
+    static MaxScore maxScore;
 
     public static void main(String[] args)
     {
         while (true)
         {
-            System.out.print("Search for: ");
+            if (!SETUP)
+            {
+                setupSystem();
+                continue;
+            }
+
+            System.out.print(String.format("Query Handler: Type query (%s, %s) > ", ALGORITHM, BM25? "BM25" : "TF-IDF"));
             String input = scanner.nextLine();
 
-            if (input.equalsIgnoreCase("exit"))
+            if (input.equalsIgnoreCase("q"))
             {
-                System.out.print("Are you sure? (Y/N) ");
+                System.out.print("Query Handler > Are you sure? (Y/N) ");
                 input = scanner.nextLine();
 
                 while(!(input.equalsIgnoreCase("y") || input.equalsIgnoreCase("n")))
@@ -41,7 +51,7 @@ public class QueryHandler
 
                 if(input.equalsIgnoreCase("y"))
                 {
-                    System.out.println("Exiting...");
+                    System.out.println("Query Handler > Exiting...");
                     break;
                 }
                 else
@@ -49,12 +59,66 @@ public class QueryHandler
                     continue;
                 }
             }
+            else if (input.equalsIgnoreCase("s"))
+            {
+                SETUP = false;
+                continue;
+            }
 
-            processQueryDAAT(input);
-            System.out.println();
-            processQueryMaxScore(input);
-            System.out.println();
+            if (ALGORITHM.equals("DAAT"))
+                processQueryDAAT(input);
+            else if (ALGORITHM.equals("MAX-SCORE"))
+                processQueryMaxScore(input);
         }
+    }
+
+    private static void setupSystem()
+    {
+        System.out.println("Query Handler > Setup system");
+
+        System.out.println("Query Handler > Choose the algorithm to use for the query, type 1 for DAAT, 2 for MaxScore");
+        String input = scanner.nextLine();
+        if (input.equals("1"))
+        {
+            ALGORITHM = "DAAT";
+        }
+        else if (input.equals("2"))
+        {
+            ALGORITHM = "MAX-SCORE";
+        }
+        else
+        {
+            System.err.println("Query Handler ERR > Invalid input. Try again.");
+            return;
+        }
+
+        System.out.println("Query Handler > What kind of score function do you want to use? Type 1 for TF-IDF, 2 for BM25 ");
+        input = scanner.nextLine();
+        if (input.equals("1"))
+        {
+            BM25 = false;
+        }
+        else
+        {
+            System.err.println("Query Handler ERR > Invalid input. Try again.");
+            return;
+        }
+
+        System.out.println("Query Handler > Set the value of k for the top-k documents ");
+
+        input = scanner.nextLine();
+        try
+        {
+            TOP_K = Integer.parseInt(input);
+        }
+        catch (NumberFormatException e)
+        {
+            System.err.println("Query Handler ERR > Invalid input. Try again.");
+            return;
+        }
+
+        System.out.println("Query Handler > System setup completed.");
+        SETUP = true;
     }
 
     private static void processQueryDAAT(String query)
@@ -62,16 +126,17 @@ public class QueryHandler
         List<String> tokens = preprocesser.process(query);
         long startTime = System.currentTimeMillis();
 
-        System.out.println("Results DAAT:");
+        System.out.println(String.format("Query Handler Results (%s, %s) > ", ALGORITHM, BM25? "BM25" : "TF-IDF"));
 
+        daat = new DAAT(TOP_K);
         for (ScoredDocument sd : daat.executeDAAT(tokens)) {
-            System.out.print(sd);
+            System.out.print("\t\t\t\t\t\t" + sd);
         }
 
         long endTime = System.currentTimeMillis();
         long elapsedTime = endTime - startTime;
 
-        System.out.println(elapsedTime + " ms");
+        System.out.println("\t\t\t\t\t\t(" + elapsedTime + " ms)");
     }
 
     private static void processQueryMaxScore(String query)
@@ -79,16 +144,16 @@ public class QueryHandler
         List<String> tokens = preprocesser.process(query);
         long startTime = System.currentTimeMillis();
 
-        System.out.println("Results MAX-SCORE:");
-
+        System.out.println(String.format("Query Handler Results (%s, %s) > ", ALGORITHM, BM25? "BM25" : "TF-IDF"));
+        maxScore = new MaxScore(BM25, TOP_K);
         // Print the list of top-k scored documents, in reverse order
         for (ScoredDocument sd : maxScore.executeMaxScore(tokens)) {
-            System.out.print(sd);
+            System.out.print("\t\t\t\t\t\t" + sd);
         }
 
         long endTime = System.currentTimeMillis();
         long elapsedTime = endTime - startTime;
 
-        System.out.println(elapsedTime + " ms");
+        System.out.println("\t\t\t\t\t\t(" + elapsedTime + " ms)");
     }
 }
