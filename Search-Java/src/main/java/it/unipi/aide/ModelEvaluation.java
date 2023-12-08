@@ -9,38 +9,38 @@ import it.unipi.aide.model.ScoredDocument;
 import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
 import it.unipi.aide.utils.Preprocesser;
+import me.tongfei.progressbar.ProgressBar;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Scanner;
 
 public class ModelEvaluation
 {
+    static String ALGORITHM = "DAAT";
+    static int TOP_K = 10;
+    static boolean BM25 = false;
     static Preprocesser preprocesser = new Preprocesser(true);
     static MaxScore maxScore = new MaxScore();
+    static DAAT daat = new DAAT();
     static final String queryFile = ConfigReader.getTrecEvalPath() + "/msmarco-test2020-queries.tsv";
     static final String resultsFile = ConfigReader.getTrecEvalPath() + "/resultsTrecEval.txt";
+    static Scanner scanner = new Scanner(System.in);
+
 
     public static void main(String[] args)
     {
+        // Setup the system
+        setupEvaluation();
+
+        ProgressBar pb = new ProgressBar("Model Evaluation >", 200);
+        pb.start();
+
         // Remove the file if already exists, then create it
         FileManager.removeFile(resultsFile);
         FileManager.createFile(resultsFile);
-
-        // Load the documents length in memory
-        //List<Integer> docLengths = new ArrayList<>();
-
-        //DocumentIndex documentIndex = new DocumentIndex();
-        //Document d = documentIndex.get(0);
-        //docLengths.add(d.getTokenCount());
-
-        //System.out.println("DBG:\t\tReading docLengths...");
-        //for (int docId = 1; docId < CollectionInformation.getTotalDocuments(); docId++)
-        //{
-        //    d = documentIndex.get(docId);
-        //    docLengths.add(d.getTokenCount());
-        //}
 
         try (BufferedReader reader = new BufferedReader(new FileReader(queryFile)))
         {
@@ -55,19 +55,85 @@ public class ModelEvaluation
                 // tokens[1] is the query text
 
                 //  execute the algorithm
-                System.out.println("LOG:\t\t Execute Algorithm for: " + Collections.singletonList(tokens[1]));
+                pb.step();
                 List<String> queryTerms = preprocesser.process(tokens[1]);
-                List<ScoredDocument> resultsMaxScore = maxScore.executeMaxScore(queryTerms, true, 10);
+                if (ALGORITHM.equals("DAAT"))
+                {
+                    List<ScoredDocument> resultsDAAT = daat.executeDAAT(queryTerms, BM25, TOP_K);
+                    // write results to file
+                    if (!resultsDAAT.isEmpty())
+                        writeResults(tokens[0], resultsDAAT);
+                }
+                else if (ALGORITHM.equals("MAX-SCORE"))
+                {
+                    List<ScoredDocument> resultsMaxScore = maxScore.executeMaxScore(queryTerms, BM25, TOP_K);
 
-                // write results to file
-                if (!resultsMaxScore.isEmpty())
-                    writeResults(tokens[0], resultsMaxScore);
-
+                    // write results to file
+                    if (!resultsMaxScore.isEmpty())
+                        writeResults(tokens[0], resultsMaxScore);
+                }
             }
+
+            pb.stepTo(200);
+            pb.stop();
         }
         catch (IOException e)
         {
             e.printStackTrace();
+        }
+    }
+
+    private static void setupEvaluation() 
+    {
+        System.out.println("Model Evaluation > Setting up the system...");
+        System.out.println("Model Evaluation > Choose the algorithm to use for the query, type 1 for DAAT, 2 for MaxScore");
+        System.out.print("Model Evaluation > ");
+        
+        String input = scanner.nextLine();
+        while(!(input.equals("1") || input.equals("2")))
+        {
+            System.err.println("Model Evaluation ERR > Invalid input. Try again.");
+            System.out.println();
+            System.out.print("Model Evaluation > ");
+            input = scanner.nextLine();
+        }
+        
+        if(input.equals("1"))
+            ALGORITHM = "DAAT";
+        else
+            ALGORITHM = "MAX-SCORE";
+
+        System.out.println("Model Evaluation > What kind of score function do you want to use? Type 1 for TF-IDF, 2 for BM25 ");
+        System.out.print("Model Evaluation > ");
+
+        input = scanner.nextLine();
+        while(!(input.equals("1") || input.equals("2")))
+        {
+            System.err.println("Model Evaluation ERR > Invalid input. Try again.");
+            System.out.println();
+            System.out.print("Model Evaluation > ");
+            input = scanner.nextLine();
+        }
+
+        if (input.equals("1"))
+            BM25 = false;
+        else
+            BM25 = true;
+
+        
+        System.out.println("Model Evaluation > Choose the number of documents to retrieve for each query");
+        System.out.print("Model Evaluation > ");
+        
+        input = scanner.nextLine();
+
+        try
+        {
+            TOP_K = Integer.parseInt(input);
+        }
+        catch (NumberFormatException e)
+        {
+            System.err.println("MODEL EVALUATION ERR > Invalid input. Try again.");
+            return;
         }
     }
 

@@ -31,7 +31,6 @@ public class SPIMI
     private final Preprocesser PREPROCESSER;
     private int INCREMENTAL_PARTIAL_BLOCK_NUMBER;
     private int CURRENT_BLOCK_POSTING_COUNT;
-
     private int INCREMENTAL_DOCID = 0;
 
     /**

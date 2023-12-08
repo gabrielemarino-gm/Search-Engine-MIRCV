@@ -79,9 +79,19 @@ public class QueryHandler
     private static void setupSystem()
     {
         System.out.println("Query Handler > Setup system");
-
         System.out.println("Query Handler > Choose the algorithm to use for the query, type 1 for DAAT, 2 for MaxScore");
+        System.out.print("Query Handler > ");
+
         String input = scanner.nextLine();
+
+        while(!(input.equals("1") || input.equals("2")))
+        {
+            System.err.println("Query Handler ERR > Invalid input. Try again.");
+            System.out.println();
+            System.out.print("Query Handler > ");
+            input = scanner.nextLine();
+        }
+
         if (input.equals("1"))
         {
             ALGORITHM = "DAAT";
@@ -97,6 +107,16 @@ public class QueryHandler
         }
 
         System.out.println("Query Handler > What kind of score function do you want to use? Type 1 for TF-IDF, 2 for BM25 ");
+        System.out.print("Query Handler > ");
+
+        while(!(input.equals("1") || input.equals("2")))
+        {
+            System.err.println("Query Handler ERR > Invalid input. Try again.");
+            System.out.println();
+            System.out.print("Query Handler > ");
+            input = scanner.nextLine();
+        }
+
         input = scanner.nextLine();
         if (input.equals("1"))
         {
@@ -113,8 +133,9 @@ public class QueryHandler
         }
 
         System.out.println("Query Handler > Set the value of k for the top-k documents ");
-
+        System.out.print("Query Handler > ");
         input = scanner.nextLine();
+
         try
         {
             TOP_K = Integer.parseInt(input);
