@@ -98,6 +98,10 @@ public class QueryHandler
         {
             BM25 = false;
         }
+        else if (input.equals("2"))
+        {
+            BM25 = true;
+        }
         else
         {
             System.err.println("Query Handler ERR > Invalid input. Try again.");
