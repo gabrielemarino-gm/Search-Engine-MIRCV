@@ -26,9 +26,7 @@ public class Vocabulary
             if(newPostingAdded)
             {
                 vocabulary.get(term).incrementNumPosting();
-
             }
-
             // In any case increments the total frequency
             vocabulary.get(term).incrementTotalFrequency();
         }

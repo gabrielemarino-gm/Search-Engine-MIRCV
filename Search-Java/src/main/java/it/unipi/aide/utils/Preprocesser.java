@@ -20,7 +20,7 @@ public class Preprocesser
     private final Pattern camelCasePattern;
 
     private final boolean stemmstopActive;
-    private Set<String> stopwords;
+    private HashSet<String> stopwords;
 
     PorterStemmer stemmer = new PorterStemmer();
 
@@ -33,7 +33,7 @@ public class Preprocesser
         urlPattern = Pattern.compile("(https?://\\S+|www\\.\\S+)");
         htmlPattern = Pattern.compile("<[^>]+>");
         nonDigitPattern = Pattern.compile("[^a-zA-Z ]");
-        multipleSpacePattern = Pattern.compile(" +");
+        multipleSpacePattern = Pattern.compile("\\s+");
         consecutiveLettersPattern = Pattern.compile("(.)\\1{2,}");
         camelCasePattern = Pattern.compile("(?<=[a-z])(?=[A-Z])");
 
@@ -83,10 +83,12 @@ public class Preprocesser
     {
         text = urlPattern.matcher(text).replaceAll(" ");
         text = htmlPattern.matcher(text).replaceAll(" ");
-        text = nonDigitPattern.matcher(text).replaceAll(" ");
-        text = multipleSpacePattern.matcher(text).replaceAll(" ");
-        text = consecutiveLettersPattern.matcher(text).replaceAll(" ");
         text = camelCasePattern.matcher(text).replaceAll(" ");
+        text = consecutiveLettersPattern.matcher(text).replaceAll(" ");
+        text = nonDigitPattern.matcher(text).replaceAll(" ");
+
+        // Useless if we do it later with split("\\s+")
+//        text = multipleSpacePattern.matcher(text).replaceAll(" ");
 
         return text;
     }
@@ -96,19 +98,9 @@ public class Preprocesser
      * @param tokens Set of tokens
      * @return List of tokens without Stopwords
      */
-    private ArrayList<String> removeStopwords(ArrayList<String> tokens)
-    {
-        /*
-         *TODO: This may be enhanced by removing Stopwords from 'tokens' list without
-         * creating a brand-new list
-         */
-        ArrayList<String> filteredTokens = new ArrayList<>();
-        for (String token : tokens) {
-            if (!stopwords.contains(token)) {
-                filteredTokens.add(token);
-            }
-        }
-        return filteredTokens;
+    private List<String> removeStopwords(ArrayList<String> tokens) {
+        tokens.removeIf(stopwords::contains);
+        return tokens;
     }
 
     /**
@@ -116,7 +108,7 @@ public class Preprocesser
      * @param words List of tokens
      * @return List of stemmed tokens
      */
-    private ArrayList<String> performStemming(ArrayList<String> words)
+    private ArrayList<String> performStemming(List<String> words)
     {
         /*
          *TODO: This may be enhanced by directly extract and put back
@@ -137,31 +129,25 @@ public class Preprocesser
      */
     public List<String> process(String text)
     {
-
         // STEP 1: Text cleaning
         text = clean(text);
+
         // STEP 2: Lowercasing
         text = text.toLowerCase();
 
         // STEP 3: Tokenization
-        String[] termsArray = text.split(" ");
+        String[] termsArray = text.split("\\s+");
         ArrayList<String> terms = new ArrayList<>(Arrays.asList(termsArray));
 
-        // STEP 4: Remove Stopwords and Stemming
+        // STEP 4: Remove empty tokens
+        terms.removeIf(term -> term.trim().isEmpty());
+
+        // STEP 5: Remove Stopwords and Stemming
         if (stemmstopActive)
         {
-            terms = removeStopwords(terms);
-            terms = performStemming(terms);
-        }
-
-        // STEP 5: Remove empty tokens
-        for (int i = terms.size() - 1; i >= 0; i--)
-        {
-            String element = terms.get(i);
-            if (element.trim().isEmpty())
-            {
-                terms.remove(i);
-            }
+            terms = performStemming(
+                    removeStopwords(terms)
+            );
         }
 
         return terms;

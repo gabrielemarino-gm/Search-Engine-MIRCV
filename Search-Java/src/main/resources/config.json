@@ -22,7 +22,7 @@
 
   "trecEvalPath" : "data/trec-eval",
 
-  "compressionEnabled" : false,
+  "compressionEnabled" : true,
   "compressionBlockSize" : 512,
   "blockDivisionEnabled" : true
 }
