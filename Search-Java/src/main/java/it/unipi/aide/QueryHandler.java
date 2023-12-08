@@ -25,8 +25,8 @@ public class QueryHandler
     static int TOP_K = 10;
     static Scanner scanner = new Scanner(System.in);
     static Preprocesser preprocesser = new Preprocesser(true);
-    static DAAT daat;
-    static MaxScore maxScore;
+    static DAAT daat = new DAAT();
+    static MaxScore maxScore = new MaxScore();
 
     public static void main(String[] args)
     {
@@ -72,6 +72,10 @@ public class QueryHandler
         }
     }
 
+    /**
+     * User interface for the query handler.
+     * Setup the system for the query
+     */
     private static void setupSystem()
     {
         System.out.println("Query Handler > Setup system");
@@ -132,8 +136,7 @@ public class QueryHandler
 
         System.out.println(String.format("Query Handler Results (%s, %s) > ", ALGORITHM, BM25? "BM25" : "TF-IDF"));
 
-        daat = new DAAT(TOP_K);
-        for (ScoredDocument sd : daat.executeDAAT(tokens)) {
+        for (ScoredDocument sd : daat.executeDAAT(tokens, BM25, TOP_K)) {
             System.out.print("\t\t\t\t\t\t" + sd);
         }
 
@@ -149,9 +152,8 @@ public class QueryHandler
         long startTime = System.currentTimeMillis();
 
         System.out.println(String.format("Query Handler Results (%s, %s) > ", ALGORITHM, BM25? "BM25" : "TF-IDF"));
-        maxScore = new MaxScore(BM25, TOP_K);
         // Print the list of top-k scored documents, in reverse order
-        for (ScoredDocument sd : maxScore.executeMaxScore(tokens)) {
+        for (ScoredDocument sd : maxScore.executeMaxScore(tokens, BM25, TOP_K)) {
             System.out.print("\t\t\t\t\t\t" + sd);
         }
 

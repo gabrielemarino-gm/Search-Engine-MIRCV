@@ -9,19 +9,22 @@ import java.util.List;
 
 public class DAAT
 {
-    private final int K;
+    private int TOP_K;
+    private boolean BM25;
     boolean COMPRESSION;
-
     HashMap<String, TermInfo> terms = new HashMap<>();
+    private DocumentIndex DOCUMENTINDEX;
 
-    public DAAT(int k)
+    public DAAT()
     {
-        this.K = k;
         COMPRESSION = false;
+        DOCUMENTINDEX = new DocumentIndex(COMPRESSION);
     }
 
-    public List<ScoredDocument> executeDAAT(List<String> queryTerms)
+    public List<ScoredDocument> executeDAAT(List<String> queryTerms, Boolean bm25, int top_k)
     {
+        BM25 = bm25;
+        TOP_K = top_k;
         QueryPreprocessing qp = new QueryPreprocessing();
 
         List<PostingListSkippable> postingLists = qp.retrievePostingList(queryTerms);
@@ -57,11 +60,22 @@ public class DAAT
                     // If Posting List of current term has docId equals to the smallest under consideration, calculate its score
                     if (pl.getCurrentPosting().getDocId() == firstDoc)
                     {
-                        documentToAdd.setScore(ScoreFunction.computeTFIDF(
-                                                    pl.getCurrentPosting().getFrequency(),
-                                                    terms.get(pl.getTerm()).getNumPosting()
-                                )
-                        );
+                        if (BM25)
+                        {
+                            documentToAdd.setScore(ScoreFunction.computeBM25(
+                                    pl.getCurrentPosting().getFrequency(),
+                                    terms.get(pl.getTerm()).getNumPosting(),
+                                    DOCUMENTINDEX.getLen(firstDoc)
+                            ));
+                        }
+                        else
+                        {
+                            documentToAdd.setScore(ScoreFunction.computeTFIDF(
+                                            pl.getCurrentPosting().getFrequency(),
+                                            terms.get(pl.getTerm()).getNumPosting()
+                                    )
+                            );
+                        }
 
                         pl.next();
                     }
@@ -80,8 +94,8 @@ public class DAAT
             else return 0;
         });
 
-        if (scoredDocuments.size() > K)
-            return scoredDocuments.subList(0, K);
+        if (scoredDocuments.size() > TOP_K)
+            return scoredDocuments.subList(0, TOP_K);
         else
             return scoredDocuments;
 

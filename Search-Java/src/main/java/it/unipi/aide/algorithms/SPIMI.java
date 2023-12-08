@@ -6,7 +6,6 @@ import it.unipi.aide.utils.FileManager;
 import it.unipi.aide.utils.Preprocesser;
 import me.tongfei.progressbar.ProgressBar;
 
-import javax.xml.bind.SchemaOutputResolver;
 import java.io.*;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;

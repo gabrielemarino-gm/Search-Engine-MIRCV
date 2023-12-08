@@ -18,7 +18,7 @@ import java.util.List;
 public class ModelEvaluation
 {
     static Preprocesser preprocesser = new Preprocesser(true);
-    static MaxScore maxScore = new MaxScore(false, 20);
+    static MaxScore maxScore = new MaxScore();
     static final String queryFile = ConfigReader.getTrecEvalPath() + "/msmarco-test2020-queries.tsv";
     static final String resultsFile = ConfigReader.getTrecEvalPath() + "/resultsTrecEval.txt";
 
@@ -57,7 +57,7 @@ public class ModelEvaluation
                 //  execute the algorithm
                 System.out.println("LOG:\t\t Execute Algorithm for: " + Collections.singletonList(tokens[1]));
                 List<String> queryTerms = preprocesser.process(tokens[1]);
-                List<ScoredDocument> resultsMaxScore = maxScore.executeMaxScore(queryTerms);
+                List<ScoredDocument> resultsMaxScore = maxScore.executeMaxScore(queryTerms, true, 10);
 
                 // write results to file
                 if (!resultsMaxScore.isEmpty())

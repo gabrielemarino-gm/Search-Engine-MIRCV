@@ -20,10 +20,8 @@ public class MaxScore
     /**
      * Initialization method if needed
      */
-    public MaxScore(Boolean bm25, int top_k)
+    public MaxScore()
     {
-        BM25 = bm25;
-        TOP_K = top_k;
         DOCUMENTINDEX = new DocumentIndex(true);
     }
 
@@ -32,8 +30,10 @@ public class MaxScore
      * @param queryTerms List of query terms
      * @return List of top-k scored documents
      */
-    public List<ScoredDocument> executeMaxScore(List<String> queryTerms)
+    public List<ScoredDocument> executeMaxScore(List<String> queryTerms, Boolean bm25, int top_k)
     {
+        BM25 = bm25;
+        TOP_K = top_k;
         // Retrieve the posting lists of the query terms
         QueryPreprocessing qp = new QueryPreprocessing();
         this.postingLists = qp.retrievePostingList(queryTerms);
@@ -187,7 +187,9 @@ public class MaxScore
 
         for (PostingListSkippable pl : postingLists)
         {
-            if (pl.getCurrentPosting().getDocId() < min)
+            Posting posting = pl.getCurrentPosting();
+
+            if (posting.getDocId() < min)
             {
                 min = pl.getCurrentPosting().getDocId();
             }

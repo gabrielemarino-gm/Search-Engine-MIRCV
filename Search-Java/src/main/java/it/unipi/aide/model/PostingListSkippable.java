@@ -25,7 +25,7 @@ public class PostingListSkippable  implements Iterator<Posting>
     private final TermInfo term;
     private final List<BlockDescriptor> blockDescriptors = new ArrayList<>();
     private final List<Posting> postingsOfTheCurrentBlock = new ArrayList<>();
-    private int currentBlockIndexer = 0;
+    private int currentBlockIndexer = -1;
     boolean noMorePostings = false;
 
     FileChannel docsChannel;
@@ -133,7 +133,7 @@ public class PostingListSkippable  implements Iterator<Posting>
     }
 
     public void reset(){
-        currentBlockIndexer = 0;
+        currentBlockIndexer = -1;
         postingsOfTheCurrentBlock.clear();
         openChannels();
     }

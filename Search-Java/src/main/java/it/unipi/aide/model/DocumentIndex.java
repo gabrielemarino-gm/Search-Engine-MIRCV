@@ -91,13 +91,14 @@ public class DocumentIndex
         }
     }
 
-    private void loadLengths(){
+    private void loadLengths()
+    {
         try(
                 FileChannel index_channel = (FileChannel) Files.newByteChannel(Paths.get(DOCLENS_PATH),
                         StandardOpenOption.READ);
         )
         {
-            System.out.println("Loading lengths...");
+            // System.out.println("Loading lengths...");
             MappedByteBuffer buffer = index_channel.map(FileChannel.MapMode.READ_ONLY, 0, index_channel.size());
 
             byte[] byteArray = new byte[buffer.remaining()];
