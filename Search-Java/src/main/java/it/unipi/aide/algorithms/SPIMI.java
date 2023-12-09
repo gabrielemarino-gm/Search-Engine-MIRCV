@@ -16,6 +16,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 
+import static it.unipi.aide.utils.ColorText.*;
+
 /**
  * Class that implement the SPIMI algorithm
  *
@@ -86,7 +88,7 @@ public class SPIMI
         // Terms in all documents
         long globalTermCountSum = 0;
 
-        ProgressBar pb = new ProgressBar("SPIMI > ", 8841823);
+        ProgressBar pb = new ProgressBar(BLUE + "SPIMI > " + ANSI_RESET, 8841823);
         pb.start();
         // For each documents
         for(String doc: corpus)
@@ -151,7 +153,7 @@ public class SPIMI
                 else
                 {
                     pb.stop();
-                    System.err.println("SPIMI ERROR > Not able to write the binary file");
+                    System.out.println(RED + "SPIMI ERROR > Not able to write the binary file" + ANSI_RESET);
                     break;
                 }
             }
@@ -178,7 +180,7 @@ public class SPIMI
         else
         {
             pb.stop();
-            System.out.println("SPIMI ERROR > Not able to write the binary file");
+            System.out.println(RED  + "SPIMI ERROR > Not able to write the binary file" + ANSI_RESET);
         }
 
         // Write CollectionDocument number and AvarageDocumentLenght

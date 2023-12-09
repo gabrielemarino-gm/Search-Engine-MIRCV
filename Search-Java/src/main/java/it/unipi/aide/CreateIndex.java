@@ -4,6 +4,8 @@ import it.unipi.aide.algorithms.Merging;
 import it.unipi.aide.algorithms.SPIMI;
 import it.unipi.aide.utils.ConfigReader;
 
+import static it.unipi.aide.utils.ColorText.*;
+
 public class CreateIndex
 {
     public static void main(String[] args)
@@ -22,12 +24,12 @@ public class CreateIndex
             if (args[i].equals("-d")) {DEBUG = true; i += 1; continue;}
             if (args[i].equals("-c")) {COMPRESSION = true; i += 1; continue;}
 
-            else {i++; System.err.println("Search Engine ERR > Unknown key for the command createIndex. Try again.");}
+            else {i++; System.out.println(RED + "Search Engine ERR > Unknown key for the command createIndex. Try again." + ANSI_RESET); }
         }
 
         if(INPUT_PATH == null)
         {
-            System.err.println("Search Engine ERR > Input path not specified. Exiting.");
+            System.out.println(RED +"Search Engine ERR > Input path not specified. Exiting." + ANSI_RESET);
             System.out.println();
         }
 

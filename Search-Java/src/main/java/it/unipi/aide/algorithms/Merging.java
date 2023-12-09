@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static it.unipi.aide.utils.ColorText.*;
+
 public class Merging
 {
     private boolean COMPRESSION = false;
@@ -45,12 +47,6 @@ public class Merging
         this.BLOCKS_COUNT = blocksCount;
         this.COMPRESSION = compression;
         this.DEBUG = debug;
-
-        // System.out.println(String.format(
-        //         "MERGING > COMPRESSION = %b\nMERGING > BLOCKS_TO_COMPRESS = %d",
-        //         COMPRESSION,
-        //         BLOCKS_COUNT
-        // ));
     }
 
     /**
@@ -60,7 +56,7 @@ public class Merging
      */
     public void mergeBlocks()
     {
-        ProgressBar pb = new ProgressBar("MERGING > ", 912028);
+        ProgressBar pb = new ProgressBar(BLUE + "MERGING > " + ANSI_RESET, 912028);
         pb.start();
         long nTerms = 0;
 
@@ -340,7 +336,6 @@ public class Merging
 
                     if(nTerms % 100 == 0) {
                         pb.stepBy(100);
-                        // System.out.println(String.format("MERGING > %d terms have been processed", nTerms));
                     }
 
                     /*
@@ -369,7 +364,7 @@ public class Merging
 
                 // Delete temporary blocks
 //              FileManager.deleteDir(ConfigReader.getPartialPath());
-                System.out.printf("MERGING > Total terms in the Lexicon is %d%n", nTerms);
+                System.out.printf(BLUE + "MERGING > Total terms in the Lexicon is %d%n" + ANSI_RESET, nTerms);
                 CollectionInformation.setTotalTerms(nTerms);
             }
             catch (Exception e)
@@ -380,7 +375,7 @@ public class Merging
         else
         {
             pb.stop();
-            System.err.println("MERGING ERROR > Merge error, directory " + ConfigReader.getPartialPath() + " doesn't exists!");
+            System.out.println(RED + "MERGING ERROR > Merge error, directory " + ConfigReader.getPartialPath() + " doesn't exists!" + ANSI_RESET);
         }
     }
 

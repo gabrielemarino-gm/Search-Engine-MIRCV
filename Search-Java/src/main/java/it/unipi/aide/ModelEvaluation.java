@@ -12,6 +12,8 @@ import java.io.*;
 import java.util.List;
 import java.util.Scanner;
 
+import static it.unipi.aide.utils.ColorText.*;
+
 public class ModelEvaluation
 {
     static String ALGORITHM = "DAAT";
@@ -30,7 +32,7 @@ public class ModelEvaluation
         // Setup the system
         setupEvaluation();
 
-        ProgressBar pb = new ProgressBar("Model Evaluation >", 200);
+        ProgressBar pb = new ProgressBar(BLUE + "Model Evaluation >" + ANSI_RESET, 200);
         pb.start();
 
         // Remove the file if already exists, then create it
@@ -98,16 +100,16 @@ public class ModelEvaluation
 
     private static void setupEvaluation() 
     {
-        System.out.println("Model Evaluation > Setting up the system...");
-        System.out.println("Model Evaluation > Choose the algorithm to use for the query, type 1 for DAAT, 2 for MaxScore");
-        System.out.print("Model Evaluation > ");
+        System.out.println(BLUE + "Model Evaluation > " + ANSI_RESET + "Setting up the system...");
+        System.out.println(BLUE + "Model Evaluation > " + ANSI_RESET + "Choose the algorithm to use for the query, type 1 for DAAT, 2 for MaxScore");
+        System.out.print(BLUE + "Model Evaluation > " + ANSI_RESET);
         
         String input = scanner.nextLine();
         while(!(input.equals("1") || input.equals("2")))
         {
-            System.err.println("Model Evaluation ERR > Invalid input. Try again.");
+            System.out.println(RED + "Model Evaluation ERR > Invalid input. Try again." + ANSI_RESET);
             System.out.println();
-            System.out.print("Model Evaluation > ");
+            System.out.print(BLUE + "Model Evaluation > " + ANSI_RESET);
             input = scanner.nextLine();
         }
         
@@ -116,23 +118,23 @@ public class ModelEvaluation
         else
             ALGORITHM = "MAX-SCORE";
 
-        System.out.println("Model Evaluation > What kind of score function do you want to use? Type 1 for TF-IDF, 2 for BM25 ");
-        System.out.print("Model Evaluation > ");
+        System.out.println(BLUE + "Model Evaluation > " + ANSI_RESET + "What kind of score function do you want to use? Type 1 for TF-IDF, 2 for BM25 ");
+        System.out.print(BLUE + "Model Evaluation > " + ANSI_RESET);
 
         input = scanner.nextLine();
         while(!(input.equals("1") || input.equals("2")))
         {
-            System.err.println("Model Evaluation ERR > Invalid input. Try again.");
+            System.out.println(RED + "Model Evaluation ERR > Invalid input. Try again." + ANSI_RESET);
             System.out.println();
-            System.out.print("Model Evaluation > ");
+            System.out.print(BLUE + "Model Evaluation > " + ANSI_RESET);
             input = scanner.nextLine();
         }
 
         BM25 = !input.equals("1");
 
         
-        System.out.println("Model Evaluation > Choose the number of documents to retrieve for each query");
-        System.out.print("Model Evaluation > ");
+        System.out.println(BLUE + "Model Evaluation > " + ANSI_RESET + "Choose the number of documents to retrieve for each query");
+        System.out.print(BLUE + "Model Evaluation > " + ANSI_RESET);
         
         input = scanner.nextLine();
 
@@ -142,7 +144,7 @@ public class ModelEvaluation
         }
         catch (NumberFormatException e)
         {
-            System.err.println("MODEL EVALUATION ERR > Invalid input. Try again.");
+            System.out.println(RED + "MODEL EVALUATION ERR > Invalid input. Try again." + ANSI_RESET);
         }
     }
 

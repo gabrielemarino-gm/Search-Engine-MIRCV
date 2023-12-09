@@ -6,6 +6,8 @@ import it.unipi.aide.QueryHandler;
 
 import java.util.Scanner;
 
+import static it.unipi.aide.utils.ColorText.*;
+
 public class Driver
 {
     static Scanner scanner = new Scanner(System.in);
@@ -24,13 +26,21 @@ public class Driver
                              "\texit:   command useful for exit from the application\n\n";
     public static void main(String[] args) throws Exception
     {
-        System.out.println("Welcome to the Search Engine!");
+
+        System.out.println("\n" +
+                "███████ ███████  █████  ██████   ██████ ██   ██     ███████ ███    ██  ██████  ██ ███    ██ ███████ \n" +
+                "██      ██      ██   ██ ██   ██ ██      ██   ██     ██      ████   ██ ██       ██ ████   ██ ██      \n" +
+                "███████ █████   ███████ ██████  ██      ███████     █████   ██ ██  ██ ██   ███ ██ ██ ██  ██ █████   \n" +
+                "     ██ ██      ██   ██ ██   ██ ██      ██   ██     ██      ██  ██ ██ ██    ██ ██ ██  ██ ██ ██      \n" +
+                "███████ ███████ ██   ██ ██   ██  ██████ ██   ██     ███████ ██   ████  ██████  ██ ██   ████ ███████ \n" +
+                "                                                                                                    \n\n" +
+                "Welcome to the Search Engine!\n");
         System.out.println("Commands available:");
         System.out.println(commands);
 
         while (true)
         {
-            System.out.print("Search Engine > ");
+            System.out.print(BLUE + "Search Engine > " + ANSI_RESET);
             String option = scanner.nextLine();
             // if(args.length > 1 )
             // {
@@ -66,9 +76,7 @@ public class Driver
             }
             else
             {
-                System.err.println("Command Not Found. Try one of the following:");
-                System.out.println();
-                System.out.println();
+                System.out.println(RED + "Search Engine ERR > Command Not Found. Try one of the following:" + ANSI_RESET);
                 System.out.println(commands);
             }
 

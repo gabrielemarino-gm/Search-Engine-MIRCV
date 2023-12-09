@@ -8,6 +8,8 @@ import it.unipi.aide.utils.Preprocesser;
 import java.util.List;
 import java.util.Scanner;
 
+import static it.unipi.aide.utils.ColorText.*;
+
 /**
  * This class is used by the user to make queries on the InvertedIndex
  */
@@ -32,20 +34,23 @@ public class QueryHandler
                 continue;
             }
 
-            System.out.printf("Query Handler: Type query (%s, %s) > ", ALGORITHM, BM25? "BM25" : "TF-IDF");
+            System.out.printf("%sQuery Handler: Type query (%s, %s) >%s ", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
             String input = scanner.nextLine();
 
             if (input.equalsIgnoreCase("q"))
             {
-                System.out.print("Query Handler > Are you sure? (Y/N) ");
+                System.out.print(BLUE + "Query Handler >" + ANSI_RESET + "Are you sure? (Y/N) ");
                 input = scanner.nextLine();
 
-                while(!(input.equalsIgnoreCase("y") || input.equalsIgnoreCase("n")))
+                while(!(input.equalsIgnoreCase("y") || input.equalsIgnoreCase("n")) )
+                {
+                    System.out.println(RED + "Query Handler ERR > Invalid input. Try again." + ANSI_RESET);
                     input = scanner.nextLine();
+                }
 
                 if(input.equalsIgnoreCase("y"))
                 {
-                    System.out.println("Query Handler > Exiting...");
+                    System.out.println(BLUE + "Query Handler > " + ANSI_RESET + " Exiting...");
                     break;
                 }
                 else
@@ -72,17 +77,16 @@ public class QueryHandler
      */
     private static void setupSystem()
     {
-        System.out.println("Query Handler > Setup system");
-        System.out.println("Query Handler > Choose the algorithm to use for the query, type 1 for DAAT, 2 for MaxScore");
-        System.out.print("Query Handler > ");
+        System.out.println(BLUE + "Query Handler > "+ ANSI_RESET + "Setup system");
+        System.out.println(BLUE + "Query Handler > "+ ANSI_RESET + "Choose the algorithm to use for the query, type 1 for DAAT, 2 for MaxScore");
+        System.out.print(BLUE + "Query Handler > "+ ANSI_RESET);
 
         String input = scanner.nextLine();
 
         while(!(input.equals("1") || input.equals("2")))
         {
-            System.err.println("Query Handler ERR > Invalid input. Try again.");
-            System.out.println();
-            System.out.print("Query Handler > ");
+            System.out.println(RED + "Query Handler ERR > Invalid input. Try again." + ANSI_RESET);
+            System.out.print(BLUE + "Query Handler > "+ ANSI_RESET);
             input = scanner.nextLine();
         }
 
@@ -96,18 +100,17 @@ public class QueryHandler
         }
         else
         {
-            System.err.println("Query Handler ERR > Invalid input. Try again.");
+            System.out.println(RED + "Query Handler ERR > Invalid input. Try again." + ANSI_RESET);
             return;
         }
 
-        System.out.println("Query Handler > What kind of score function do you want to use? Type 1 for TF-IDF, 2 for BM25 ");
-        System.out.print("Query Handler > ");
+        System.out.println(BLUE + "Query Handler > "+ ANSI_RESET + "What kind of score function do you want to use? Type 1 for TF-IDF, 2 for BM25 ");
+        System.out.print(BLUE + "Query Handler > "+ ANSI_RESET);
 
         while(!(input.equals("1") || input.equals("2")))
         {
-            System.err.println("Query Handler ERR > Invalid input. Try again.");
-            System.out.println();
-            System.out.print("Query Handler > ");
+            System.out.println(RED + "Query Handler ERR > Invalid input. Try again." + ANSI_RESET);
+            System.out.print(BLUE + "Query Handler > "+ ANSI_RESET);
             input = scanner.nextLine();
         }
 
@@ -122,12 +125,12 @@ public class QueryHandler
         }
         else
         {
-            System.err.println("Query Handler ERR > Invalid input. Try again.");
+            System.out.println(RED + "Query Handler ERR > Invalid input. Try again." + ANSI_RESET);
             return;
         }
 
-        System.out.println("Query Handler > Set the value of k for the top-k documents ");
-        System.out.print("Query Handler > ");
+        System.out.println(BLUE + "Query Handler > "+ ANSI_RESET + "Set the value of k for the top-k documents ");
+        System.out.print(BLUE + "Query Handler > "+ ANSI_RESET);
         input = scanner.nextLine();
 
         try
@@ -136,11 +139,11 @@ public class QueryHandler
         }
         catch (NumberFormatException e)
         {
-            System.err.println("Query Handler ERR > Invalid input. Try again.");
+            System.out.println(RED + "Query Handler ERR > Invalid input. Try again." + ANSI_RESET);
             return;
         }
 
-        System.out.println("Query Handler > System setup completed.");
+        System.out.println(BLUE + "Query Handler > "+ ANSI_RESET + "System setup completed.");
         SETUP = true;
     }
 
@@ -149,7 +152,7 @@ public class QueryHandler
         List<String> tokens = preprocesser.process(query);
         long startTime = System.currentTimeMillis();
 
-        System.out.printf("Query Handler Results (%s, %s) > %n", ALGORITHM, BM25? "BM25" : "TF-IDF");
+        System.out.printf("%sQuery Handler: Results (%s, %s) >%s \n", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
 
         for (ScoredDocument sd : daat.executeDAAT(tokens, BM25, TOP_K)) {
             System.out.print("\t\t\t\t\t\t" + sd);
@@ -166,7 +169,7 @@ public class QueryHandler
         List<String> tokens = preprocesser.process(query);
         long startTime = System.currentTimeMillis();
 
-        System.out.printf("Query Handler Results (%s, %s) > %n", ALGORITHM, BM25? "BM25" : "TF-IDF");
+        System.out.printf("%sQuery Handler: Results (%s, %s) >%s \n", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
         // Print the list of top-k scored documents, in reverse order
         for (ScoredDocument sd : maxScore.executeMaxScore(tokens, BM25, TOP_K)) {
             System.out.print("\t\t\t\t\t\t" + sd);
