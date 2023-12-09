@@ -71,6 +71,10 @@ public class SPIMI
         // System.out.println("SPIMI > Starting SPIMI algorithm...");
 
 
+        /* TODO -> Add a boolean to communicate if the working dir
+                    is the normalOne or the testing one
+        */
+
         // Starting cleaning the folder
         FileManager.cleanFolder(ConfigReader.getWorkingDir());
         FileManager.cleanFolder(ConfigReader.getDebugDir());
