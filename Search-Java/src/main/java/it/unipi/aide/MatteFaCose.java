@@ -1,5 +1,7 @@
 package it.unipi.aide;
 
+import it.unipi.aide.utils.ConfigReader;
+
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -25,6 +27,7 @@ public class MatteFaCose {
             buffer.get(b);
 
             // Elaborazione...
+            System.out.println(ConfigReader.getDocumentIndexPath());
 
             // Scrittura su altro file
             buffer = channel2.map(FileChannel.MapMode.READ_WRITE, 0, channel1.size());

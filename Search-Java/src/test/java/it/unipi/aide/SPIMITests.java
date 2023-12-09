@@ -1,9 +1,13 @@
 package it.unipi.aide;
 
+import it.unipi.aide.utils.ConfigReader;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import org.junit.runner.RunWith;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
@@ -12,8 +16,16 @@ import java.nio.file.Files;
 import java.nio.MappedByteBuffer;
 import java.nio.file.StandardOpenOption;
 
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import static org.mockito.Mockito.*;
+
 import static org.junit.Assert.*;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ConfigReader.class})
 public class SPIMITests {
 
     File f1;
@@ -43,6 +55,11 @@ public class SPIMITests {
 
     @Test
     public void testConstructor() throws IOException {
+        PowerMockito.mockStatic(ConfigReader.class);
+        String expectedPath = "you_have_been_fooled";
+
+        when(ConfigReader.getDocumentIndexPath()).thenReturn(expectedPath);
+
         // Esecuzione del simil-SPIMI con i file test fittizi
         MatteFaCose mfc = new MatteFaCose(folder.getRoot().getAbsolutePath());
 
@@ -70,4 +87,5 @@ public class SPIMITests {
             return;
         }
     }
+
 }

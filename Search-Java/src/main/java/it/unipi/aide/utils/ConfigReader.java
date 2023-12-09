@@ -33,7 +33,6 @@ public class ConfigReader
     static
     {
         ObjectMapper objectMapper = new ObjectMapper();
-
         try
         {
             // Read the json file
