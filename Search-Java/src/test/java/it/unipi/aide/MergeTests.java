@@ -19,7 +19,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -27,6 +26,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ConfigReader.class, CollectionInformation.class})
@@ -58,25 +60,56 @@ public class MergeTests {
             Path partialD = Paths.get(partialPath.getAbsolutePath() + "/docidsBlock-");
             Path partialF = Paths.get(partialPath.getAbsolutePath() + "/frequenciesBlock-");
             Path Stats = Paths.get(outPath.getAbsolutePath() + "/collectionStatistics");
+
             when(ConfigReader.getPartialVocabularyPath()).thenReturn(partialV.toString());
             when(ConfigReader.getPartialDocsPath()).thenReturn(partialD.toString());
             when(ConfigReader.getPartialFrequenciesPath()).thenReturn(partialF.toString());
             when(ConfigReader.getCollectionStatisticsPath()).thenReturn(Stats.toString());
 
             when(ConfigReader.getCompressionBlockSize()).thenReturn(512);
-            when(ConfigReader.compressionEnabled()).thenReturn(true);
-            when(ConfigReader.blockDivisionEnabled()).thenReturn(true);
+            when(ConfigReader.compressionEnabled()).thenReturn(false);
+            when(ConfigReader.blockDivisionEnabled()).thenReturn(false);
             when(ConfigReader.getK()).thenReturn(1.2f);
             when(ConfigReader.getB()).thenReturn(0.75f);
 
             // Fool the CollectionInformation
             PowerMockito.mockStatic(CollectionInformation.class);
 
-            when(CollectionInformation.getTotalDocuments()).thenReturn(3L);
-            when(CollectionInformation.getTotalTerms()).thenReturn(4L);
-            when(CollectionInformation.getAverageDocumentLength()).thenReturn(1L);
+            when(CollectionInformation.getTotalDocuments()).thenReturn(5L);
+            when(CollectionInformation.getTotalTerms()).thenReturn(5L);
+            when(CollectionInformation.getAverageDocumentLength()).thenReturn(6L);
 
-            fillTestFiles();
+
+            fillTestFiles(0, new ArrayList<>(Arrays.asList(new TermInfo[]{
+                    new TermInfo("a",3,1,0L,3,3,5),
+                    new TermInfo("b",4,2,4L,2,2,5),
+                    new TermInfo("c",5,1,12L,5,5,7)
+            })), new ArrayList<>(Arrays.asList(new Integer[] {
+                    0, 0, 1, 1
+            })), new ArrayList<>(Arrays.asList(new Integer[] {
+                    3, 2, 2, 5
+            })));
+
+            fillTestFiles(1, new ArrayList<>(Arrays.asList(new TermInfo[]{
+                    new TermInfo("b",4,2,0L,3,3,5),
+                    new TermInfo("c",3,2,8L,2,2,5),
+                    new TermInfo("d",3,1,16L,3,3,5)
+            })), new ArrayList<>(Arrays.asList(new Integer[] {
+                    2, 3, 2, 3, 3
+            })), new ArrayList<>(Arrays.asList(new Integer[] {
+                    3, 1, 2, 1, 3
+            })));
+
+            fillTestFiles(2, new ArrayList<>(Arrays.asList(new TermInfo[]{
+                    new TermInfo("a",2,1,0L,2,2,9),
+                    new TermInfo("d",2,1,4L,2,2,9),
+                    new TermInfo("e",5,1,8L,5,5,9)
+            })), new ArrayList<>(Arrays.asList(new Integer[] {
+                    4, 4, 4
+            })), new ArrayList<>(Arrays.asList(new Integer[] {
+                    2, 2, 5
+            })));
+
             runMerging();
         }
         catch (IOException e)
@@ -100,31 +133,38 @@ public class MergeTests {
                                 StandardOpenOption.READ);
                         ) {
             MappedByteBuffer bufferV, bufferD, bufferF;
-            byte[] bV, bD, bF;
 
-            bufferV = channelV.map(FileChannel.MapMode.READ_ONLY, 0, TermInfo.SIZE_PRE_MERGING);
-            bV = new byte[(int) TermInfo.SIZE_PRE_MERGING];
-            bufferV.get(bV);
-            for(byte b : bV)
-                System.out.println((char)b);
+            long off = 0;
+            for(long i = 0; i < 5; i++){
+                bufferV = channelV.map(FileChannel.MapMode.READ_ONLY, TermInfo.SIZE_POST_MERGING * i, TermInfo.SIZE_POST_MERGING);
+                byte[] termBytes = new byte[TermInfo.SIZE_TERM];
 
-            bufferV = channelV.map(FileChannel.MapMode.READ_ONLY, TermInfo.SIZE_PRE_MERGING, TermInfo.SIZE_PRE_MERGING);
-            bV = new byte[(int) TermInfo.SIZE_PRE_MERGING];
-            bufferV.get(bV);
-            for(byte b : bV)
-                System.out.println((char)b);
+                bufferV.get(termBytes);
+                String term = new String(termBytes).trim();
 
-            bufferV = channelV.map(FileChannel.MapMode.READ_ONLY, TermInfo.SIZE_PRE_MERGING * 2, TermInfo.SIZE_PRE_MERGING);
-            bV = new byte[(int) TermInfo.SIZE_PRE_MERGING];
-            bufferV.get(bV);
-            for(byte b : bV)
-                System.out.println((char)b);
+                int frequency = bufferV.getInt();
+                int nPosting = bufferV.getInt();
+                int numBlocks = bufferV.getInt();
+                long offset = bufferV.getLong();
 
-            bufferV = channelV.map(FileChannel.MapMode.READ_ONLY, TermInfo.SIZE_PRE_MERGING * 3, TermInfo.SIZE_PRE_MERGING);
-            bV = new byte[(int) TermInfo.SIZE_PRE_MERGING];
-            bufferV.get(bV);
-            for(byte b : bV)
-                System.out.println((char)b);
+                float TFIDF = bufferV.getFloat();
+                float BM25 = bufferV.getFloat();
+
+                System.out.print(String.format("[%s]<%d:%d><%d:%d><%f,%f>",term,frequency,nPosting,numBlocks,offset,TFIDF,BM25));
+
+                for(int j = 0; j < nPosting; j++)
+                {
+                    bufferD = channelD.map(FileChannel.MapMode.READ_ONLY, off, 4);
+                    bufferF = channelF.map(FileChannel.MapMode.READ_ONLY, off, 4);
+
+                    System.out.print(String.format("[%d:%d]", bufferD.getInt(), bufferF.getInt()));
+
+                    off += 4;
+                }
+
+                System.out.println();
+            }
+
 
         }
         catch (IOException e)
@@ -134,98 +174,45 @@ public class MergeTests {
     }
 
     private void runMerging(){
-        Merging m = new Merging(false, 2,false);
+        Merging m = new Merging(false, 3, false);
         m.mergeBlocks();
     }
 
-    private void fillTestFiles(){
+    private void fillTestFiles(int i, List<TermInfo> termInfos, List<Integer> docs, List<Integer> freqs){
         try
                 (
-                        FileChannel channelV0 = (FileChannel) Files.newByteChannel(
-                                Paths.get(partialPath.getAbsolutePath() + "/vocabularyBlock-0"),
+                        FileChannel channelV = (FileChannel) Files.newByteChannel(
+                                Paths.get(String.format("%s/vocabularyBlock-%d", partialPath.getAbsolutePath(), i)),
                                 StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
-                        FileChannel channelD0 = (FileChannel) Files.newByteChannel(
-                                Paths.get(partialPath.getAbsolutePath() + "/docidsBlock-0"),
+                        FileChannel channelD = (FileChannel) Files.newByteChannel(
+                                Paths.get( String.format("%s/docidsBlock-%d", partialPath.getAbsolutePath(), i)),
                                 StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
-                        FileChannel channelF0 = (FileChannel) Files.newByteChannel(
-                                Paths.get(partialPath.getAbsolutePath() + "/frequenciesBlock-0"),
-                                StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
-
-                        FileChannel channelV1 = (FileChannel) Files.newByteChannel(
-                                Paths.get(partialPath.getAbsolutePath() + "/vocabularyBlock-1"),
-                                StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
-                        FileChannel channelD1 = (FileChannel) Files.newByteChannel(
-                                Paths.get(partialPath.getAbsolutePath() + "/docidsBlock-1"),
-                                StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
-                        FileChannel channelF1 = (FileChannel) Files.newByteChannel(
-                                Paths.get(partialPath.getAbsolutePath() + "/frequenciesBlock-1"),
-                                StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+                        FileChannel channelF = (FileChannel) Files.newByteChannel(
+                                Paths.get(String.format("%s/frequenciesBlock-%d", partialPath.getAbsolutePath(), i)),
+                                StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE)
                         )
         {
             long off = 0;
             byte[] toAdd;
-            MappedByteBuffer bufferV0, bufferV1;
-            MappedByteBuffer bufferD0, bufferD1;
-            MappedByteBuffer bufferF0, bufferF1;
+            MappedByteBuffer bufferV, bufferD, bufferF;
 
-            bufferV0 = channelV0.map(FileChannel.MapMode.READ_WRITE, off, TermInfo.SIZE_PRE_MERGING);
-            toAdd = getBytes(new TermInfo("a", 1, 1, 0, 1, 1, 1));
-            bufferV0.put(toAdd);
-            off += TermInfo.SIZE_PRE_MERGING;
-
-            bufferV0 = channelV0.map(FileChannel.MapMode.READ_WRITE, off, TermInfo.SIZE_PRE_MERGING);
-            toAdd = getBytes(new TermInfo("b", 1, 1, 4, 1, 1, 1));
-            bufferV0.put(toAdd);
-            off += TermInfo.SIZE_PRE_MERGING;
-
-            bufferV0 = channelV0.map(FileChannel.MapMode.READ_WRITE, off, TermInfo.SIZE_PRE_MERGING);
-            toAdd = getBytes(new TermInfo("c", 1, 1, 8, 1, 1, 1));
-            bufferV0.put(toAdd);
+            for(int j = 0; j < termInfos.size(); j++) {
+                bufferV = channelV.map(FileChannel.MapMode.READ_WRITE, off, TermInfo.SIZE_PRE_MERGING);
+                toAdd = getBytes(termInfos.get(j));
+                bufferV.put(toAdd);
+                off += TermInfo.SIZE_PRE_MERGING;
+            }
 
             off = 0;
 
-            bufferV1 = channelV1.map(FileChannel.MapMode.READ_WRITE, off, TermInfo.SIZE_PRE_MERGING);
-            toAdd = getBytes(new TermInfo("b", 1, 1, 0, 1, 1, 1));
-            bufferV1.put(toAdd);
-            off += TermInfo.SIZE_PRE_MERGING;
-
-            bufferV1 = channelV1.map(FileChannel.MapMode.READ_WRITE, off, TermInfo.SIZE_PRE_MERGING);
-            toAdd = getBytes(new TermInfo("c", 1, 1, 4, 1, 1, 1));
-            bufferV1.put(toAdd);
-            off += TermInfo.SIZE_PRE_MERGING;
-
-            bufferV1 = channelV1.map(FileChannel.MapMode.READ_WRITE, off, TermInfo.SIZE_PRE_MERGING);
-            toAdd = getBytes(new TermInfo("d", 1, 1, 8, 1, 1, 1));
-            bufferV1.put(toAdd);
-            off += TermInfo.SIZE_PRE_MERGING;
-
-            bufferD0 = channelD0.map(FileChannel.MapMode.READ_WRITE, 0, 4);
-            bufferF0 = channelF0.map(FileChannel.MapMode.READ_WRITE, 0, 4);
-            bufferD0.putInt(0);
-            bufferF0.putInt(1);
-            bufferD0 = channelD0.map(FileChannel.MapMode.READ_WRITE, 4, 4);
-            bufferF0 = channelF0.map(FileChannel.MapMode.READ_WRITE, 4, 4);
-            bufferD0.putInt(0);
-            bufferF0.putInt(1);
-            bufferD0 = channelD0.map(FileChannel.MapMode.READ_WRITE, 8, 4);
-            bufferF0 = channelF0.map(FileChannel.MapMode.READ_WRITE, 8, 4);
-            bufferD0.putInt(1);
-            bufferF0.putInt(1);
-
-
-            bufferD1 = channelD1.map(FileChannel.MapMode.READ_WRITE, 0, 4);
-            bufferF1 = channelF1.map(FileChannel.MapMode.READ_WRITE, 0, 4);
-            bufferD1.putInt(0);
-            bufferF1.putInt(1);
-            bufferD1 = channelD1.map(FileChannel.MapMode.READ_WRITE, 4, 4);
-            bufferF1 = channelF1.map(FileChannel.MapMode.READ_WRITE, 4, 4);
-            bufferD1.putInt(0);
-            bufferF1.putInt(1);
-            bufferD1 = channelD1.map(FileChannel.MapMode.READ_WRITE, 8, 4);
-            bufferF1 = channelF1.map(FileChannel.MapMode.READ_WRITE, 8, 4);
-            bufferD1.putInt(1);
-            bufferF1.putInt(1);
-
+            for(int j = 0; j < freqs.size(); j++)
+            {
+                bufferD = channelD.map(FileChannel.MapMode.READ_WRITE, off, 4);
+                bufferF = channelF.map(FileChannel.MapMode.READ_WRITE, off, 4);
+                bufferD.putInt(docs.get(j));
+                bufferF.putInt(freqs.get(j));
+                off += 4;
+            }
         }
         catch (IOException e)
         {
