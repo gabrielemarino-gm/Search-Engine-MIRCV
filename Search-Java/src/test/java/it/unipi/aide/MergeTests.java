@@ -27,15 +27,75 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ConfigReader.class, CollectionInformation.class})
 public class MergeTests {
 
     File partialPath, outPath;
+
+    /* SAMPLE CORPUS
+
+     Block 0:
+     0  a a a b b
+     1  b b c c c c c
+
+     Block 1:
+     2  b c c b b
+     3  b c d d d
+
+     Block 2:
+     4  a a d d e e e e e
+
+    */
+
+    /* --- Train elements --- */
+    TermInfo[][] trainTermInfos = new TermInfo[][] {
+            {   /* Block 0 */
+                new TermInfo("a",3,1,0L,3,3,5),
+                new TermInfo("b",4,2,4L,2,2,5),
+                new TermInfo("c",5,1,12L,5,5,7)
+            },
+            {   /* Block 1 */
+                new TermInfo("b",4,2,0L,3,3,5),
+                new TermInfo("c",3,2,8L,2,2,5),
+                new TermInfo("d",3,1,16L,3,3,5)
+            },
+            {   /* Block 2 */
+                new TermInfo("a",2,1,0L,2,2,9),
+                new TermInfo("d",2,1,4L,2,2,9),
+                new TermInfo("e",5,1,8L,5,5,9)
+            },
+    };
+    int[][] trainDocIDS = new int[][] {
+            {   /* Block 0 */
+                0, 0, 1, 1
+            },
+            {   /* Block 1 */
+                2, 3, 2, 3, 3
+            },
+            {   /* Block 2 */
+                4, 4, 4
+            },
+    };
+    int[][] trainFreqs = new int[][] {
+            {   /* Block 0 */
+                3, 2, 2, 5
+            },
+            {   /* Block 1 */
+                3, 1, 2, 1, 3
+            },
+            {   /* Block 2 */
+                2, 2, 5
+            },
+    };
+    /* --------------------- */
+
+    long totalDocuments = 5L;
+    long totalTerms = 5L;
+    long averageDocumentLength = 6L;
+
+    /* --- Test elements --- */
     String[] testTerms = new String[] {"a", "b", "c", "d", "e"};
     int[] testFreq = new int[] {5, 8, 8, 5, 5};
     int[] testNPost = new int[] {2, 4, 3, 2, 1};
@@ -57,6 +117,7 @@ public class MergeTests {
             new int[] {3, 2},
             new int[] {5}
     };
+    /* ------------------ */
 
 
     @Rule
@@ -69,6 +130,11 @@ public class MergeTests {
             partialPath = folder.newFolder("partial");
             outPath = folder.newFolder("out");
 
+            Path partialV = Paths.get(partialPath.getAbsolutePath() + "/vocabularyBlock-");
+            Path partialD = Paths.get(partialPath.getAbsolutePath() + "/docidsBlock-");
+            Path partialF = Paths.get(partialPath.getAbsolutePath() + "/frequenciesBlock-");
+            Path Stats = Paths.get(outPath.getAbsolutePath() + "/collectionStatistics");
+
             // Fool the ConfigReader
             PowerMockito.mockStatic(ConfigReader.class);
 
@@ -78,11 +144,6 @@ public class MergeTests {
             when(ConfigReader.getDocidPath()).thenReturn(outPath.getAbsolutePath() + "/docids");
             when(ConfigReader.getFrequencyPath()).thenReturn(outPath.getAbsolutePath() + "/frequencies");
             when(ConfigReader.getBlockDescriptorsPath()).thenReturn(outPath.getAbsolutePath() + "/blockDescriptors");
-
-            Path partialV = Paths.get(partialPath.getAbsolutePath() + "/vocabularyBlock-");
-            Path partialD = Paths.get(partialPath.getAbsolutePath() + "/docidsBlock-");
-            Path partialF = Paths.get(partialPath.getAbsolutePath() + "/frequenciesBlock-");
-            Path Stats = Paths.get(outPath.getAbsolutePath() + "/collectionStatistics");
 
             when(ConfigReader.getPartialVocabularyPath()).thenReturn(partialV.toString());
             when(ConfigReader.getPartialDocsPath()).thenReturn(partialD.toString());
@@ -98,40 +159,15 @@ public class MergeTests {
             // Fool the CollectionInformation
             PowerMockito.mockStatic(CollectionInformation.class);
 
-            when(CollectionInformation.getTotalDocuments()).thenReturn(5L);
-            when(CollectionInformation.getTotalTerms()).thenReturn(5L);
-            when(CollectionInformation.getAverageDocumentLength()).thenReturn(6L);
+            /* --- Adjust those as needed --- */
+            when(CollectionInformation.getTotalDocuments()).thenReturn(totalDocuments);
+            when(CollectionInformation.getTotalTerms()).thenReturn(totalTerms);
+            when(CollectionInformation.getAverageDocumentLength()).thenReturn(averageDocumentLength);
 
-
-            fillTestFiles(0, new ArrayList<>(Arrays.asList(new TermInfo[]{
-                    new TermInfo("a",3,1,0L,3,3,5),
-                    new TermInfo("b",4,2,4L,2,2,5),
-                    new TermInfo("c",5,1,12L,5,5,7)
-            })), new ArrayList<>(Arrays.asList(new Integer[] {
-                    0, 0, 1, 1
-            })), new ArrayList<>(Arrays.asList(new Integer[] {
-                    3, 2, 2, 5
-            })));
-
-            fillTestFiles(1, new ArrayList<>(Arrays.asList(new TermInfo[]{
-                    new TermInfo("b",4,2,0L,3,3,5),
-                    new TermInfo("c",3,2,8L,2,2,5),
-                    new TermInfo("d",3,1,16L,3,3,5)
-            })), new ArrayList<>(Arrays.asList(new Integer[] {
-                    2, 3, 2, 3, 3
-            })), new ArrayList<>(Arrays.asList(new Integer[] {
-                    3, 1, 2, 1, 3
-            })));
-
-            fillTestFiles(2, new ArrayList<>(Arrays.asList(new TermInfo[]{
-                    new TermInfo("a",2,1,0L,2,2,9),
-                    new TermInfo("d",2,1,4L,2,2,9),
-                    new TermInfo("e",5,1,8L,5,5,9)
-            })), new ArrayList<>(Arrays.asList(new Integer[] {
-                    4, 4, 4
-            })), new ArrayList<>(Arrays.asList(new Integer[] {
-                    2, 2, 5
-            })));
+            for(int i = 0; i < trainTermInfos.length; i++)
+            {
+                fillTestFiles(i, trainTermInfos[i], trainDocIDS[i], trainFreqs[i]);
+            }
 
             runMerging();
         }
@@ -198,7 +234,7 @@ public class MergeTests {
         m.mergeBlocks();
     }
 
-    private void fillTestFiles(int i, List<TermInfo> termInfos, List<Integer> docs, List<Integer> freqs){
+    private void fillTestFiles(int i, TermInfo[] termInfos, int[] docs, int[] freqs){
         try
                 (
                         FileChannel channelV = (FileChannel) Files.newByteChannel(
@@ -216,21 +252,21 @@ public class MergeTests {
             byte[] toAdd;
             MappedByteBuffer bufferV, bufferD, bufferF;
 
-            for(int j = 0; j < termInfos.size(); j++) {
+            for(TermInfo termInfo : termInfos) {
                 bufferV = channelV.map(FileChannel.MapMode.READ_WRITE, off, TermInfo.SIZE_PRE_MERGING);
-                toAdd = getBytes(termInfos.get(j));
+                toAdd = getBytes(termInfo);
                 bufferV.put(toAdd);
                 off += TermInfo.SIZE_PRE_MERGING;
             }
 
             off = 0;
 
-            for(int j = 0; j < freqs.size(); j++)
+            for(int j = 0; j < freqs.length; j++)
             {
                 bufferD = channelD.map(FileChannel.MapMode.READ_WRITE, off, 4);
                 bufferF = channelF.map(FileChannel.MapMode.READ_WRITE, off, 4);
-                bufferD.putInt(docs.get(j));
-                bufferF.putInt(freqs.get(j));
+                bufferD.putInt(docs[j]);
+                bufferF.putInt(freqs[j]);
                 off += 4;
             }
         }
