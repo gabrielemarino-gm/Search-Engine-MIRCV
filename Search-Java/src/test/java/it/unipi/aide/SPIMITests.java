@@ -1,6 +1,7 @@
 package it.unipi.aide;
 
 import it.unipi.aide.algorithms.SPIMI;
+import it.unipi.aide.model.CollectionInformation;
 import it.unipi.aide.model.TermInfo;
 import it.unipi.aide.utils.ConfigReader;
 
@@ -12,6 +13,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
 import java.nio.file.Files;
@@ -32,8 +34,8 @@ public class SPIMITests
 {
     File partialPath, corpusFile, workingPath, debugPath, stopwordsFile;
     String testCorpus = "0\tThe cat is on the table\n" +
-            "1\tWhat a beautiful day in London\n" +
-            "2\tIt is raining cats and dogs\n";
+                        "1\tWhat a beautiful day in London\n" +
+                        "2\tIt is raining cats and dogs\n";
 
     String stopwords =  "the\n" +
                         "is\n" +
@@ -65,7 +67,7 @@ public class SPIMITests
     byte[] frequenciesFileResult;
 
     // In the file of vocabulary we have, in binary:
-    byte[] vocabularyFileResul = new byte[518];
+    byte[] vocabularyFileResul = new byte[(int)TermInfo.SIZE_PRE_MERGING * 7];
 
     // JUnit Temporary folder removed after tests
     @Rule
@@ -110,6 +112,7 @@ public class SPIMITests
             when(ConfigReader.getPartialFrequenciesPath()).thenReturn(partialPath.getAbsolutePath() + "/frequenciesBlock-");
             when(ConfigReader.getPartialVocabularyPath()).thenReturn(partialPath.getAbsolutePath() + "/vocabularyBlock-");
             when(ConfigReader.getDocumentIndexPath()).thenReturn(tempFolder.getRoot().getAbsolutePath() + "/documentIndex");
+            when(ConfigReader.getCollectionStatisticsPath()).thenReturn(tempFolder.getRoot().getAbsolutePath() + "/collectionStatistics");
             when(ConfigReader.getDoclens()).thenReturn(tempFolder.getRoot().getAbsolutePath() + "/doclens");
             when(ConfigReader.getStopwordsPath()).thenReturn("stopwords.txt");
             when(ConfigReader.getWorkingDir()).thenReturn(workingPath.getAbsolutePath());
@@ -120,54 +123,44 @@ public class SPIMITests
             return;
         }
 
-
         // Create the expected result of the SPIMI algorithm
-        docIdsFileResult = new byte[]{(byte) 1, (byte) 0, (byte) 2, (byte) 1, (byte) 2, (byte) 2, (byte) 0};
-        frequenciesFileResult = new byte[]{(byte)1, (byte)1, (byte)1, (byte)1, (byte)1, (byte)1, (byte)1};
+        docIdsFileResult = new byte[]{
+                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+                (byte) 0, (byte) 0, (byte) 0, (byte) 0,
+                (byte) 0, (byte) 0, (byte) 0, (byte) 2,
+                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+                (byte) 0, (byte) 0, (byte) 0, (byte) 2,
+                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+                (byte) 0, (byte) 0, (byte) 0, (byte) 2,
+                (byte) 0, (byte) 0, (byte) 0, (byte) 0
+        };
+        frequenciesFileResult = new byte[]{
+                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+                (byte) 0, (byte) 0, (byte) 0, (byte) 1
+        };
 
-        String[] vocs = {"beautiful", "cat", "day", "dog", "London", "rain", "table"};
-
+//        String[] vocs = {"beauti", "cat", "dai", "dog", "london", "rain", "tabl"};
+        TermInfo[] vocs = new TermInfo[]{
+                new TermInfo("beauti", 1, 1, 0, 1, 1, 3),
+                new TermInfo("cat", 2, 2, 4, 1, 1, 2),
+                new TermInfo("dai", 1, 1, 12, 1, 1, 3),
+                new TermInfo("dog", 1, 1, 16, 1, 1, 3),
+                new TermInfo("london", 1, 1, 20, 1, 1, 3),
+                new TermInfo("rain", 1, 1, 24, 1, 1, 3),
+                new TermInfo("tabl", 1, 1, 28, 1, 1, 2),
+        };
         int concatOffset = 0;
-        byte[] byteArr;
 
-        for (String term: vocs)
+        for (TermInfo term: vocs)
         {
-            String paddedTerm = String.format("%-" + TermInfo.SIZE_TERM + "s", term).substring(0, TermInfo.SIZE_TERM); // Pad with spaces up to 46 characters
-            // Copy the term
-            System.arraycopy(paddedTerm.getBytes(), 0, vocabularyFileResul, concatOffset, TermInfo.SIZE_TERM);
-            concatOffset += TermInfo.SIZE_TERM;
-
-            if (term.equals("cat"))
-            {
-
-                byteArr = new byte[]
-                        {
-                                (byte) 2,           // Total Frequency                                  4 bytes
-                                (byte) 2,           // Number of posting lists                          4 bytes
-                                (byte) (long) 1,    // Offset                                           8 bytes
-                                (byte) 1,           // Max term frequency                               4 bytes
-                                (byte) 1,           // Term frequency that maximizes the BM25 score     4 bytes
-                                (byte) 1,           // Doc length that maximizes the BM25 score         4 bytes
-                        };
-
-                System.arraycopy(byteArr, 0, vocabularyFileResul, concatOffset, 6);
-                concatOffset += 28;
-            }
-            else
-            {
-                byteArr = new byte[]
-                        {
-                                (byte) 1,           // Total Frequency                                  4 bytes
-                                (byte) 1,           // Number of posting lists                          4 bytes
-                                (byte) (long) 1,    // Offset                                           8 bytes
-                                (byte) 1,           // Max term frequency                               4 bytes
-                                (byte) 1,           // Term frequency that maximizes the BM25 score     4 bytes
-                                (byte) 1,           // Doc length that maximizes the BM25 score         4 bytes
-                        };
-
-                System.arraycopy(byteArr, 0, vocabularyFileResul, concatOffset, 6);
-                concatOffset += 28;
-            }
+            System.arraycopy(getBytes(term), 0, vocabularyFileResul, concatOffset, (int)TermInfo.SIZE_PRE_MERGING);
+            concatOffset += (int)TermInfo.SIZE_PRE_MERGING;
         }
     }
 
@@ -234,5 +227,21 @@ public class SPIMITests
         {
             return;
         }
+    }
+
+    private byte[] getBytes(TermInfo ti){
+        byte [] toRet = new byte[(int)TermInfo.SIZE_PRE_MERGING];
+        ByteBuffer buffer = ByteBuffer.wrap(toRet);
+        String paddedTerm = String.format("%-" + TermInfo.SIZE_TERM + "s", ti.getTerm()).substring(0, TermInfo.SIZE_TERM);
+
+        buffer.put(paddedTerm.getBytes());
+        buffer.putInt(ti.getTotalFrequency());
+        buffer.putInt(ti.getNumPosting());
+        buffer.putLong(ti.getOffset());
+        buffer.putInt(ti.getMaxTF());
+        buffer.putInt(ti.getBM25TF());
+        buffer.putInt(ti.getBM25DL());
+
+        return buffer.array();
     }
 }
