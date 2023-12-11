@@ -5,9 +5,7 @@ import it.unipi.aide.algorithms.MaxScore;
 import it.unipi.aide.model.*;
 import it.unipi.aide.utils.ConfigReader;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
@@ -52,16 +50,23 @@ public class QueryTest {
             PowerMockito.mockStatic(ConfigReader.class);
             PowerMockito.mockStatic(CollectionInformation.class);
 
+            populateStuff();
+
             redefineConfigReader();
             redefineCollectionInformation();
 
-            populateStuff();
             createFakeFiles();
         }
         catch (IOException e)
         {
-
+            return;
         }
+    }
+
+    @After
+    public void tearDown()
+    {
+        folder.delete();
     }
 
     @Test
@@ -73,17 +78,19 @@ public class QueryTest {
         {
             System.out.println(sd);
         }
-    }
 
-    @Test
-    public void testMaxScore()
-    {
         MaxScore maxScore = new MaxScore();
         for(ScoredDocument sd : maxScore.executeMaxScore(
                 Arrays.asList(new String[]{"quick", "speedi"}), false, 5))
         {
             System.out.println(sd);
         }
+    }
+
+    @Test
+    public void testMaxScore()
+    {
+        // if MaxScore is there, files will be eliminated before this ends
     }
 
     /*
@@ -432,6 +439,7 @@ public class QueryTest {
                 java.nio.file.StandardOpenOption.CREATE,
                 java.nio.file.StandardOpenOption.READ,
                 java.nio.file.StandardOpenOption.WRITE);
+
         long howMany = Document.SIZE * trainDocuments.length;
         MappedByteBuffer buffer = fc.map(FileChannel.MapMode.READ_WRITE, 0, howMany);
         for (Document d : trainDocuments)
@@ -558,17 +566,18 @@ public class QueryTest {
     }
 
     private byte[] getBytes(TermInfo ti){
-        byte [] toRet = new byte[(int)TermInfo.SIZE_PRE_MERGING];
+        byte [] toRet = new byte[(int)TermInfo.SIZE_POST_MERGING];
         ByteBuffer buffer = ByteBuffer.wrap(toRet);
         String paddedTerm = String.format("%-" + TermInfo.SIZE_TERM + "s", ti.getTerm()).substring(0, TermInfo.SIZE_TERM);
 
         buffer.put(paddedTerm.getBytes());
+
         buffer.putInt(ti.getTotalFrequency());
         buffer.putInt(ti.getNumPosting());
+        buffer.putInt(ti.getNumBlocks());
         buffer.putLong(ti.getOffset());
-        buffer.putInt(ti.getMaxTF());
-        buffer.putInt(ti.getBM25TF());
-        buffer.putInt(ti.getBM25DL());
+        buffer.putFloat(ti.getTermUpperBoundTFIDF());
+        buffer.putFloat(ti.getTermUpperBoundBM25());
 
         return buffer.array();
     }

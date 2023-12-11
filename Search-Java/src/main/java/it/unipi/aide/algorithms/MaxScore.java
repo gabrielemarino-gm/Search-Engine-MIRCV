@@ -42,6 +42,12 @@ public class MaxScore
         this.postingLists = qp.retrievePostingList(queryTerms);
         terms = qp.getTerms();
 
+        if(postingLists.isEmpty())
+        {
+            System.err.println("No posting lists found");
+            return new ArrayList<>();
+        }
+
         // Initial pivot for non-essential lists is the first one
         int pivot = 0;
 

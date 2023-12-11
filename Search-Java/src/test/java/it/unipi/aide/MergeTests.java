@@ -5,6 +5,7 @@ import it.unipi.aide.model.CollectionInformation;
 import it.unipi.aide.model.TermInfo;
 import it.unipi.aide.utils.ConfigReader;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -176,6 +177,13 @@ public class MergeTests {
             return;
         }
     }
+
+    @After
+    public void tearDown()
+    {
+        folder.delete();
+    }
+
     @Test
     public void testResults(){
         // Check the content of the files in outPath

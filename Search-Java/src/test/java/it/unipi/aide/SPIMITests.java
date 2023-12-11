@@ -5,6 +5,7 @@ import it.unipi.aide.model.CollectionInformation;
 import it.unipi.aide.model.TermInfo;
 import it.unipi.aide.utils.ConfigReader;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -162,6 +163,12 @@ public class SPIMITests
             System.arraycopy(getBytes(term), 0, vocabularyFileResul, concatOffset, (int)TermInfo.SIZE_PRE_MERGING);
             concatOffset += (int)TermInfo.SIZE_PRE_MERGING;
         }
+    }
+
+    @After
+    public void tearDown()
+    {
+        tempFolder.delete();
     }
 
     @Test

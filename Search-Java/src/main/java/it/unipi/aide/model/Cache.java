@@ -28,9 +28,6 @@ public class Cache
 
     public void putTermIntoTermInfoCache(long termPosition, String termInfo)
     {
-        if (termInfos.size() < MAX_SIZE_BINARY_CACHE)
-            System.out.println(termInfo);
-
         termInfos.put(termPosition, termInfo);
     }
 
