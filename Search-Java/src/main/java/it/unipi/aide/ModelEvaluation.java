@@ -25,7 +25,7 @@ public class ModelEvaluation
     static final String queryFile = ConfigReader.getTrecEvalPath() + "/msmarco-test2020-queries.tsv";
     static final String resultsFile = ConfigReader.getTrecEvalPath() + "/resultsTrecEval.txt";
     static Scanner scanner = new Scanner(System.in);
-
+    static String trecEvalPath = "../../Trec-Eval/trec_eval-main";
 
     public static void main(String[] args)
     {
@@ -74,7 +74,9 @@ public class ModelEvaluation
             pb.stepTo(200);
             pb.stop();
 
-            String trecEvalPath = "../../Trec-Eval/trec_eval-main";
+            if (args.length > 0 && args[1].equals("-in"))
+                trecEvalPath = args[2];
+
             Process out = Runtime.getRuntime().exec(trecEvalPath + "/trec_eval -m all_trec " + trecEvalPath + "/2020qrels-pass.txt " + resultsFile);
             BufferedReader stdout = new BufferedReader(new InputStreamReader(out.getInputStream()));
             try

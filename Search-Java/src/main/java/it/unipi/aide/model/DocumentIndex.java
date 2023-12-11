@@ -27,7 +27,8 @@ public class DocumentIndex
     private static final List<Document> docList = new ArrayList<>();
     private static List<Integer> lengths;
 
-    static{
+    static
+    {
         DOCINDEX_PATH = ConfigReader.getDocumentIndexPath();
         DOCLENS_PATH = ConfigReader.getDoclens();
     }
