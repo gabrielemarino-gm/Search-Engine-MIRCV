@@ -2,6 +2,7 @@ package it.unipi.aide;
 
 import it.unipi.aide.algorithms.DAAT;
 import it.unipi.aide.algorithms.MaxScore;
+import it.unipi.aide.model.DocumentIndex;
 import it.unipi.aide.model.ScoredDocument;
 import it.unipi.aide.utils.Preprocesser;
 
@@ -23,6 +24,7 @@ public class QueryHandler
     static Preprocesser preprocesser = new Preprocesser(true);
     static DAAT daat = new DAAT();
     static MaxScore maxScore = new MaxScore();
+    static DocumentIndex documentIndex = new DocumentIndex();
 
     public static void main(String[] args)
     {
@@ -155,7 +157,9 @@ public class QueryHandler
         System.out.printf("%sQuery Handler: Results (%s, %s) >%s \n", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
 
         for (ScoredDocument sd : daat.executeDAAT(tokens, BM25, TOP_K)) {
-            System.out.print("\t\t\t\t\t\t" + sd);
+            float score = sd.getScore();
+            String pid = documentIndex.get(sd.getDocID()).getPid();
+            System.out.println(String.format("\t\t\t\t%s\t|\t%.4f", pid,score));
         }
 
         long endTime = System.currentTimeMillis();
@@ -172,7 +176,9 @@ public class QueryHandler
         System.out.printf("%sQuery Handler: Results (%s, %s) >%s \n", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
         // Print the list of top-k scored documents, in reverse order
         for (ScoredDocument sd : maxScore.executeMaxScore(tokens, BM25, TOP_K)) {
-            System.out.print("\t\t\t\t\t\t" + sd);
+            float score = sd.getScore();
+            String pid = documentIndex.get(sd.getDocID()).getPid();
+            System.out.println(String.format("\t\t\t\t%s\t|\t%.4f", pid,score));
         }
 
         long endTime = System.currentTimeMillis();
