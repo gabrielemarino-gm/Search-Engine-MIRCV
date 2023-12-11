@@ -7,6 +7,9 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
+import static it.unipi.aide.utils.ColorText.ANSI_RESET;
+import static it.unipi.aide.utils.ColorText.RED;
+
 /**
  * This class represents a Corpus
  * During the creation of the object, a BufferedReader is opened towards a specified path
@@ -47,11 +50,11 @@ public class Corpus implements Iterable<String>
             }
             catch (FileNotFoundException e)
             {
-                System.err.println("SPIMI ERROR > Input File Not Found");
+                System.out.println(RED + "SPIMI ERROR > Input File Not Found" + ANSI_RESET);
             }
             catch (IOException ioe)
             {
-                System.err.println("SPIMI ERROR > Error while reading the input file");
+                System.out.println(RED + "SPIMI ERROR > Error while reading the input file" + ANSI_RESET);
             }
         }
 

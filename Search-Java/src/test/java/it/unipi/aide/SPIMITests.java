@@ -111,10 +111,9 @@ public class SPIMITests
             when(ConfigReader.getPartialVocabularyPath()).thenReturn(partialPath.getAbsolutePath() + "/vocabularyBlock-");
             when(ConfigReader.getDocumentIndexPath()).thenReturn(tempFolder.getRoot().getAbsolutePath() + "/documentIndex");
             when(ConfigReader.getDoclens()).thenReturn(tempFolder.getRoot().getAbsolutePath() + "/doclens");
-            when(ConfigReader.getStopwordsPath()).thenReturn(tempFolder.getRoot().getAbsolutePath() + "/stopwords.txt");
+            when(ConfigReader.getStopwordsPath()).thenReturn("stopwords.txt");
             when(ConfigReader.getWorkingDir()).thenReturn(workingPath.getAbsolutePath());
             when(ConfigReader.getDebugDir()).thenReturn(debugPath.getAbsolutePath());
-
         }
         catch (IOException e)
         {
@@ -175,16 +174,23 @@ public class SPIMITests
     @Test
     public void testConstructor()
     {
-        SPIMI spimi = new SPIMI(tempFolder.getRoot().getAbsolutePath(), true);
+        SPIMI spimi = new SPIMI(corpusFile.getAbsolutePath(), true);
         assertNotNull(spimi);
     }
 
     @Test
     public void testAlgorithm()
     {
+        String absolutePath = corpusFile.getAbsolutePath();
+
+        // check if the folder is empty
+        if (partialPath.list().length > 0)
+        {
+            System.out.println("Folder is not empty!");
+        }
 
         // Esecuzione del SPIMI con i file test fittizi
-        SPIMI spimi = new SPIMI(tempFolder.getRoot().getAbsolutePath(), true);
+        SPIMI spimi = new SPIMI(corpusFile.getAbsolutePath(), true);
         int numBlocks = spimi.algorithm(false);
 
         try

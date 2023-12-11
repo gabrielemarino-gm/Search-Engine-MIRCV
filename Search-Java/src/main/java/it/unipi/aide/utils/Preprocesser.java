@@ -57,6 +57,7 @@ public class Preprocesser
            * Note: utility non-class files goes in resources folder
            */
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            String path = ConfigReader.getStopwordsPath();
             InputStream inputStream = classLoader.getResourceAsStream(ConfigReader.getStopwordsPath());
 
             if(inputStream == null)
