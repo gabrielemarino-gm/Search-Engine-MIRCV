@@ -74,7 +74,7 @@ public class ModelEvaluation
             pb.stepTo(200);
             pb.stop();
 
-            String trecEvalPath = "../../Trec-Eval/trec_eval-main";
+            String trecEvalPath = "~/Desktop/GitHub/trec_eval";
             Process out = Runtime.getRuntime().exec(trecEvalPath + "/trec_eval -m all_trec " + trecEvalPath + "/2020qrels-pass.txt " + resultsFile);
             BufferedReader stdout = new BufferedReader(new InputStreamReader(out.getInputStream()));
             try

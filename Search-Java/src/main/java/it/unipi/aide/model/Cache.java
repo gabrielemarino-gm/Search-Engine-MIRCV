@@ -7,7 +7,7 @@ public class Cache
 {
     /* Cached terms for binary search: */
     private final LRUCache<Long, String> termInfos = new LRUCache<>();
-    private static final int MAX_SIZE = 1200; //todo tocheck
+    private static final int MAX_SIZE_BINARY_CACHE = 420;
     private static final Cache SearchEngineCache = new Cache();
 
     /* Returns the cache instance. Used to make all classes refer to the same cache instance. */
@@ -28,6 +28,9 @@ public class Cache
 
     public void putTermIntoTermInfoCache(long termPosition, String termInfo)
     {
+        if (termInfos.size() < MAX_SIZE_BINARY_CACHE)
+            System.out.println(termInfo);
+
         termInfos.put(termPosition, termInfo);
     }
 
@@ -36,12 +39,15 @@ public class Cache
     public static class LRUCache<K, V> extends LinkedHashMap<K, V>
     {
         public LRUCache() {
-            super(MAX_SIZE, 0.75f, true);
+            super(MAX_SIZE_BINARY_CACHE, 0.75f, true);
         }
 
         @Override
         protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-            return size() > MAX_SIZE;
+            boolean a = size() > MAX_SIZE_BINARY_CACHE;
+            if(a)
+                System.out.println(eldest);
+            return size() > MAX_SIZE_BINARY_CACHE;
         }
     }
 }
