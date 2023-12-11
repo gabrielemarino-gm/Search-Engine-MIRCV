@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 import org.powermock.api.mockito.PowerMockito;
@@ -35,6 +36,28 @@ import java.util.List;
 public class MergeTests {
 
     File partialPath, outPath;
+    String[] testTerms = new String[] {"a", "b", "c", "d", "e"};
+    int[] testFreq = new int[] {5, 8, 8, 5, 5};
+    int[] testNPost = new int[] {2, 4, 3, 2, 1};
+    int[] testNBlock = new int[] {1, 1, 1, 1, 1};
+    long[] testOffset = new long[] {0L, 40L, 80L, 120L, 160L};
+    float[] testTFIDF = new float[] {0.5878f, 0.1431f, 0.3769f, 0.5878f, 1.1875f};
+    float[] testBM25 = new float[] {0.2948f, 0.0718f, 0.1747f, 0.2948f, 0.5255f};
+    int[][] testDocIDS = new int[][] {
+            new int[] {0, 4},
+            new int[] {0, 1, 2, 3},
+            new int[] {1, 2, 3},
+            new int[] {3, 4},
+            new int[] {4}
+    };
+    int[][] testFreqs = new int[][] {
+            new int[] {3, 2},
+            new int[] {2, 2, 3, 1},
+            new int[] {5, 2, 1},
+            new int[] {3, 2},
+            new int[] {5}
+    };
+
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -131,7 +154,7 @@ public class MergeTests {
                         FileChannel channelF = (FileChannel) Files.newByteChannel(
                                 Paths.get(outPath.getAbsolutePath() + "/frequencies"),
                                 StandardOpenOption.READ);
-                        ) {
+                ) {
             MappedByteBuffer bufferV, bufferD, bufferF;
 
             long off = 0;
@@ -142,30 +165,27 @@ public class MergeTests {
                 bufferV.get(termBytes);
                 String term = new String(termBytes).trim();
 
-                int frequency = bufferV.getInt();
-                int nPosting = bufferV.getInt();
-                int numBlocks = bufferV.getInt();
-                long offset = bufferV.getLong();
+                assertEquals(term, testTerms[(int)i]);
+                assertEquals(bufferV.getInt(), testFreq[(int)i]);
+                assertEquals(bufferV.getInt(), testNPost[(int)i]);
+                assertEquals(bufferV.getInt(), testNBlock[(int)i]);
+                assertEquals(bufferV.getLong(), testOffset[(int)i]);
 
-                float TFIDF = bufferV.getFloat();
-                float BM25 = bufferV.getFloat();
+                assertEquals(bufferV.getFloat(), testTFIDF[(int)i], 0.0001f);
+                assertEquals(bufferV.getFloat(), testBM25[(int)i], 0.0001f);
 
-                System.out.print(String.format("[%s]<%d:%d><%d:%d><%f,%f>",term,frequency,nPosting,numBlocks,offset,TFIDF,BM25));
-
-                for(int j = 0; j < nPosting; j++)
+                for(int j = 0; j < testNPost[(int)i]; j++)
                 {
                     bufferD = channelD.map(FileChannel.MapMode.READ_ONLY, off, 4);
                     bufferF = channelF.map(FileChannel.MapMode.READ_ONLY, off, 4);
 
-                    System.out.print(String.format("[%d:%d]", bufferD.getInt(), bufferF.getInt()));
+                    assertEquals(bufferD.getInt(), testDocIDS[(int)i][j]);
+                    assertEquals(bufferF.getInt(), testFreqs[(int)i][j]);
 
                     off += 4;
                 }
-
-                System.out.println();
             }
-
-
+            folder.delete();
         }
         catch (IOException e)
         {
@@ -190,7 +210,7 @@ public class MergeTests {
                         FileChannel channelF = (FileChannel) Files.newByteChannel(
                                 Paths.get(String.format("%s/frequenciesBlock-%d", partialPath.getAbsolutePath(), i)),
                                 StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE)
-                        )
+                )
         {
             long off = 0;
             byte[] toAdd;

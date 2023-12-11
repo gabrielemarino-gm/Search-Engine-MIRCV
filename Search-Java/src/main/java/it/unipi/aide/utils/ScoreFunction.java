@@ -31,8 +31,8 @@ public class ScoreFunction
         float score = 0;
 
         if (tf > 0) {
-            double idf = Math.log10((double) N / df);
-            score = (float) (tf / (k1 * ((1 - b) + b * (docLength / ADL)) + tf) * idf);
+            float idf = (float) Math.log10((double) N / df);
+            score = (tf / (k1 * ((1 - b) + b * ((float)docLength / ADL)) + tf) * idf);
         }
 
         return score;
