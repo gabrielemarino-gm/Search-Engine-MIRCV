@@ -50,7 +50,7 @@ public class MergeTests {
     */
 
     /* --- Train elements --- */
-    TermInfo[][] trainTermInfos = new TermInfo[][] {
+    TermInfo[][] trainVocabularies = new TermInfo[][] {
             {   /* Block 0 */
                 new TermInfo("a",3,1,0L,3,3,5),
                 new TermInfo("b",4,2,4L,2,2,5),
@@ -78,7 +78,7 @@ public class MergeTests {
                 4, 4, 4
             },
     };
-    int[][] trainFreqs = new int[][] {
+    int[][] trainFrequencies = new int[][] {
             {   /* Block 0 */
                 3, 2, 2, 5
             },
@@ -164,9 +164,9 @@ public class MergeTests {
             when(CollectionInformation.getTotalTerms()).thenReturn(totalTerms);
             when(CollectionInformation.getAverageDocumentLength()).thenReturn(averageDocumentLength);
 
-            for(int i = 0; i < trainTermInfos.length; i++)
+            for(int i = 0; i < trainVocabularies.length; i++)
             {
-                fillTestFiles(i, trainTermInfos[i], trainDocIDS[i], trainFreqs[i]);
+                fillTestFiles(i, trainVocabularies[i], trainDocIDS[i], trainFrequencies[i]);
             }
 
             runMerging();

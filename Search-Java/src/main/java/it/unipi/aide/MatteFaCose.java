@@ -1,6 +1,7 @@
 package it.unipi.aide;
 
 import it.unipi.aide.utils.ConfigReader;
+import it.unipi.aide.utils.Preprocesser;
 
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
@@ -10,43 +11,26 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 public class MatteFaCose {
+    public static void main(String[] args){
+        String[] sentences = new String[]
+                {
+                        "The quick brown fox jumps over the lazy dog",
+                        "A quick brown rabbit hops over the lazy cat",
+                        "Swift brown wolves leap across the drowsy feline",
+                        "A speedy tan hare vaults over the lethargic kitty",
+                        "Nimble beige rodents dash past the sluggish tabby",
+                        "The fast red squirrel sprints beyond the snoozing kitten",
+                        "Rapid ginger weasels dart over the dozing tomcat",
+                        "A fleet maroon ferret races by the slumbering moggy",
+                        "Quick russet minks scamper around the napping puss",
+                        "Speedy copper martens zoom by the resting kitty"
+                };
 
-    // Esempio tipo SPIMI
-    public MatteFaCose() {
-//        // SPIMI legge dei file, elabora e scrive su altri file
-//        try
-//                (FileChannel channel1 = (FileChannel) Files.newByteChannel(Paths.get(in+"/file1.tsv"),
-//                        StandardOpenOption.READ);
-//                 FileChannel channel2 = (FileChannel) Files.newByteChannel(Paths.get(in+"/file2"),
-//                         StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
-//                )
-//        {
-//            // Lettura su un file
-//            MappedByteBuffer buffer = channel1.map(FileChannel.MapMode.READ_ONLY, 0, channel1.size());
-//            byte[] b = new byte[(int)channel1.size()];
-//            buffer.get(b);
-//
-//            // Elaborazione...
-//            System.out.println(ConfigReader.getDocumentIndexPath());
-//
-//            // Scrittura su altro file
-//            buffer = channel2.map(FileChannel.MapMode.READ_WRITE, 0, channel1.size());
-//            buffer.put(b);
-//        }
-//        catch (IOException e)
-//        {
-//            e.printStackTrace();
-//        }
-
-        System.out.println(ConfigReader.getDocumentIndexPath());
-        System.out.println(ConfigReader.getPartialPath());
-        System.out.println(ConfigReader.getPartialDocsPath());
-        System.out.println(ConfigReader.getPartialFrequenciesPath());
-        System.out.println(ConfigReader.getPartialVocabularyPath());
-        System.out.println(ConfigReader.getCompressionBlockSize());
-        System.out.println(ConfigReader.getK());
-        System.out.println(ConfigReader.getB());
-        System.out.println(ConfigReader.getPartialPath());
-
+        Preprocesser preprocesser = new Preprocesser(true);
+        for(String sentence : sentences) {
+            for (String word : preprocesser.process(sentence))
+                System.out.print(String.format("%s ",word));
+        System.out.println();
+        }
     }
 }
