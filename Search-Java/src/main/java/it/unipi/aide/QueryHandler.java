@@ -41,18 +41,19 @@ public class QueryHandler
 
             if (input.equalsIgnoreCase("q"))
             {
-                System.out.print(BLUE + "Query Handler >" + ANSI_RESET + "Are you sure? (Y/N) ");
+                System.out.print(BLUE + "Query Handler > " + ANSI_RESET + "Are you sure? (Y/N) ");
                 input = scanner.nextLine();
 
-                while(!(input.equalsIgnoreCase("y") || input.equalsIgnoreCase("n")) )
+                while(!(input.equalsIgnoreCase("y")) && !(input.equalsIgnoreCase("n")))
                 {
                     System.out.println(RED + "Query Handler ERR > Invalid input. Try again." + ANSI_RESET);
+                    System.out.print(BLUE + "Query Handler > " + ANSI_RESET + "Are you sure? (Y/N) ");
                     input = scanner.nextLine();
                 }
 
                 if(input.equalsIgnoreCase("y"))
                 {
-                    System.out.println(BLUE + "Query Handler > " + ANSI_RESET + " Exiting...");
+                    System.out.println(BLUE + "Query Handler > " + ANSI_RESET + "Exiting...");
                     break;
                 }
                 else
@@ -156,16 +157,21 @@ public class QueryHandler
 
         System.out.printf("%sQuery Handler: Results (%s, %s) >%s \n", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
 
+        System.out.println("PID\t\t\t|\tScore");
         for (ScoredDocument sd : daat.executeDAAT(tokens, BM25, TOP_K)) {
             float score = sd.getScore();
             String pid = documentIndex.get(sd.getDocID()).getPid();
-            System.out.println(String.format("\t\t\t\t%s\t|\t%.4f", pid,score));
+
+            if (Integer.parseInt(pid) < 10)
+                System.out.println(String.format("%s\t\t\t|\t%.4f", pid, score));
+            else
+                System.out.println(String.format("%s\t\t|\t%.4f", pid, score));
         }
 
         long endTime = System.currentTimeMillis();
         long elapsedTime = endTime - startTime;
 
-        System.out.println("\t\t\t\t\t\t(" + elapsedTime + " ms)");
+        System.out.println("(" + elapsedTime + " ms)");
     }
 
     private static void processQueryMaxScore(String query)
@@ -174,16 +180,22 @@ public class QueryHandler
         long startTime = System.currentTimeMillis();
 
         System.out.printf("%sQuery Handler: Results (%s, %s) >%s \n", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
+
+        System.out.println("PID\t\t\t|\tScore");
         // Print the list of top-k scored documents, in reverse order
         for (ScoredDocument sd : maxScore.executeMaxScore(tokens, BM25, TOP_K)) {
             float score = sd.getScore();
             String pid = documentIndex.get(sd.getDocID()).getPid();
-            System.out.println(String.format("\t\t\t\t%s\t|\t%.4f", pid,score));
+
+            if (Integer.parseInt(pid) < 10)
+                System.out.println(String.format("%s\t\t\t|\t%.4f", pid, score));
+            else
+                System.out.println(String.format("%s\t\t|\t%.4f", pid, score));
         }
 
         long endTime = System.currentTimeMillis();
         long elapsedTime = endTime - startTime;
 
-        System.out.println("\t\t\t\t\t\t(" + elapsedTime + " ms)");
+        System.out.println("(" + elapsedTime + " ms)");
     }
 }
