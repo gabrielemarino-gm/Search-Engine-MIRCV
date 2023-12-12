@@ -193,7 +193,8 @@ public class QueryHandler
         System.out.printf("%sQuery Handler: Results (%s, %s) >%s \n", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
 
         System.out.println("PID\t\t\t|\tScore");
-        for (ScoredDocument sd : daat.executeDAAT(tokens, BM25, TOP_K)) {
+        for (ScoredDocument sd : daat.executeDAAT(tokens, BM25, TOP_K))
+        {
             float score = sd.getScore();
             String pid = documentIndex.get(sd.getDocID()).getPid();
 
@@ -218,7 +219,8 @@ public class QueryHandler
 
         System.out.println("PID\t\t\t|\tScore");
         // Print the list of top-k scored documents, in reverse order
-        for (ScoredDocument sd : maxScore.executeMaxScore(tokens, BM25, TOP_K)) {
+        for (ScoredDocument sd : maxScore.executeMaxScore(tokens, BM25, TOP_K))
+        {
             float score = sd.getScore();
             String pid = documentIndex.get(sd.getDocID()).getPid();
 
@@ -231,7 +233,7 @@ public class QueryHandler
         long endTime = System.currentTimeMillis();
         long elapsedTime = endTime - startTime;
 
-        System.out.println("\t\t\t\t\t\t(" + elapsedTime + " ms)");
+        System.out.println("(" + elapsedTime + " ms)");
     }
 
     private static void processConjunctiveRankedRetrieval(String query)
@@ -242,14 +244,26 @@ public class QueryHandler
         System.out.printf("%sQuery Handler: Results (%s, %s) >%s \n", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
         // Print the list of top-k scored documents, in reverse order
         List<ScoredDocument> results = conjunctiveRetrieval.executeConjunctiveRankedRetrieval(tokens, BM25, TOP_K);
+
+        System.out.printf("%sQuery Handler: Results (%s, %s) >%s \n", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
+
+        System.out.println("PID\t\t\t|\tScore");
+
         if (results.isEmpty())
         {
-            System.out.println("No results found.");
+            System.out.println(RED + "Query Handler ERR > No results found." + ANSI_RESET);
         }
         else
         {
-            for (ScoredDocument sd : results) {
-                System.out.print("\t\t\t\t\t\t" + sd);
+            for (ScoredDocument sd : results)
+            {
+                float score = sd.getScore();
+                String pid = documentIndex.get(sd.getDocID()).getPid();
+
+                if (Integer.parseInt(pid) < 10)
+                    System.out.print(String.format("%s\t\t\t|\t%.4f", pid, score));
+                else
+                    System.out.print(String.format("%s\t\t|\t%.4f", pid, score));
             }
         }
 

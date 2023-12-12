@@ -22,7 +22,8 @@ public class Driver
                              "\t\t\t[q]:   command useful for exit from the query handler mode.\n" +
                              "\n\n" +
                              "\tevaluatePerformance:   command useful for evaluate the performance of the model, using the trec_eval tool.\n" +
-                             "\t\t\t[-in]:   MANDATORY, indicate the input path, where the corpus is place\n\n" +
+                             "\t\t\t[-in]:   MANDATORY, indicate the input path, where the corpus is place\n" +
+                             "\t\t\t[-y]:    OPTIONAL, indicate the year of the trec_eval tool to use, version available: 2019, 2020\n\n" +
                              "\thelp:   command useful for show the available commands\n\n" +
                              "\texit:   command useful for exit from the application\n\n";
     public static void main(String[] args) throws Exception

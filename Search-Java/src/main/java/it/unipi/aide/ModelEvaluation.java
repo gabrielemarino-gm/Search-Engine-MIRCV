@@ -23,10 +23,11 @@ public class ModelEvaluation
     static Preprocesser preprocesser = new Preprocesser(true);
     static MaxScore maxScore = new MaxScore();
     static DAAT daat = new DAAT();
-    static final String queryFile = ConfigReader.getTrecEvalPath() + "/msmarco-test2020-queries.tsv";
+    static String queryFile = ConfigReader.getTrecEvalPath() + "/msmarco-test2020-queries.tsv";
     static final String resultsFile = ConfigReader.getTrecEvalPath() + "/resultsTrecEval.txt";
     static Scanner scanner = new Scanner(System.in);
     static String trecEvalPath = "../../Trec-Eval/trec_eval-main";
+    static String year = "2020";
 
     public static void main(String[] args)
     {
@@ -75,10 +76,22 @@ public class ModelEvaluation
             pb.stepTo(200);
             pb.stop();
 
-            if (args.length > 0 && args[1].equals("-in"))
+            // evaluatePerformance -in ../../Trec-Eval/trec_eval-main -y 2019
+            if (args.length > 3 && args[1].equals("-in") && args[3].equals("-y"))
+            {
                 trecEvalPath = args[2];
+                year = args[4];
+            }
+            else
+            {
+                System.out.println(RED + "MODEL EVALUATION ERR > Invalid input. Try again." + ANSI_RESET);
+                System.exit(1);
+            }
 
-            Process out = Runtime.getRuntime().exec(trecEvalPath + "/trec_eval -m all_trec " + trecEvalPath + "/2020qrels-pass.txt " + resultsFile);
+            // Setup path to input files
+            queryFile = ConfigReader.getTrecEvalPath() + "/msmarco-test" + year + "-queries.tsv";
+
+            Process out = Runtime.getRuntime().exec(trecEvalPath + "/trec_eval -m all_trec " + queryFile + " " + resultsFile);
             BufferedReader stdout = new BufferedReader(new InputStreamReader(out.getInputStream()));
             try
             {

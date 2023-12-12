@@ -208,7 +208,7 @@ public class MaxScore
         if (BM25)
         {
             // Compute BM25 score
-            score = ScoreFunction.computeBM25(
+            score = ScoreFunction.computeBM25 (
                     postingLists.get(postingIndex).getCurrentPosting().getFrequency(),
                     terms.get(postingLists.get(postingIndex).getTerm()).getNumPosting(),
                     docLength
