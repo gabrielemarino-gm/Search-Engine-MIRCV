@@ -6,6 +6,7 @@ import it.unipi.aide.model.*;
 import it.unipi.aide.utils.ConfigReader;
 
 import org.junit.*;
+import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
@@ -69,7 +70,7 @@ public class QueryTest {
         for(ScoredDocument sd : daat.executeDAAT(Arrays.asList(
                 new String[]{"brown", "kitti"}), false, 5))
         {
-            System.out.println(sd);
+            System.out.print(sd);
         }
     }
 
@@ -80,7 +81,7 @@ public class QueryTest {
         for(ScoredDocument sd : maxScore.executeMaxScore(
                 Arrays.asList(new String[]{"quick", "speedi"}), false, 5))
         {
-            System.out.println(sd);
+            System.out.print(sd);
         }
     }
 
