@@ -33,7 +33,7 @@ import static org.junit.Assert.*;
 @PrepareForTest({ConfigReader.class})
 public class SPIMITests
 {
-    File partialPath, corpusFile, workingPath, debugPath, stopwordsFile;
+    File partialPath, corpusFile, workingPath, debugPath;
     String testCorpus = "0\tThe cat is on the table\n" +
                         "1\tWhat a beautiful day in London\n" +
                         "2\tIt is raining cats and dogs\n";
@@ -74,7 +74,7 @@ public class SPIMITests
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
-    @Before
+    @Before    
     public void setUp()
     {
         try
@@ -86,14 +86,6 @@ public class SPIMITests
             MappedByteBuffer buffer = fc1.map(FileChannel.MapMode.READ_WRITE, 0, testCorpus.length());
 
             buffer.put(testCorpus.getBytes());
-
-            // Create a file (Stopwords) in the temporary folder, to be read by SPIMI
-            stopwordsFile = tempFolder.newFile("stopwords.txt");
-            FileChannel fc2 = (FileChannel) Files.newByteChannel(Paths.get(stopwordsFile.getAbsolutePath()),
-                    StandardOpenOption.READ, StandardOpenOption.WRITE);
-            MappedByteBuffer buffer2 = fc2.map(FileChannel.MapMode.READ_WRITE, 0, stopwords.length());
-
-            buffer2.put(stopwords.getBytes());
         }
         catch (IOException e)
         {
@@ -125,36 +117,39 @@ public class SPIMITests
         }
 
         // Create the expected result of the SPIMI algorithm
-        docIdsFileResult = new byte[]{
-                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
-                (byte) 0, (byte) 0, (byte) 0, (byte) 0,
-                (byte) 0, (byte) 0, (byte) 0, (byte) 2,
-                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
-                (byte) 0, (byte) 0, (byte) 0, (byte) 2,
-                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
-                (byte) 0, (byte) 0, (byte) 0, (byte) 2,
-                (byte) 0, (byte) 0, (byte) 0, (byte) 0
+        docIdsFileResult = new byte[]
+        {
+            (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+            (byte) 0, (byte) 0, (byte) 0, (byte) 0,
+            (byte) 0, (byte) 0, (byte) 0, (byte) 2,
+            (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+            (byte) 0, (byte) 0, (byte) 0, (byte) 2,
+            (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+            (byte) 0, (byte) 0, (byte) 0, (byte) 2,
+            (byte) 0, (byte) 0, (byte) 0, (byte) 0
         };
-        frequenciesFileResult = new byte[]{
-                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
-                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
-                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
-                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
-                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
-                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
-                (byte) 0, (byte) 0, (byte) 0, (byte) 1,
-                (byte) 0, (byte) 0, (byte) 0, (byte) 1
+        frequenciesFileResult = new byte[]
+        {
+            (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+            (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+            (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+            (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+            (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+            (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+            (byte) 0, (byte) 0, (byte) 0, (byte) 1,
+            (byte) 0, (byte) 0, (byte) 0, (byte) 1
         };
 
-//        String[] vocs = {"beauti", "cat", "dai", "dog", "london", "rain", "tabl"};
-        TermInfo[] vocs = new TermInfo[]{
-                new TermInfo("beauti", 1, 1, 0, 1, 1, 3),
-                new TermInfo("cat", 2, 2, 4, 1, 1, 2),
-                new TermInfo("dai", 1, 1, 12, 1, 1, 3),
-                new TermInfo("dog", 1, 1, 16, 1, 1, 3),
-                new TermInfo("london", 1, 1, 20, 1, 1, 3),
-                new TermInfo("rain", 1, 1, 24, 1, 1, 3),
-                new TermInfo("tabl", 1, 1, 28, 1, 1, 2),
+        // String[] vocs = {"beauti", "cat", "dai", "dog", "london", "rain", "tabl"};
+        TermInfo[] vocs = new TermInfo[]
+        {
+            new TermInfo("beauti", 1, 1, 0, 1, 1, 3),
+            new TermInfo("cat", 2, 2, 4, 1, 1, 2),
+            new TermInfo("dai", 1, 1, 12, 1, 1, 3),
+            new TermInfo("dog", 1, 1, 16, 1, 1, 3),
+            new TermInfo("london", 1, 1, 20, 1, 1, 3),
+            new TermInfo("rain", 1, 1, 24, 1, 1, 3),
+            new TermInfo("tabl", 1, 1, 28, 1, 1, 2),
         };
         int concatOffset = 0;
 
@@ -236,7 +231,13 @@ public class SPIMITests
         }
     }
 
-    private byte[] getBytes(TermInfo ti){
+    /**
+     * This function is used to convert a TermInfo object into a byte array
+     * @param ti TermInfo object to convert
+     * @return byte array
+     */
+    private byte[] getBytes(TermInfo ti)
+    {
         byte [] toRet = new byte[(int)TermInfo.SIZE_PRE_MERGING];
         ByteBuffer buffer = ByteBuffer.wrap(toRet);
         String paddedTerm = String.format("%-" + TermInfo.SIZE_TERM + "s", ti.getTerm()).substring(0, TermInfo.SIZE_TERM);
