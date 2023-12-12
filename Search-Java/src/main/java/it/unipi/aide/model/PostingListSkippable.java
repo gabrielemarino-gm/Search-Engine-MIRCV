@@ -194,7 +194,6 @@ public class PostingListSkippable  implements Iterator<Posting>
             currentPosting = null;
             closeChannels();
         }
-
         return currentPosting;
     }
     
@@ -203,7 +202,6 @@ public class PostingListSkippable  implements Iterator<Posting>
      * END ITERABLE SECTION
      * --------------------
      */
-
 
     /**
      * Get the next posting with docID >= docID

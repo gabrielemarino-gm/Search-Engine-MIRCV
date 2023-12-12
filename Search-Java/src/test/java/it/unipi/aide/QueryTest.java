@@ -37,7 +37,6 @@ public class QueryTest {
     TermInfo[] trainVocabs;
     int[] trainDocIDS, trainFrequencies;
 
-
     @Rule
     TemporaryFolder folder = new TemporaryFolder();
 
@@ -63,12 +62,6 @@ public class QueryTest {
         }
     }
 
-    @After
-    public void tearDown()
-    {
-        folder.delete();
-    }
-
     @Test
     public void testDAAT()
     {
@@ -78,7 +71,11 @@ public class QueryTest {
         {
             System.out.println(sd);
         }
+    }
 
+    @Test
+    public void testMaxScore()
+    {
         MaxScore maxScore = new MaxScore();
         for(ScoredDocument sd : maxScore.executeMaxScore(
                 Arrays.asList(new String[]{"quick", "speedi"}), false, 5))
@@ -87,11 +84,6 @@ public class QueryTest {
         }
     }
 
-    @Test
-    public void testMaxScore()
-    {
-        // if MaxScore is there, files will be eliminated before this ends
-    }
 
     /*
     * --------------------------------------------------
