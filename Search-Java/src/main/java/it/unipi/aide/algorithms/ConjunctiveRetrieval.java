@@ -53,12 +53,11 @@ public class ConjunctiveRetrieval
 
         // While there is at least one Posting List with elements
         int i = 1;
+        int current = currentPosting.getDocId();
+
         while(currentPosting != null)
         {
-            int current = currentPosting.getDocId();
-
             //current = postingLists.get(0).getCurrentPosting().getDocId();
-
             ScoredDocument documentToAdd = null;
 
             // For each Posting List
@@ -66,7 +65,7 @@ public class ConjunctiveRetrieval
             {
                 PostingListSkippable pl = postingLists.get(i);
 
-                // If the current Posting List has elements
+                // Check if the current Posting List is not empty
                 if (pl.getCurrentPosting() != null)
                 {
                     // Take the next element greater or equal than the current one (NextGEQ)
