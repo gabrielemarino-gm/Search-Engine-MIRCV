@@ -152,26 +152,29 @@ public class PostingListSkippable  implements Iterator<Posting>
 
         return currentPosting;
     }
-    public boolean hasNext() {
 
+    // TODO: Non funziona, ricorsione infinita!
+    public boolean hasNext()
+    {
         // Last block
-        if (currentBlockIndexer == term.getNumBlocks() - 1) {
+        if (currentBlockIndexer == term.getNumBlocks() - 1)
+        {
             return !postingsOfTheCurrentBlock.isEmpty();
-        } else {
+        }
+
+        // Not last block
+        else
+        {
             // If no more posting in current block
-            if (postingsOfTheCurrentBlock.isEmpty()) {
+            if (postingsOfTheCurrentBlock.isEmpty())
+            {
                 // Try retrieve from next block
                 currentBlockIndexer++;
-
-                // Check if currentBlockIndexer is within bounds
-                if (currentBlockIndexer < term.getNumBlocks()) {
-                    getPostingsFromBlock();
-                    return hasNext();
-                } else {
-                    // If currentBlockIndexer is out of bounds, return false or handle accordingly
-                    return false;
-                }
-            } else {
+                getPostingsFromBlock();
+                return hasNext();
+            }
+            else
+            {
                 return true;
             }
         }
