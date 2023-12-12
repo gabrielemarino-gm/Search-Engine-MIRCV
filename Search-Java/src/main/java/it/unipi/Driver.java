@@ -50,6 +50,7 @@ public class Driver
             
             String[] splitCommands = option.split(" ");
 
+
             if (splitCommands[0].equals("createIndex"))
             {
                 new CreateIndex().main(splitCommands);

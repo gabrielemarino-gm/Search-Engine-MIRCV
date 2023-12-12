@@ -14,6 +14,8 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
+import static java.lang.System.exit;
+
 public class PostingListSkippable  implements Iterator<Posting>
 {
 
@@ -151,27 +153,26 @@ public class PostingListSkippable  implements Iterator<Posting>
 
         return currentPosting;
     }
-    public boolean hasNext()
-    {
-        // Last block
-        if(currentBlockIndexer == term.getNumBlocks() - 1)
-        {
-            return !postingsOfTheCurrentBlock.isEmpty();
-        }
+    public boolean hasNext() {
 
-        // Not last block
-        else
-        {
+        // Last block
+        if (currentBlockIndexer == term.getNumBlocks() - 1) {
+            return !postingsOfTheCurrentBlock.isEmpty();
+        } else {
             // If no more posting in current block
-            if(postingsOfTheCurrentBlock.isEmpty())
-            {
+            if (postingsOfTheCurrentBlock.isEmpty()) {
                 // Try retrieve from next block
                 currentBlockIndexer++;
-                getPostingsFromBlock();
-                return hasNext();
-            }
-            else
-            {
+
+                // Check if currentBlockIndexer is within bounds
+                if (currentBlockIndexer < term.getNumBlocks()) {
+                    getPostingsFromBlock();
+                    return hasNext();
+                } else {
+                    // If currentBlockIndexer is out of bounds, return false or handle accordingly
+                    return false;
+                }
+            } else {
                 return true;
             }
         }
@@ -269,6 +270,11 @@ public class PostingListSkippable  implements Iterator<Posting>
     public float getTermUpperBoundBM25()
     {
         return term.getTermUpperBoundBM25();
+    }
+
+    public int getPostingListsBlockSize()
+    {
+        return postingsOfTheCurrentBlock.size();
     }
 
     private void openChannels(){

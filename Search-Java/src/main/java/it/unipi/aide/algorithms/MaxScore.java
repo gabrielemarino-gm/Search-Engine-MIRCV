@@ -39,7 +39,7 @@ public class MaxScore
         TOP_K = top_k;
         // Retrieve the posting lists of the query terms
         QueryPreprocessing qp = new QueryPreprocessing();
-        this.postingLists = qp.retrievePostingList(queryTerms);
+        this.postingLists = qp.retrievePostingList(queryTerms, false);
         terms = qp.getTerms();
 
         // Initial pivot for non-essential lists is the first one

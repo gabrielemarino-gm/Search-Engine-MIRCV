@@ -32,7 +32,7 @@ public class DAAT
         TOP_K = top_k;
         QueryPreprocessing qp = new QueryPreprocessing();
 
-        List<PostingListSkippable> postingLists = qp.retrievePostingList(queryTerms);
+        List<PostingListSkippable> postingLists = qp.retrievePostingList(queryTerms, false);
 
         if(postingLists.isEmpty())
         {

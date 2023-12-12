@@ -19,6 +19,7 @@ public class ModelEvaluation
     static String ALGORITHM = "DAAT";
     static int TOP_K = 10;
     static boolean BM25 = false;
+    static boolean conjunctiveMode = false;
     static Preprocesser preprocesser = new Preprocesser(true);
     static MaxScore maxScore = new MaxScore();
     static DAAT daat = new DAAT();

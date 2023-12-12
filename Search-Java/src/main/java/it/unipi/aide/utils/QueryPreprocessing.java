@@ -26,10 +26,12 @@ public class QueryPreprocessing
 
     /**
      * Retrieve the posting lists of the query terms
-     * @param queryTerms List of query terms
+     *
+     * @param queryTerms      List of query terms
+     * @param conjunctiveMode
      * @return List of PostingListSkippable, one for each query term
      */
-    public List<PostingListSkippable> retrievePostingList(List<String> queryTerms)
+    public List<PostingListSkippable> retrievePostingList(List<String> queryTerms, boolean conjunctiveMode)
     {
         List<PostingListSkippable> postingLists = new ArrayList<>();
 
@@ -43,6 +45,8 @@ public class QueryPreprocessing
                 terms.put(t, termToRetrieve);
                 postingLists.add(new PostingListSkippable(termToRetrieve));
             }
+            else if(conjunctiveMode == true)
+                return null;
         }
 
         return postingLists;

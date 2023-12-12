@@ -2,6 +2,7 @@ package it.unipi.aide;
 
 import it.unipi.aide.algorithms.DAAT;
 import it.unipi.aide.algorithms.MaxScore;
+import it.unipi.aide.algorithms.ConjunctiveRetrieval;
 import it.unipi.aide.model.ScoredDocument;
 import it.unipi.aide.utils.Preprocesser;
 
@@ -18,11 +19,14 @@ public class QueryHandler
     static boolean SETUP = false;
     static boolean BM25 = false;
     static String ALGORITHM = "DAAT";
+    static boolean conjunctiveMode = false;
     static int TOP_K = 10;
     static Scanner scanner = new Scanner(System.in);
     static Preprocesser preprocesser = new Preprocesser(true);
     static DAAT daat = new DAAT();
     static MaxScore maxScore = new MaxScore();
+
+    static ConjunctiveRetrieval conjunctiveRetrieval = new ConjunctiveRetrieval();
 
     public static void main(String[] args)
     {
@@ -68,6 +72,8 @@ public class QueryHandler
                 processQueryDAAT(input);
             else if (ALGORITHM.equals("MAX-SCORE"))
                 processQueryMaxScore(input);
+            else
+                processConjunctiveRankedRetrieval(input);
         }
     }
 
@@ -78,7 +84,7 @@ public class QueryHandler
     private static void setupSystem()
     {
         System.out.println(BLUE + "Query Handler > "+ ANSI_RESET + "Setup system");
-        System.out.println(BLUE + "Query Handler > "+ ANSI_RESET + "Choose the algorithm to use for the query, type 1 for DAAT, 2 for MaxScore");
+        System.out.println(BLUE + "Query Handler > "+ ANSI_RESET + "Choose the ranked retrieval mode: type 1 for disjunctive mode, 2 for conjunctive mode.");
         System.out.print(BLUE + "Query Handler > "+ ANSI_RESET);
 
         String input = scanner.nextLine();
@@ -92,11 +98,38 @@ public class QueryHandler
 
         if (input.equals("1"))
         {
-            ALGORITHM = "DAAT";
+            conjunctiveMode = false;
+
+            System.out.println(BLUE + "Query Handler > "+ ANSI_RESET + "Choose the algorithm to use for the query: type 1 for DAAT, 2 for MaxScore.");
+            System.out.print(BLUE + "Query Handler > "+ ANSI_RESET);
+
+            input = scanner.nextLine();
+
+            while(!(input.equals("1") || input.equals("2")))
+            {
+                System.out.println(RED + "Query Handler ERR > Invalid input. Try again." + ANSI_RESET);
+                System.out.print(BLUE + "Query Handler > "+ ANSI_RESET);
+                input = scanner.nextLine();
+            }
+
+            if (input.equals("1"))
+            {
+                ALGORITHM = "DAAT";
+            }
+            else if (input.equals("2"))
+            {
+                ALGORITHM = "MAX-SCORE";
+            }
+            else
+            {
+                System.out.println(RED + "Query Handler ERR > Invalid input. Try again." + ANSI_RESET);
+                return;
+            }
         }
         else if (input.equals("2"))
         {
-            ALGORITHM = "MAX-SCORE";
+            conjunctiveMode = true;
+            ALGORITHM = "HOLISTIC BOOLEAN CONJUNCTIVE RANKED RETRIEVAL";
         }
         else
         {
@@ -104,8 +137,10 @@ public class QueryHandler
             return;
         }
 
-        System.out.println(BLUE + "Query Handler > "+ ANSI_RESET + "What kind of score function do you want to use? Type 1 for TF-IDF, 2 for BM25 ");
+        System.out.println(BLUE + "Query Handler > "+ ANSI_RESET + "What kind of score function do you want to use? Type 1 for TF-IDF, 2 for BM25.");
         System.out.print(BLUE + "Query Handler > "+ ANSI_RESET);
+
+        input = scanner.nextLine();
 
         while(!(input.equals("1") || input.equals("2")))
         {
@@ -114,7 +149,6 @@ public class QueryHandler
             input = scanner.nextLine();
         }
 
-        input = scanner.nextLine();
         if (input.equals("1"))
         {
             BM25 = false;
@@ -131,6 +165,7 @@ public class QueryHandler
 
         System.out.println(BLUE + "Query Handler > "+ ANSI_RESET + "Set the value of k for the top-k documents ");
         System.out.print(BLUE + "Query Handler > "+ ANSI_RESET);
+
         input = scanner.nextLine();
 
         try
@@ -173,6 +208,31 @@ public class QueryHandler
         // Print the list of top-k scored documents, in reverse order
         for (ScoredDocument sd : maxScore.executeMaxScore(tokens, BM25, TOP_K)) {
             System.out.print("\t\t\t\t\t\t" + sd);
+        }
+
+        long endTime = System.currentTimeMillis();
+        long elapsedTime = endTime - startTime;
+
+        System.out.println("\t\t\t\t\t\t(" + elapsedTime + " ms)");
+    }
+
+    private static void processConjunctiveRankedRetrieval(String query)
+    {
+        List<String> tokens = preprocesser.process(query);
+        long startTime = System.currentTimeMillis();
+
+        System.out.printf("%sQuery Handler: Results (%s, %s) >%s \n", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
+        // Print the list of top-k scored documents, in reverse order
+        List<ScoredDocument> results = conjunctiveRetrieval.executeConjunctiveRankedRetrieval(tokens, BM25, TOP_K);
+        if (results.isEmpty())
+        {
+            System.out.println("No results found.");
+        }
+        else
+        {
+            for (ScoredDocument sd : results) {
+                System.out.print("\t\t\t\t\t\t" + sd);
+            }
         }
 
         long endTime = System.currentTimeMillis();
