@@ -61,7 +61,7 @@ public class QueryTest
     }
 
     @Test
-    public void testDAAT()
+    public void queryTest()
     {
         DAAT daat = new DAAT();
         List<ScoredDocument> sd = daat.executeDAAT(Arrays.asList(new String[]{"brown", "kitti"}), false, 5);
@@ -69,19 +69,15 @@ public class QueryTest
         {
             System.out.println(s);
         }
-    }
 
-    @Test
-    public void testMaxScore()
-    {
         MaxScore maxScore = new MaxScore();
-        for(ScoredDocument sd : maxScore.executeMaxScore(
-                Arrays.asList(new String[]{"quick", "speedi"}), false, 5))
+        sd =  maxScore.executeMaxScore(
+                Arrays.asList(new String[]{"quick", "speedi"}), false, 5);
+        for(ScoredDocument s : sd)
         {
-            System.out.println(sd);
+            System.out.println(s);
         }
     }
-
 
     /*
     * --------------------------------------------------
