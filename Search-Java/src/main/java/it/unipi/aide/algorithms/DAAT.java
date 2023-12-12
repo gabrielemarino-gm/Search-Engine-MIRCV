@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.PriorityQueue;
 
+import static it.unipi.aide.utils.ColorText.*;
+
 public class DAAT
 {
     private int TOP_K;
@@ -36,7 +38,7 @@ public class DAAT
 
         if(postingLists.isEmpty())
         {
-            System.err.println("No posting lists found");
+            System.out.println(RED + "DAAT ERR > No posting lists found" + ANSI_RESET);
             return new ArrayList<>();
         }
 

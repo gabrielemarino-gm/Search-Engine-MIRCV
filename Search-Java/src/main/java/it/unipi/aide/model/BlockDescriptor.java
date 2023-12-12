@@ -9,7 +9,17 @@ public class BlockDescriptor
     private long offsetFreq;
     private long bytesDocID;
     private long bytesFreq;
-    
+
+public BlockDescriptor() {}
+
+public BlockDescriptor(int maxDocID, int numPostings, long offsetDocID, long offsetFreq, long bytesDocID, long bytesFreq) {
+    this.maxDocID = maxDocID;
+    this.numPostings = numPostings;
+    this.offsetDocID = offsetDocID;
+    this.offsetFreq = offsetFreq;
+    this.bytesDocID = bytesDocID;
+    this.bytesFreq = bytesFreq;
+}
     
     public void setMaxDocID(int maxDocID) { this.maxDocID = maxDocID; }
     public void setNumPostings(int numPostings) { this.numPostings = numPostings; }

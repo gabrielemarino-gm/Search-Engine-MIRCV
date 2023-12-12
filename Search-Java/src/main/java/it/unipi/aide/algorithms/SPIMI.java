@@ -54,12 +54,6 @@ public class SPIMI
         PREPROCESSER = new Preprocesser(stemming);
         INCREMENTAL_PARTIAL_BLOCK_NUMBER = 0;
         CURRENT_BLOCK_POSTING_COUNT = 0;
-
-        // System.out.println(String.format(
-        //         "SPIMI >\tINPUT_PATH = %s\nSPIMI >\tSTEMMING = %b",
-        //         INPUT_PATH,
-        //         stemming
-        // ));
     }
 
     /**
@@ -95,12 +89,9 @@ public class SPIMI
         {
             String[] docParts = doc.split("\t");
 
-            /*
-             * docid = Unique id assigned in incremental manner
-             * pid = Unique name of the document
-             */
-            String pid = docParts[0];
-            String text = docParts[1];
+            String pid = docParts[0]; // pid = Unique name of the document
+            String text = docParts[1]; // docid = Unique id assigned in incremental manner
+
             List<String> tokens = PREPROCESSER.process(text);
 
             // To update AvarageDocumentLenght

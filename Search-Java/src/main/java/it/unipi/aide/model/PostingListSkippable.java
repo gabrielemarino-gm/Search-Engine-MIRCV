@@ -28,7 +28,6 @@ public class PostingListSkippable  implements Iterator<Posting>
     private final List<BlockDescriptor> blockDescriptors = new ArrayList<>();
     private final List<Posting> postingsOfTheCurrentBlock = new ArrayList<>();
     private int currentBlockIndexer = -1;
-    boolean noMorePostings = false;
 
     FileChannel docsChannel;
     FileChannel freqChannel;
@@ -196,7 +195,6 @@ public class PostingListSkippable  implements Iterator<Posting>
             currentPosting = null;
             closeChannels();
         }
-
         return currentPosting;
     }
     
@@ -205,7 +203,6 @@ public class PostingListSkippable  implements Iterator<Posting>
      * END ITERABLE SECTION
      * --------------------
      */
-
 
     /**
      * Get the next posting with docID >= docID

@@ -517,8 +517,10 @@ public class Merging
         tempBuffer.putLong(finalTerm.getOffset());                  // 8
 
         // Evaluate term upper bound fof TFIDF and BM25
-        tempBuffer.putFloat(ScoreFunction.computeTFIDF(finalTerm.getMaxTF(),finalTerm.getNumPosting()));                            // 4
-        tempBuffer.putFloat(ScoreFunction.computeBM25(finalTerm.getBM25TF(), finalTerm.getBM25DL(), finalTerm.getNumPosting()));    // 4
+        float tfidf = ScoreFunction.computeTFIDF(finalTerm.getMaxTF(),finalTerm.getNumPosting());
+        tempBuffer.putFloat(tfidf);   // 4
+        float bm25 = ScoreFunction.computeBM25(finalTerm.getBM25TF(), finalTerm.getNumPosting(), finalTerm.getBM25DL());
+        tempBuffer.putFloat(bm25);    // 4
 
         vFinalOffset += TermInfo.SIZE_POST_MERGING;
 
@@ -565,8 +567,8 @@ public class Merging
         int frequency = tempBuffer.getInt();
         int nPosting = tempBuffer.getInt();
         long offset = tempBuffer.getLong();
-        int maxTF = tempBuffer.getInt();
 
+        int maxTF = tempBuffer.getInt();
         int BM25TF = tempBuffer.getInt();
         int BM25DL = tempBuffer.getInt();
 

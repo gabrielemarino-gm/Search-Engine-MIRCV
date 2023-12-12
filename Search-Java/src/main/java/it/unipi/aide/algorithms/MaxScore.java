@@ -9,6 +9,9 @@ import it.unipi.aide.utils.QueryPreprocessing;
 
 import java.util.*;
 
+import static it.unipi.aide.utils.ColorText.ANSI_RESET;
+import static it.unipi.aide.utils.ColorText.RED;
+
 /**
  * Class to implement the MaxScore algorithm
  */
@@ -41,6 +44,12 @@ public class MaxScore
         QueryPreprocessing qp = new QueryPreprocessing();
         this.postingLists = qp.retrievePostingList(queryTerms, false);
         terms = qp.getTerms();
+
+        if(postingLists.isEmpty())
+        {
+            System.out.println(RED + "MAX-SCORE ERR > No posting lists found" + ANSI_RESET);
+            return new ArrayList<>();
+        }
 
         // Initial pivot for non-essential lists is the first one
         int pivot = 0;

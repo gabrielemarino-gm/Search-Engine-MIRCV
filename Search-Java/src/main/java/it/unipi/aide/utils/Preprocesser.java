@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static it.unipi.aide.utils.ColorText.*;
+
 /**
  * Class to perform preprocessing on a string
  */
@@ -55,11 +57,12 @@ public class Preprocesser
            * Note: utility non-class files goes in resources folder
            */
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            String path = ConfigReader.getStopwordsPath();
             InputStream inputStream = classLoader.getResourceAsStream(ConfigReader.getStopwordsPath());
 
             if(inputStream == null)
             {
-                System.err.println("Error while loading Stopwords file");
+                System.out.println(RED + "Preprocesser ERR > Error while loading Stopwords file" + ANSI_RESET);
                 return;
             }
 
