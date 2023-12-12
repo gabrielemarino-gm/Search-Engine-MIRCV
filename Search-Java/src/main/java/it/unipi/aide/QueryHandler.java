@@ -261,9 +261,9 @@ public class QueryHandler
                 String pid = documentIndex.get(sd.getDocID()).getPid();
 
                 if (Integer.parseInt(pid) < 10)
-                    System.out.print(String.format("%s\t\t\t|\t%.4f", pid, score));
+                    System.out.println(String.format("%s\t\t\t|\t%.4f", pid, score));
                 else
-                    System.out.print(String.format("%s\t\t|\t%.4f", pid, score));
+                    System.out.println(String.format("%s\t\t|\t%.4f", pid, score));
             }
         }
 

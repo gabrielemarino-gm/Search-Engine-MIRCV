@@ -53,10 +53,11 @@ public class ConjunctiveRetrieval
 
         // While there is at least one Posting List with elements
         int i = 1;
-        int current = currentPosting.getDocId();
 
         while(currentPosting != null)
         {
+            int current = currentPosting.getDocId();
+
             //current = postingLists.get(0).getCurrentPosting().getDocId();
             ScoredDocument documentToAdd = null;
 
