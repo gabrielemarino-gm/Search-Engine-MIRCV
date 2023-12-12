@@ -20,20 +20,17 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.List;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ConfigReader.class, CollectionInformation.class})
-public class QueryTest {
-
+public class QueryTest
+{
     File outPath;
-
     long totalDocuments, averageDocumentLength, totalTerms;
-
     Document[] trainDocuments;
     byte[] trainDoclens;
-
     BlockDescriptor[] trainBlockDescriptors;
-
     TermInfo[] trainVocabs;
     int[] trainDocIDS, trainFrequencies;
 
@@ -43,7 +40,8 @@ public class QueryTest {
     @Before
     public void setUp()
     {
-        try {
+        try
+        {
             outPath = folder.newFolder("out");
 
             PowerMockito.mockStatic(ConfigReader.class);
@@ -66,10 +64,10 @@ public class QueryTest {
     public void testDAAT()
     {
         DAAT daat = new DAAT();
-        for(ScoredDocument sd : daat.executeDAAT(Arrays.asList(
-                new String[]{"brown", "kitti"}), false, 5))
+        List<ScoredDocument> sd = daat.executeDAAT(Arrays.asList(new String[]{"brown", "kitti"}), false, 5);
+        for(ScoredDocument s : sd)
         {
-            System.out.println(sd);
+            System.out.println(s);
         }
     }
 
@@ -110,31 +108,31 @@ public class QueryTest {
         * 9     Speedy copper martens zoom by the resting kitty
         */
         trainDocuments = new Document[]
-                {
-                        new Document("0",0,6),
-                        new Document("1",1,6),
-                        new Document("2",2,6),
-                        new Document("3",3,6),
-                        new Document("4",4,7),
-                        new Document("5",5,6),
-                        new Document("6",6,6),
-                        new Document("7",7,6),
-                        new Document("8",8,6),
-                        new Document("9",9,6),
-                };
+        {
+                new Document("0",0,6),
+                new Document("1",1,6),
+                new Document("2",2,6),
+                new Document("3",3,6),
+                new Document("4",4,7),
+                new Document("5",5,6),
+                new Document("6",6,6),
+                new Document("7",7,6),
+                new Document("8",8,6),
+                new Document("9",9,6),
+        };
         trainDoclens = new byte[]
-                { /* Compressed Variable-Byte */
-                        (byte) 6,
-                        (byte) 6,
-                        (byte) 6,
-                        (byte) 6,
-                        (byte) 7,
-                        (byte) 6,
-                        (byte) 6,
-                        (byte) 6,
-                        (byte) 6,
-                        (byte) 6
-                };
+        { /* Compressed Variable-Byte */
+                (byte) 6,
+                (byte) 6,
+                (byte) 6,
+                (byte) 6,
+                (byte) 7,
+                (byte) 6,
+                (byte) 6,
+                (byte) 6,
+                (byte) 6,
+                (byte) 6
+        };
 
         /*
         * 0     quick brown fox jump lazi dog
@@ -206,195 +204,198 @@ public class QueryTest {
         */
 
         trainVocabs = new TermInfo[]
-                {
-                        new TermInfo("beig", 1, 1 ,0L, 1, 0.0f, 0.0f),
-                        new TermInfo("brown", 3, 3, 40L, 1, 0.0f, 0.0f),
-                        new TermInfo("cat", 1, 1, 80L, 1, 0.0f, 0.0f),
-                        new TermInfo("copper", 1, 1, 120L, 1, 0.0f, 0.0f),
-                        new TermInfo("dart", 1, 1, 160L, 1, 0.0f, 0.0f),
-                        new TermInfo("dash", 1, 1, 200L, 1, 0.0f, 0.0f),
-                        new TermInfo("dog", 1, 1, 240L, 1, 0.0f, 0.0f),
-                        new TermInfo("doze", 1, 1, 280L, 1, 0.0f, 0.0f),
-                        new TermInfo("drowsi", 1, 1, 320L, 1, 0.0f, 0.0f),
-                        new TermInfo("fast", 1, 1, 360L, 1, 0.0f, 0.0f),
-                        new TermInfo("felin", 1, 1, 400L, 1, 0.0f, 0.0f),
-                        new TermInfo("ferret", 1, 1, 440L, 1, 0.0f, 0.0f),
-                        new TermInfo("fleet", 1, 1, 480L, 1, 0.0f, 0.0f),
-                        new TermInfo("fox", 1, 1, 520L, 1, 0.0f, 0.0f),
-                        new TermInfo("ginger", 1, 1, 560L, 1, 0.0f, 0.0f),
-                        new TermInfo("hare", 1, 1, 600L, 1, 0.0f, 0.0f),
-                        new TermInfo("hop", 1, 1, 640L, 1, 0.0f, 0.0f),
-                        new TermInfo("jump", 1, 1, 680L, 1, 0.0f, 0.0f),
-                        new TermInfo("kitten", 1, 1, 720L, 1, 0.0f, 0.0f),
-                        new TermInfo("kitti", 2, 2, 760L, 1, 0.0f, 0.0f),
-                        new TermInfo("lazi", 2, 2, 800L, 1, 0.0f, 0.0f),
-                        new TermInfo("leap", 1, 1, 840L, 1, 0.0f, 0.0f),
-                        new TermInfo("letharg", 1, 1, 880L, 1, 0.0f, 0.0f),
-                        new TermInfo("maroon", 1, 1, 920L, 1, 0.0f, 0.0f),
-                        new TermInfo("marten", 1, 1, 960L, 1, 0.0f, 0.0f),
-                        new TermInfo("mink", 1, 1, 1000L, 1, 0.0f, 0.0f),
-                        new TermInfo("moggi", 1, 1, 1040L, 1, 0.0f, 0.0f),
-                        new TermInfo("nap", 1, 1, 1080L, 1, 0.0f, 0.0f),
-                        new TermInfo("nimbl", 1, 1, 1120L, 1, 0.0f, 0.0f),
-                        new TermInfo("past", 1, 1, 1160L, 1, 0.0f, 0.0f),
-                        new TermInfo("puss", 1, 1, 1200L, 1, 0.0f, 0.0f),
-                        new TermInfo("quick", 3, 3, 1240L, 1, 0.0f, 0.0f),
-                        new TermInfo("rabbit", 1, 1, 1280L, 1, 0.0f, 0.0f),
-                        new TermInfo("race", 1, 1, 1320L, 1, 0.0f, 0.0f),
-                        new TermInfo("rapid", 1, 1, 1360L, 1, 0.0f, 0.0f),
-                        new TermInfo("red", 1, 1, 1400L, 1, 0.0f, 0.0f),
-                        new TermInfo("rest", 1, 1, 1440L, 1, 0.0f, 0.0f),
-                        new TermInfo("rodent", 1, 1, 1480L, 1, 0.0f, 0.0f),
-                        new TermInfo("russet", 1, 1, 1520L, 1, 0.0f, 0.0f),
-                        new TermInfo("scamper", 1, 1, 1560L, 1, 0.0f, 0.0f),
-                        new TermInfo("sluggish", 1, 1, 1600L, 1, 0.0f, 0.0f),
-                        new TermInfo("slumber", 1, 1, 1640L, 1, 0.0f, 0.0f),
-                        new TermInfo("snooz", 1, 1, 1680L, 1, 0.0f, 0.0f),
-                        new TermInfo("speedi", 2, 2, 1720L, 1, 0.0f, 0.0f),
-                        new TermInfo("sprint", 1, 1, 1760L, 1, 0.0f, 0.0f),
-                        new TermInfo("squirrel", 1, 1, 1800L, 1, 0.0f, 0.0f),
-                        new TermInfo("swift", 1, 1, 1840L, 1, 0.0f, 0.0f),
-                        new TermInfo("tabbi", 1, 1, 1880L, 1, 0.0f, 0.0f),
-                        new TermInfo("tan", 1, 1, 1920L, 1, 0.0f, 0.0f),
-                        new TermInfo("tomcat", 1, 1, 1960L, 1, 0.0f, 0.0f),
-                        new TermInfo("vault", 1, 1, 2000L, 1, 0.0f, 0.0f),
-                        new TermInfo("weasel", 1, 1, 2040L, 1, 0.0f, 0.0f),
-                        new TermInfo("wolv", 1, 1, 2080L, 1, 0.0f, 0.0f),
-                        new TermInfo("zoom", 1, 1, 2120L, 1, 0.0f, 0.0f),
-                };
+        {
+            new TermInfo("beig", 1, 1 ,0L, 1, 1.0f, 0.4286f),
+            new TermInfo("brown", 3, 3, 40L, 1, 0.523f, 0.4576f),
+            new TermInfo("cat", 1, 1, 80L, 1, 1.0f, 0.4576f),
+            new TermInfo("copper", 1, 1, 120L, 1, 1.0f, 0.4576f),
+            new TermInfo("dart", 1, 1, 160L, 1, 1.0f, 0.4576f),
+            new TermInfo("dash", 1, 1, 200L, 1, 1.0f, 0.4286f),
+            new TermInfo("dog", 1, 1, 240L, 1, 1.0f, 0.4576f),
+            new TermInfo("doze", 1, 1, 280L, 1, 1.0f, 0.4576f),
+            new TermInfo("drowsi", 1, 1, 320L, 1, 1.0f, 0.4576f),
+            new TermInfo("fast", 1, 1, 360L, 1, 1.0f, 0.4576f),
+            new TermInfo("felin", 1, 1, 400L, 1, 1.0f, 0.4576f),
+            new TermInfo("ferret", 1, 1, 440L, 1, 1.0f, 0.4576f),
+            new TermInfo("fleet", 1, 1, 480L, 1, 1.0f, 0.4576f),
+            new TermInfo("fox", 1, 1, 520L, 1, 1.0f, 0.4576f),
+            new TermInfo("ginger", 1, 1, 560L, 1, 1.0f, 0.4576f),
+            new TermInfo("hare", 1, 1, 600L, 1, 1.0f, 0.4576f),
+            new TermInfo("hop", 1, 1, 640L, 1, 1.0f, 0.4576f),
+            new TermInfo("jump", 1, 1, 680L, 1, 1.0f, 0.4576f),
+            new TermInfo("kitten", 1, 1, 720L, 1, 1.0f, 0.4576f),
+            new TermInfo("kitti", 2, 2, 760L, 1, 0.699f, 0.4576f),
+            new TermInfo("lazi", 2, 2, 800L, 1, 0.699f, 0.4576f),
+            new TermInfo("leap", 1, 1, 840L, 1, 1.0f, 0.4576f),
+            new TermInfo("letharg", 1, 1, 880L, 1, 1.0f, 0.4576f),
+            new TermInfo("maroon", 1, 1, 920L, 1, 1.0f, 0.4576f),
+            new TermInfo("marten", 1, 1, 960L, 1, 1.0f, 0.4576f),
+            new TermInfo("mink", 1, 1, 1000L, 1, 1.0f, 0.4576f),
+            new TermInfo("moggi", 1, 1, 1040L, 1, 1.0f, 0.4576f),
+            new TermInfo("nap", 1, 1, 1080L, 1, 1.0f, 0.4576f),
+            new TermInfo("nimbl", 1, 1, 1120L, 1, 1.0f, 0.4286f),
+            new TermInfo("past", 1, 1, 1160L, 1, 1.0f, 0.4286f),
+            new TermInfo("puss", 1, 1, 1200L, 1, 1.0f, 0.4576f),
+            new TermInfo("quick", 3, 3, 1240L, 1, 0.523f, 0.4576f),
+            new TermInfo("rabbit", 1, 1, 1280L, 1, 1.0f, 0.4576f),
+            new TermInfo("race", 1, 1, 1320L, 1, 1.0f, 0.4576f),
+            new TermInfo("rapid", 1, 1, 1360L, 1, 1.0f, 0.4576f),
+            new TermInfo("red", 1, 1, 1400L, 1, 1.0f, 0.4576f),
+            new TermInfo("rest", 1, 1, 1440L, 1, 1.0f, 0.4576f),
+            new TermInfo("rodent", 1, 1, 1480L, 1, 1.0f, 0.4286f),
+            new TermInfo("russet", 1, 1, 1520L, 1, 1.0f, 0.4576f),
+            new TermInfo("scamper", 1, 1, 1560L, 1, 1.0f, 0.4576f),
+            new TermInfo("sluggish", 1, 1, 1600L, 1, 1.0f, 0.4286f),
+            new TermInfo("slumber", 1, 1, 1640L, 1, 1.0f, 0.4576f),
+            new TermInfo("snooz", 1, 1, 1680L, 1, 1.0f, 0.4576f),
+            new TermInfo("speedi", 2, 2, 1720L, 1, 0.699f, 0.4576f),
+            new TermInfo("sprint", 1, 1, 1760L, 1, 1.0f, 0.4576f),
+            new TermInfo("squirrel", 1, 1, 1800L, 1, 1.0f, 0.4576f),
+            new TermInfo("swift", 1, 1, 1840L, 1, 1.0f, 0.4576f),
+            new TermInfo("tabbi", 1, 1, 1880L, 1, 1.0f, 0.4286f),
+            new TermInfo("tan", 1, 1, 1920L, 1, 1.0f, 0.4576f),
+            new TermInfo("tomcat", 1, 1, 1960L, 1, 1.0f, 0.4576f),
+            new TermInfo("vault", 1, 1, 2000L, 1, 1.0f, 0.4576f),
+            new TermInfo("weasel", 1, 1, 2040L, 1, 1.0f, 0.4576f),
+            new TermInfo("wolv", 1, 1, 2080L, 1, 1.0f, 0.4576f),
+            new TermInfo("zoom", 1, 1, 2120L, 1, 1.0f, 0.4576f),
+        };
 
         trainBlockDescriptors = new BlockDescriptor[]
-                {
-                        new BlockDescriptor(4, 1, 0L, 0L, 4L, 4L),
-                        new BlockDescriptor(2, 3, 4L, 4L, 12L, 12L),
-                        new BlockDescriptor(1, 1, 16L, 16L, 4L, 4L),
-                        new BlockDescriptor(9, 1, 20L, 20L, 4L, 4L),
-                        new BlockDescriptor(6, 1, 24L, 24L, 4L, 4L),
-                        new BlockDescriptor(4, 1, 28L, 28L, 4L, 4L),
-                        new BlockDescriptor(0, 1, 32L, 32L, 4L, 4L),
-                        new BlockDescriptor(6, 1, 36L, 36L, 4L, 4L),
-                        new BlockDescriptor(2, 1, 40L, 40L, 4L, 4L),
-                        new BlockDescriptor(5, 1, 44L, 44L, 4L, 4L),
-                        new BlockDescriptor(2, 1, 48L, 48L, 4L, 4L),
-                        new BlockDescriptor(7, 1, 52L, 52L, 4L, 4L),
-                        new BlockDescriptor(7, 1, 56L, 56L, 4L, 4L),
-                        new BlockDescriptor(0, 1, 60L, 60L, 4L, 4L),
-                        new BlockDescriptor(6, 1, 64L, 64L, 4L, 4L),
-                        new BlockDescriptor(3, 1, 68L, 68L, 4L, 4L),
-                        new BlockDescriptor(1, 1, 72L, 72L, 4L, 4L),
-                        new BlockDescriptor(0, 1, 76L, 76L, 4L, 4L),
-                        new BlockDescriptor(5, 1, 80L, 80L, 4L, 4L),
-                        new BlockDescriptor(9, 2, 84L, 84L, 12L, 12L),
-                        new BlockDescriptor(1, 2, 96L, 96L, 12L, 12L),
-                        new BlockDescriptor(2, 1, 108L, 108L, 4L, 4L),
-                        new BlockDescriptor(3, 1, 112L, 112L, 4L, 4L),
-                        new BlockDescriptor(7, 1, 116L, 116L, 4L, 4L),
-                        new BlockDescriptor(9, 1, 120L, 120L, 4L, 4L),
-                        new BlockDescriptor(8, 1, 124L, 124L, 4L, 4L),
-                        new BlockDescriptor(7, 1, 128L, 128L, 4L, 4L),
-                        new BlockDescriptor(8, 1, 132L, 132L, 4L, 4L),
-                        new BlockDescriptor(4, 1, 136L, 136L, 4L, 4L),
-                        new BlockDescriptor(4, 1, 140L, 140L, 4L, 4L),
-                        new BlockDescriptor(8, 1, 144L, 144L, 4L, 4L),
-                        new BlockDescriptor(8, 3, 148L, 148L, 12L, 12L),
-                        new BlockDescriptor(1, 1, 160L, 160L, 4L, 4L),
-                        new BlockDescriptor(7, 1, 164L, 164L, 4L, 4L),
-                        new BlockDescriptor(6, 1, 168L, 168L, 4L, 4L),
-                        new BlockDescriptor(5, 1, 172L, 172L, 4L, 4L),
-                        new BlockDescriptor(9, 1, 176L, 176L, 4L, 4L),
-                        new BlockDescriptor(4, 1, 180L, 180L, 4L, 4L),
-                        new BlockDescriptor(8, 1, 184L, 184L, 4L, 4L),
-                        new BlockDescriptor(8, 1, 188L, 188L, 4L, 4L),
-                        new BlockDescriptor(4, 1, 192L, 192L, 4L, 4L),
-                        new BlockDescriptor(7, 1, 196L, 196L, 4L, 4L),
-                        new BlockDescriptor(5, 1, 200L, 200L, 4L, 4L),
-                        new BlockDescriptor(9, 2, 204L, 204L, 8L, 8L),
-                        new BlockDescriptor(5, 1, 212L, 212L, 4L, 4L),
-                        new BlockDescriptor(5, 1, 216L, 216L, 4L, 4L),
-                        new BlockDescriptor(2, 1, 220L, 220L, 4L, 4L),
-                        new BlockDescriptor(4, 1, 224L, 224L, 4L, 4L),
-                        new BlockDescriptor(3, 1, 228L, 228L, 4L, 4L),
-                        new BlockDescriptor(6, 1, 232L, 232L, 4L, 4L),
-                        new BlockDescriptor(3, 1, 236L, 236L, 4L, 4L),
-                        new BlockDescriptor(6, 1, 240L, 240L, 4L, 4L),
-                        new BlockDescriptor(2, 1, 244L, 244L, 4L, 4L),
-                        new BlockDescriptor(9, 1, 248L, 248L, 4L, 4L)
-                };
+        {
+            new BlockDescriptor(4, 1, 0L, 0L, 4L, 4L),
+            new BlockDescriptor(2, 3, 4L, 4L, 12L, 12L),
+            new BlockDescriptor(1, 1, 16L, 16L, 4L, 4L),
+            new BlockDescriptor(9, 1, 20L, 20L, 4L, 4L),
+            new BlockDescriptor(6, 1, 24L, 24L, 4L, 4L),
+            new BlockDescriptor(4, 1, 28L, 28L, 4L, 4L),
+            new BlockDescriptor(0, 1, 32L, 32L, 4L, 4L),
+            new BlockDescriptor(6, 1, 36L, 36L, 4L, 4L),
+            new BlockDescriptor(2, 1, 40L, 40L, 4L, 4L),
+            new BlockDescriptor(5, 1, 44L, 44L, 4L, 4L),
+            new BlockDescriptor(2, 1, 48L, 48L, 4L, 4L),
+            new BlockDescriptor(7, 1, 52L, 52L, 4L, 4L),
+            new BlockDescriptor(7, 1, 56L, 56L, 4L, 4L),
+            new BlockDescriptor(0, 1, 60L, 60L, 4L, 4L),
+            new BlockDescriptor(6, 1, 64L, 64L, 4L, 4L),
+            new BlockDescriptor(3, 1, 68L, 68L, 4L, 4L),
+            new BlockDescriptor(1, 1, 72L, 72L, 4L, 4L),
+            new BlockDescriptor(0, 1, 76L, 76L, 4L, 4L),
+            new BlockDescriptor(5, 1, 80L, 80L, 4L, 4L),
+            new BlockDescriptor(9, 2, 84L, 84L, 12L, 12L),
+            new BlockDescriptor(1, 2, 96L, 96L, 12L, 12L),
+            new BlockDescriptor(2, 1, 108L, 108L, 4L, 4L),
+            new BlockDescriptor(3, 1, 112L, 112L, 4L, 4L),
+            new BlockDescriptor(7, 1, 116L, 116L, 4L, 4L),
+            new BlockDescriptor(9, 1, 120L, 120L, 4L, 4L),
+            new BlockDescriptor(8, 1, 124L, 124L, 4L, 4L),
+            new BlockDescriptor(7, 1, 128L, 128L, 4L, 4L),
+            new BlockDescriptor(8, 1, 132L, 132L, 4L, 4L),
+            new BlockDescriptor(4, 1, 136L, 136L, 4L, 4L),
+            new BlockDescriptor(4, 1, 140L, 140L, 4L, 4L),
+            new BlockDescriptor(8, 1, 144L, 144L, 4L, 4L),
+            new BlockDescriptor(8, 3, 148L, 148L, 12L, 12L),
+            new BlockDescriptor(1, 1, 160L, 160L, 4L, 4L),
+            new BlockDescriptor(7, 1, 164L, 164L, 4L, 4L),
+            new BlockDescriptor(6, 1, 168L, 168L, 4L, 4L),
+            new BlockDescriptor(5, 1, 172L, 172L, 4L, 4L),
+            new BlockDescriptor(9, 1, 176L, 176L, 4L, 4L),
+            new BlockDescriptor(4, 1, 180L, 180L, 4L, 4L),
+            new BlockDescriptor(8, 1, 184L, 184L, 4L, 4L),
+            new BlockDescriptor(8, 1, 188L, 188L, 4L, 4L),
+            new BlockDescriptor(4, 1, 192L, 192L, 4L, 4L),
+            new BlockDescriptor(7, 1, 196L, 196L, 4L, 4L),
+            new BlockDescriptor(5, 1, 200L, 200L, 4L, 4L),
+            new BlockDescriptor(9, 2, 204L, 204L, 8L, 8L),
+            new BlockDescriptor(5, 1, 212L, 212L, 4L, 4L),
+            new BlockDescriptor(5, 1, 216L, 216L, 4L, 4L),
+            new BlockDescriptor(2, 1, 220L, 220L, 4L, 4L),
+            new BlockDescriptor(4, 1, 224L, 224L, 4L, 4L),
+            new BlockDescriptor(3, 1, 228L, 228L, 4L, 4L),
+            new BlockDescriptor(6, 1, 232L, 232L, 4L, 4L),
+            new BlockDescriptor(3, 1, 236L, 236L, 4L, 4L),
+            new BlockDescriptor(6, 1, 240L, 240L, 4L, 4L),
+            new BlockDescriptor(2, 1, 244L, 244L, 4L, 4L),
+            new BlockDescriptor(9, 1, 248L, 248L, 4L, 4L)
+        };
 
         trainDocIDS = new int[]
-                {
-                        4,
-                        0,1,2,
-                        1,
-                        9,
-                        6,
-                        4,
-                        0,
-                        6,
-                        2,
-                        5,
-                        2,
-                        7,
-                        7,
-                        0,
-                        6,
-                        3,
-                        1,
-                        0,
-                        5,
-                        3,9,
-                        0,1,
-                        2,
-                        3,
-                        7,
-                        9,
-                        8,
-                        7,
-                        8,
-                        4,
-                        4,
-                        8,
-                        0,1,8,
-                        1,
-                        7,
-                        6,
-                        5,
-                        9,
-                        4,
-                        8,
-                        8,
-                        4,
-                        7,
-                        5,
-                        3,9,
-                        5,
-                        5,
-                        2,
-                        4,
-                        3,
-                        6,
-                        3,
-                        6,
-                        2,
-                        9
-                };
+        {
+            4,
+            0,1,2,
+            1,
+            9,
+            6,
+            4,
+            0,
+            6,
+            2,
+            5,
+            2,
+            7,
+            7,
+            0,
+            6,
+            3,
+            1,
+            0,
+            5,
+            3,9,
+            0,1,
+            2,
+            3,
+            7,
+            9,
+            8,
+            7,
+            8,
+            4,
+            4,
+            8,
+            0,1,8,
+            1,
+            7,
+            6,
+            5,
+            9,
+            4,
+            8,
+            8,
+            4,
+            7,
+            5,
+            3,9,
+            5,
+            5,
+            2,
+            4,
+            3,
+            6,
+            3,
+            6,
+            2,
+            9
+        };
 
         trainFrequencies = new int[]
-                {
-                        1, 1, 1, 1, 1, 1,
-                        1, 1, 1, 1, 1, 1,
-                        1, 1, 1, 1, 1, 1,
-                        1, 1, 1, 1, 1, 1,
-                        1, 1, 1, 1, 1, 1,
-                        1, 1, 1, 1, 1, 1,
-                        1, 1, 1, 1, 1, 1,
-                        1, 1, 1, 1, 1, 1,
-                        1, 1, 1, 1, 1, 1,
-                        1, 1, 1, 1, 1, 1,
-                        1
-                };
+        {
+            1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1,
+            1
+        };
     }
 
+    /**
+     * Redefine the CollectionInformation class to return the fake values
+     */
     private void createFakeFiles()
     {
         File documentIndexPath = new File(outPath.getAbsolutePath() + "/documentIndex");
@@ -424,7 +425,10 @@ public class QueryTest {
         }
     }
 
-    /* ------------------------------------------ */
+    /**
+     * Write the fake values of the documents to the file
+     * @param file The file to write to
+     */
     private void writeDocuments(File file) throws IOException
     {
         FileChannel fc = (FileChannel) Files.newByteChannel(file.toPath(),
@@ -445,6 +449,10 @@ public class QueryTest {
         fc.close();
     }
 
+    /**
+     * Write the fake values of the doclens to the file
+     * @param file The file to write to
+     */
     private void writeDoclens(File file) throws IOException
     {
         FileChannel fc = (FileChannel) Files.newByteChannel(file.toPath(),
@@ -459,6 +467,10 @@ public class QueryTest {
         fc.close();
     }
 
+    /**
+     * Write the fake values of the block descriptors to the file
+     * @param file The file to write to
+     */
     private void writeBlockDescriptors(File file) throws IOException
     {
         FileChannel fc = (FileChannel) Files.newByteChannel(file.toPath(),
@@ -481,6 +493,10 @@ public class QueryTest {
         fc.close();
     }
 
+    /**
+     * Write the fake values of the vocabulary to the file
+     * @param file The file to write to
+     */
     private void writeVocabulary(File file) throws IOException
     {
         FileChannel fc = (FileChannel) Files.newByteChannel(file.toPath(),
@@ -500,6 +516,10 @@ public class QueryTest {
         fc.close();
     }
 
+    /**
+     * Write the fake values of the docids to the file
+     * @param file The file to write to
+     */
     private void writeDocids(File file) throws IOException
     {
         FileChannel fc = (FileChannel) Files.newByteChannel(file.toPath(),
@@ -517,6 +537,10 @@ public class QueryTest {
         fc.close();
     }
 
+    /**
+     * Write the fake values of the frequencies to the file
+     * @param file The file to write to
+     */
     private void writeFrequencies(File file) throws IOException
     {
         FileChannel fc = (FileChannel) Files.newByteChannel(file.toPath(),
@@ -534,8 +558,10 @@ public class QueryTest {
         fc.close();
     }
 
-    /* ------------------------------------------ */
 
+    /**
+     * Redefine the ConfigReader class to return the fake values
+     */
     private void redefineConfigReader()
     {
         PowerMockito.when(ConfigReader.getWorkingDir()).thenReturn(outPath.getAbsolutePath());
@@ -550,6 +576,9 @@ public class QueryTest {
         PowerMockito.when(ConfigReader.getB()).thenReturn(0.75f);
     }
 
+    /**
+     * Redefine the CollectionInformation class to return the fake values
+     */
     private void redefineCollectionInformation()
     {
         PowerMockito.when(CollectionInformation.getTotalDocuments()).thenReturn(totalDocuments);
@@ -557,7 +586,13 @@ public class QueryTest {
         PowerMockito.when(CollectionInformation.getTotalTerms()).thenReturn(totalTerms);
     }
 
-    private byte[] getBytes(TermInfo ti){
+    /**
+     * Get the byte representation of a TermInfo
+     * @param ti The TermInfo to convert
+     * @return The byte representation of the TermInfo
+     */
+    private byte[] getBytes(TermInfo ti)
+    {
         byte [] toRet = new byte[(int)TermInfo.SIZE_POST_MERGING];
         ByteBuffer buffer = ByteBuffer.wrap(toRet);
         String paddedTerm = String.format("%-" + TermInfo.SIZE_TERM + "s", ti.getTerm()).substring(0, TermInfo.SIZE_TERM);
