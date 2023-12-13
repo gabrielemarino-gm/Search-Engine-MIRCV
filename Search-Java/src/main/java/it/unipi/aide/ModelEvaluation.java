@@ -28,13 +28,25 @@ public class ModelEvaluation
     static ConjunctiveRetrieval conjunctiveRetrieval = new ConjunctiveRetrieval();
     static String queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test2020-queries.tsv";
     static final String resultsFile = ConfigReader.getTrecEvalDataPath() + "/resultsTrecEval.txt";
-    static final String datasetFile = ConfigReader.getTrecEvalDataPath() + "/resultsDataset.csv";
     static Scanner scanner = new Scanner(System.in);
     static String trecEvalPath = "../../Trec-Eval/trec_eval-main";
     static String year = "2020";
 
     public static void main(String[] args)
     {
+        // evaluatePerformance -in ../../Trec-Eval/trec_eval-main -y 2019
+        if (args.length > 3 && args[1].equals("-in") && args[3].equals("-y"))
+        {
+            trecEvalPath = args[2];
+            year = args[4];
+        }
+        else
+        {
+            System.out.println(RED + "MODEL EVALUATION ERR > Invalid input. Try again." + ANSI_RESET);
+            // Return to the Driver
+            return;
+        }
+
         // Setup the system
         setupEvaluation();
 
@@ -44,8 +56,6 @@ public class ModelEvaluation
         // Remove the file if already exists, then create it
         FileManager.removeFile(resultsFile);
         FileManager.createFile(resultsFile);
-        FileManager.removeFile(datasetFile);
-        FileManager.createFile(datasetFile);
 
         try (BufferedReader reader = new BufferedReader(new FileReader(queryFile)))
         {
@@ -65,42 +75,28 @@ public class ModelEvaluation
 
                 if (CONJUNCTIVE)
                 {
-                    long startTime = System.currentTimeMillis();
                     List<ScoredDocument> resultsCONJ = conjunctiveRetrieval.executeConjunctiveRankedRetrieval(queryTerms, BM25, TOP_K);
                     // write results to file
                     if (!resultsCONJ.isEmpty())
                         writeResults(tokens[0], resultsCONJ);
-
-                    long endTime = System.currentTimeMillis();
-                    long elapsedTime = endTime - startTime;
-                    printDataset(tokens[0], elapsedTime, "CONJUNCTIVE");
                 }
                 else
                 {
                     if (ALGORITHM.equals("DAAT"))
                     {
-                        long startTime = System.currentTimeMillis();
                         List<ScoredDocument> resultsDAAT = daat.executeDAAT(queryTerms, BM25, TOP_K);
                         // write results to file
                         if (!resultsDAAT.isEmpty())
                             writeResults(tokens[0], resultsDAAT);
-
-                        long endTime = System.currentTimeMillis();
-                        long elapsedTime = endTime - startTime;
-                        printDataset(tokens[0], elapsedTime, "DAAT");
                     }
                     else if (ALGORITHM.equals("MAX-SCORE"))
                     {
-                        long startTime = System.currentTimeMillis();
                         List<ScoredDocument> resultsMaxScore = maxScore.executeMaxScore(queryTerms, BM25, TOP_K);
 
                         // write results to file
                         if (!resultsMaxScore.isEmpty())
                             writeResults(tokens[0], resultsMaxScore);
 
-                        long endTime = System.currentTimeMillis();
-                        long elapsedTime = endTime - startTime;
-                        printDataset(tokens[0], elapsedTime, "MAX-SCORE");
                     }
                 }
 
@@ -108,18 +104,6 @@ public class ModelEvaluation
 
             pb.stepTo(200);
             pb.stop();
-
-            // evaluatePerformance -in ../../Trec-Eval/trec_eval-main -y 2019
-            if (args.length > 3 && args[1].equals("-in") && args[3].equals("-y"))
-            {
-                trecEvalPath = args[2];
-                year = args[4];
-            }
-            else
-            {
-                System.out.println(RED + "MODEL EVALUATION ERR > Invalid input. Try again." + ANSI_RESET);
-                System.exit(1);
-            }
 
             // Setup path to input files
             String queryResFile = ConfigReader.getTrecEvalDataPath() + "/" + year + "qrels-pass.txt";
@@ -257,34 +241,6 @@ public class ModelEvaluation
                 writer.newLine();
                 position++;
             }
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Print in a csv file, the query id, the time elapsed, tipe of algorithm
-     * @param token Query id
-     * @param elapsedTime Time elapsed to execute the algorithm
-     * @param algorithm Algorithm used
-     */
-    private static void printDataset(String token, long elapsedTime, String algorithm)
-    {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(datasetFile, true)))
-        {
-            // if the file is empty, write the header
-            if (new File(resultsFile).length() == 0)
-            {
-                String header = "query_id,elapsed_time,algorithm";
-                writer.write(header);
-                writer.newLine();
-            }
-
-            String line = token + "," + elapsedTime + "," + algorithm;
-            writer.write(line);
-            writer.newLine();
         }
         catch (IOException e)
         {
