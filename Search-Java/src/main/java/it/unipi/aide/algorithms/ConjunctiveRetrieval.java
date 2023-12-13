@@ -32,6 +32,8 @@ public class ConjunctiveRetrieval
      */
     public List<ScoredDocument> executeConjunctiveRankedRetrieval(List<String> queryTerms, Boolean bm25, int top_k)
     {
+        int breakPoint = 0;
+
         BM25 = bm25;
         TOP_K = top_k;
         QueryPreprocessing qp = new QueryPreprocessing();
@@ -54,8 +56,14 @@ public class ConjunctiveRetrieval
         // While there is at least one Posting List with elements
         int i = 1;
 
+        // war: (1, 1) (3, 1) (6, 1) (7, 1)
+        // bomb: (1, 1) (2, 1) (3, 1) (5, 1) (6, 1) (7, 1) (8, 1)
+
+        // Risultato: 1, 3, 6, 7
+
         while(currentPosting != null)
         {
+            breakPoint++;
             int current = currentPosting.getDocId();
             //current = postingLists.get(0).getCurrentPosting().getDocId();
             ScoredDocument documentToAdd = null;
@@ -63,17 +71,20 @@ public class ConjunctiveRetrieval
             // For each Posting List
             while(i < postingLists.size())
             {
+                breakPoint++;
                 PostingListSkippable pl = postingLists.get(i);
 
                 // Check if the current Posting List is not empty
                 if (pl.getCurrentPosting() != null)
                 {
+                    breakPoint++;
                     // Take the next element greater or equal than the current one (NextGEQ)
                     pl.nextGEQ(current);
 
                     // If the current Posting List has elements and the current Posting is greater than the current one
                     if (pl.getCurrentPosting().getDocId() > current)
                     {
+                        breakPoint++;
                         // Update the current Posting of the first Posting List (The shortest one)
                         postingLists.get(0).nextGEQ(pl.getCurrentPosting().getDocId());
 
@@ -81,21 +92,26 @@ public class ConjunctiveRetrieval
                         // we need to update the current posting
                         if (postingLists.get(0).getCurrentPosting().getDocId() > pl.getCurrentPosting().getDocId())
                         {
+                            breakPoint++;
                             currentPosting = postingLists.get(0).getCurrentPosting();
                             current = postingLists.get(0).getCurrentPosting().getDocId();
                             i = 1;
+                            breakPoint++;
                         }
 
                         // else we need to update the current posting of the current posting list
                         else
                         {
+                            breakPoint++;
                             currentPosting = pl.getCurrentPosting();
                             current = currentPosting.getDocId();
                             i = 0;
+                            breakPoint++;
                         }
                         break;
                     }
                     i += 1;
+                    breakPoint++;
                 }
             }
 
@@ -103,6 +119,7 @@ public class ConjunctiveRetrieval
             // using the score function
             if(i == postingLists.size())
             {
+                breakPoint++;
                 documentToAdd = new ScoredDocument(current, 0);
 
                 // Compute the score of the document
@@ -136,6 +153,7 @@ public class ConjunctiveRetrieval
 
                 // Reset the index of the Posting Lists
                 i = 1;
+                breakPoint++;
             }
         }
 
@@ -148,6 +166,10 @@ public class ConjunctiveRetrieval
         return result;
     }
 
+    /**
+     * Order the posting lists by the number of posting, in descending order
+     * @param postingLists
+     */
     private void orderPostingLists(List<PostingListSkippable> postingLists)
     {
         Comparator<PostingListSkippable> comparator = Comparator.comparingInt(postingList -> postingList.getPostingListsBlockSize());
