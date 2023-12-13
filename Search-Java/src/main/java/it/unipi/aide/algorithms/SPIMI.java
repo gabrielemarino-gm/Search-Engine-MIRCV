@@ -76,6 +76,7 @@ public class SPIMI
         FileManager.cleanFolder(ConfigReader.getDebugDir());
 
         Corpus corpus = new Corpus(INPUT_PATH);
+
         if (!corpus.iterator().hasNext())
             return 0;
 

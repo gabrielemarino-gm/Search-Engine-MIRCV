@@ -34,11 +34,14 @@ public class Corpus implements Iterable<String>
         {
             try
             {
+                if(INPUT_PATH == null)
+                    throw new FileNotFoundException();
+
                 if(INPUT_PATH.contains(".tsv"))
                 {
                     br = new BufferedReader(new FileReader(INPUT_PATH));
                 }
-                else
+                else if (INPUT_PATH.contains(".tar.gz"))
                 {
                     TarArchiveInputStream tarInput = new TarArchiveInputStream(
                             new GzipCompressorInputStream(
