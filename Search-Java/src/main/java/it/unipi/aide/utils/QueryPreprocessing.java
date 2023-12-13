@@ -11,9 +11,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class QueryPreprocessing
 {
@@ -34,6 +32,8 @@ public class QueryPreprocessing
     public List<PostingListSkippable> retrievePostingList(List<String> queryTerms, boolean conjunctiveMode)
     {
         List<PostingListSkippable> postingLists = new ArrayList<>();
+
+        Collections.sort(queryTerms);
 
         for(String t: queryTerms)
         {

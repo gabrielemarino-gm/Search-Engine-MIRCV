@@ -41,9 +41,6 @@ public class Cache
 
         @Override
         protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-            boolean a = size() > MAX_SIZE_BINARY_CACHE;
-            if(a)
-                System.out.println(eldest);
             return size() > MAX_SIZE_BINARY_CACHE;
         }
     }
