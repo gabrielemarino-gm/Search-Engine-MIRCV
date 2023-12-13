@@ -157,7 +157,7 @@ public class PostingListSkippable  implements Iterator<Posting>
     public boolean hasNext()
     {
         // Last block
-        if (currentBlockIndexer == term.getNumBlocks() - 1)
+        if (currentBlockIndexer == term.getNumBlocks())
         {
             return !postingsOfTheCurrentBlock.isEmpty();
         }
