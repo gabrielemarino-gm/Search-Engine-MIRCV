@@ -1,5 +1,6 @@
 package it.unipi.aide;
 
+import it.unipi.aide.algorithms.ConjunctiveRetrieval;
 import it.unipi.aide.algorithms.MaxScore;
 import it.unipi.aide.algorithms.DAAT;
 import it.unipi.aide.model.ScoredDocument;
@@ -17,14 +18,17 @@ import static it.unipi.aide.utils.ColorText.*;
 public class ModelEvaluation
 {
     static String ALGORITHM = "DAAT";
+    static boolean CONJUNCTIVE = false;
     static int TOP_K = 10;
     static boolean BM25 = false;
     static boolean conjunctiveMode = false;
     static Preprocesser preprocesser = new Preprocesser(true);
     static MaxScore maxScore = new MaxScore();
     static DAAT daat = new DAAT();
-    static String queryFile = ConfigReader.getTrecEvalPath() + "/msmarco-test2020-queries.tsv";
-    static final String resultsFile = ConfigReader.getTrecEvalPath() + "/resultsTrecEval.txt";
+    static ConjunctiveRetrieval conjunctiveRetrieval = new ConjunctiveRetrieval();
+    static String queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test2020-queries.tsv";
+    static final String resultsFile = ConfigReader.getTrecEvalDataPath() + "/resultsTrecEval.txt";
+    static final String datasetFile = ConfigReader.getTrecEvalDataPath() + "/resultsDataset.csv";
     static Scanner scanner = new Scanner(System.in);
     static String trecEvalPath = "../../Trec-Eval/trec_eval-main";
     static String year = "2020";
@@ -40,6 +44,8 @@ public class ModelEvaluation
         // Remove the file if already exists, then create it
         FileManager.removeFile(resultsFile);
         FileManager.createFile(resultsFile);
+        FileManager.removeFile(datasetFile);
+        FileManager.createFile(datasetFile);
 
         try (BufferedReader reader = new BufferedReader(new FileReader(queryFile)))
         {
@@ -56,21 +62,48 @@ public class ModelEvaluation
                 //  execute the algorithm
                 pb.step();
                 List<String> queryTerms = preprocesser.process(tokens[1]);
-                if (ALGORITHM.equals("DAAT"))
-                {
-                    List<ScoredDocument> resultsDAAT = daat.executeDAAT(queryTerms, BM25, TOP_K);
-                    // write results to file
-                    if (!resultsDAAT.isEmpty())
-                        writeResults(tokens[0], resultsDAAT);
-                }
-                else if (ALGORITHM.equals("MAX-SCORE"))
-                {
-                    List<ScoredDocument> resultsMaxScore = maxScore.executeMaxScore(queryTerms, BM25, TOP_K);
 
+                if (CONJUNCTIVE)
+                {
+                    long startTime = System.currentTimeMillis();
+                    List<ScoredDocument> resultsCONJ = conjunctiveRetrieval.executeConjunctiveRankedRetrieval(queryTerms, BM25, TOP_K);
                     // write results to file
-                    if (!resultsMaxScore.isEmpty())
-                        writeResults(tokens[0], resultsMaxScore);
+                    if (!resultsCONJ.isEmpty())
+                        writeResults(tokens[0], resultsCONJ);
+
+                    long endTime = System.currentTimeMillis();
+                    long elapsedTime = endTime - startTime;
+                    printDataset(tokens[0], elapsedTime, "CONJUNCTIVE");
                 }
+                else
+                {
+                    if (ALGORITHM.equals("DAAT"))
+                    {
+                        long startTime = System.currentTimeMillis();
+                        List<ScoredDocument> resultsDAAT = daat.executeDAAT(queryTerms, BM25, TOP_K);
+                        // write results to file
+                        if (!resultsDAAT.isEmpty())
+                            writeResults(tokens[0], resultsDAAT);
+
+                        long endTime = System.currentTimeMillis();
+                        long elapsedTime = endTime - startTime;
+                        printDataset(tokens[0], elapsedTime, "DAAT");
+                    }
+                    else if (ALGORITHM.equals("MAX-SCORE"))
+                    {
+                        long startTime = System.currentTimeMillis();
+                        List<ScoredDocument> resultsMaxScore = maxScore.executeMaxScore(queryTerms, BM25, TOP_K);
+
+                        // write results to file
+                        if (!resultsMaxScore.isEmpty())
+                            writeResults(tokens[0], resultsMaxScore);
+
+                        long endTime = System.currentTimeMillis();
+                        long elapsedTime = endTime - startTime;
+                        printDataset(tokens[0], elapsedTime, "MAX-SCORE");
+                    }
+                }
+
             }
 
             pb.stepTo(200);
@@ -89,9 +122,11 @@ public class ModelEvaluation
             }
 
             // Setup path to input files
-            queryFile = ConfigReader.getTrecEvalPath() + "/msmarco-test" + year + "-queries.tsv";
-
-            Process out = Runtime.getRuntime().exec(trecEvalPath + "/trec_eval -m all_trec " + queryFile + " " + resultsFile);
+            String queryResFile = ConfigReader.getTrecEvalDataPath() + "/" + year + "qrels-pass.txt";
+            Process out = Runtime.getRuntime().exec(trecEvalPath
+                                                            + "/trec_eval -m all_trec "
+                                                            + queryResFile + " "
+                                                            + resultsFile);
             BufferedReader stdout = new BufferedReader(new InputStreamReader(out.getInputStream()));
             try
             {
@@ -117,9 +152,11 @@ public class ModelEvaluation
     private static void setupEvaluation() 
     {
         System.out.println(BLUE + "Model Evaluation > " + ANSI_RESET + "Setting up the system...");
-        System.out.println(BLUE + "Model Evaluation > " + ANSI_RESET + "Choose the algorithm to use for the query, type 1 for DAAT, 2 for MaxScore");
+
+        // Conjunction Mode or Disjunction Mode
+        System.out.println(BLUE + "Model Evaluation > " + ANSI_RESET + "Choose the mode to use for the query, type 1 for Disjunction, 2 for Conjunctive");
         System.out.print(BLUE + "Model Evaluation > " + ANSI_RESET);
-        
+
         String input = scanner.nextLine();
         while(!(input.equals("1") || input.equals("2")))
         {
@@ -128,11 +165,33 @@ public class ModelEvaluation
             System.out.print(BLUE + "Model Evaluation > " + ANSI_RESET);
             input = scanner.nextLine();
         }
-        
-        if(input.equals("1"))
-            ALGORITHM = "DAAT";
+
+        if (input.equals("2"))
+            CONJUNCTIVE = true;
         else
-            ALGORITHM = "MAX-SCORE";
+            CONJUNCTIVE = false;
+
+        if (!CONJUNCTIVE)
+        {
+            // Set up Algorithm
+            System.out.println(BLUE + "Model Evaluation > " + ANSI_RESET + "Choose the algorithm to use for the query, type 1 for DAAT, 2 for MaxScore");
+            System.out.print(BLUE + "Model Evaluation > " + ANSI_RESET);
+
+            input = scanner.nextLine();
+            while(!(input.equals("1") || input.equals("2")))
+            {
+                System.out.println(RED + "Model Evaluation ERR > Invalid input. Try again." + ANSI_RESET);
+                System.out.println();
+                System.out.print(BLUE + "Model Evaluation > " + ANSI_RESET);
+                input = scanner.nextLine();
+            }
+
+            if(input.equals("1"))
+                ALGORITHM = "DAAT";
+            else
+                ALGORITHM = "MAX-SCORE";
+        }
+
 
         System.out.println(BLUE + "Model Evaluation > " + ANSI_RESET + "What kind of score function do you want to use? Type 1 for TF-IDF, 2 for BM25 ");
         System.out.print(BLUE + "Model Evaluation > " + ANSI_RESET);
@@ -148,20 +207,21 @@ public class ModelEvaluation
 
         BM25 = !input.equals("1");
 
-        
         System.out.println(BLUE + "Model Evaluation > " + ANSI_RESET + "Choose the number of documents to retrieve for each query");
         System.out.print(BLUE + "Model Evaluation > " + ANSI_RESET);
         
         input = scanner.nextLine();
 
-        try
+        // Check if the input is a number
+        while (!input.matches("[0-9]+"))
         {
-            TOP_K = Integer.parseInt(input);
+            System.out.println(RED + "Model Evaluation ERR > Invalid input. Try again." + ANSI_RESET);
+            System.out.println();
+            System.out.print(BLUE + "Model Evaluation > " + ANSI_RESET);
+            input = scanner.nextLine();
         }
-        catch (NumberFormatException e)
-        {
-            System.out.println(RED + "MODEL EVALUATION ERR > Invalid input. Try again." + ANSI_RESET);
-        }
+
+        TOP_K = Integer.parseInt(input);
     }
 
 
@@ -204,4 +264,31 @@ public class ModelEvaluation
         }
     }
 
+    /**
+     * Print in a csv file, the query id, the time elapsed, tipe of algorithm
+     * @param token Query id
+     * @param elapsedTime Time elapsed to execute the algorithm
+     * @param algorithm Algorithm used
+     */
+    private static void printDataset(String token, long elapsedTime, String algorithm)
+    {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(datasetFile, true)))
+        {
+            // if the file is empty, write the header
+            if (new File(resultsFile).length() == 0)
+            {
+                String header = "query_id,elapsed_time,algorithm";
+                writer.write(header);
+                writer.newLine();
+            }
+
+            String line = token + "," + elapsedTime + "," + algorithm;
+            writer.write(line);
+            writer.newLine();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
 }
