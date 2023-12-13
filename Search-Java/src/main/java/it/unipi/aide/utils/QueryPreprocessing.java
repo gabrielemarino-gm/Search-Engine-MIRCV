@@ -85,16 +85,16 @@ public class QueryPreprocessing
                 // Check if the term is in the cache
                 String middleTermString;
                 TermInfo middleTerm = null;
-                if(cache.containsTermInfo(WIN_MIDDLE_POINT))
+                if(cache.containsTermPosition(WIN_MIDDLE_POINT))
                 {
-                    middleTermString = cache.getTermInfo(WIN_MIDDLE_POINT);
+                    middleTermString = cache.getTermPosition(WIN_MIDDLE_POINT);
                 }
                 // If not, get the term from the disk
                 else
                 {
                     middleTerm = getTermFromDisk(channel, WIN_MIDDLE_POINT);
                     middleTermString = middleTerm.getTerm();
-                    cache.putTermIntoTermInfoCache(WIN_MIDDLE_POINT, middleTermString);
+                    cache.putTermPosition(WIN_MIDDLE_POINT, middleTermString);
                 }
 
                 // Compare the term with the middle term
