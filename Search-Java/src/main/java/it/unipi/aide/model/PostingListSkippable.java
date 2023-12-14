@@ -136,6 +136,7 @@ public class PostingListSkippable  implements Iterator<Posting>
     public PostingListSkippable reset(){
         currentBlockIndexer = -1;
         postingsOfTheCurrentBlock.clear();
+        currentPosting = null;
         openChannels();
         return this;
     }
@@ -157,7 +158,7 @@ public class PostingListSkippable  implements Iterator<Posting>
     public boolean hasNext()
     {
         // Last block
-        if (currentBlockIndexer == term.getNumBlocks())
+        if (currentBlockIndexer == term.getNumBlocks() - 1)
         {
             return !postingsOfTheCurrentBlock.isEmpty();
         }
@@ -250,7 +251,7 @@ public class PostingListSkippable  implements Iterator<Posting>
     {
         String toReturn = "PostingListSkippable{\n" +
                 term.toString() + "\n" +
-                blockDescriptors +
+//                blockDescriptors +
                 ", blockIndexer=" + currentBlockIndexer +
                 "\n}";
 

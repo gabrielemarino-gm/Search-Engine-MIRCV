@@ -1,6 +1,7 @@
 package it.unipi.aide.algorithms;
 
 import it.unipi.aide.model.*;
+import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.ScoreFunction;
 import it.unipi.aide.utils.QueryPreprocessing;
 
@@ -18,8 +19,7 @@ public class ConjunctiveRetrieval
 
     public ConjunctiveRetrieval()
     {
-        COMPRESSION = false;
-        DOCUMENTINDEX = new DocumentIndex(COMPRESSION);
+        DOCUMENTINDEX = new DocumentIndex(true);
     }
 
     /**
@@ -51,13 +51,7 @@ public class ConjunctiveRetrieval
         Posting currentPosting = postingLists.get(0).getCurrentPosting();
 
         // While there is at least one Posting List with elements
-        int i = 1;
-
-        // war: (1, 1) (3, 1) (6, 1) (7, 1)
-        // bomb: (1, 1) (2, 1) (3, 1) (5, 1) (6, 1) (7, 1) (8, 1)
-
-        // Risultato: 1, 3, 6, 7
-
+        int indexPL = 1;
         while(currentPosting != null)
         {
             int current = currentPosting.getDocId();
@@ -65,11 +59,11 @@ public class ConjunctiveRetrieval
             ScoredDocument documentToAdd = null;
 
             // For each Posting List
-            while(i < postingLists.size())
+            while(indexPL < postingLists.size())
             {
                 currentPosting = postingLists.get(0).getCurrentPosting();
 
-                PostingListSkippable pl = postingLists.get(i);
+                PostingListSkippable pl = postingLists.get(indexPL);
 
                 // Check if the current Posting List is not empty
                 if (pl.getCurrentPosting() != null)
@@ -89,7 +83,7 @@ public class ConjunctiveRetrieval
                         {
                             currentPosting = postingLists.get(0).getCurrentPosting();
                             current = postingLists.get(0).getCurrentPosting().getDocId();
-                            i = 1;
+                            indexPL = 1;
                         }
 
                         // else we need to update the current posting of the current posting list
@@ -97,18 +91,18 @@ public class ConjunctiveRetrieval
                         {
                             currentPosting = pl.getCurrentPosting();
                             current = currentPosting.getDocId();
-                            i = 0;
+                            indexPL = 0;
                         }
                         break;
                     }
-                    i += 1;
+                    indexPL += 1;
                     
                 }
             }
 
             // We arrived at the end of the posting lists, we can add the document to the top-k list
             // using the score function
-            if(i == postingLists.size())
+            if(indexPL == postingLists.size())
             {
                 documentToAdd = new ScoredDocument(current, 0);
 
@@ -142,7 +136,7 @@ public class ConjunctiveRetrieval
                 currentPosting = postingLists.get(0).getCurrentPosting();
 
                 // Reset the index of the Posting Lists
-                i = 1;
+                indexPL = 1;
             }
         }
 

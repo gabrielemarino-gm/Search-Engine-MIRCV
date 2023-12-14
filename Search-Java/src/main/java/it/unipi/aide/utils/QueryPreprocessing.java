@@ -46,7 +46,7 @@ public class QueryPreprocessing
                     terms.put(t, termToRetrieve);
 
                     PostingListSkippable temp = new PostingListSkippable(termToRetrieve);
-//                    cache.putSkippable(t, temp);
+                    cache.putSkippable(t, temp);
 
                     postingLists.add(temp);
                 } else if (conjunctiveMode)
