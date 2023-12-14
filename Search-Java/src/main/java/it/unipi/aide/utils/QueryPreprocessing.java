@@ -43,7 +43,9 @@ public class QueryPreprocessing
 
                 if (termToRetrieve != null) {
                     terms.put(t, termToRetrieve);
-                    postingLists.add(new PostingListSkippable(termToRetrieve));
+                    PostingListSkippable temp = new PostingListSkippable(termToRetrieve);
+                    cache.putSkippable(t, temp);
+                    postingLists.add(temp);
                 } else if (conjunctiveMode == true)
                     return null;
             }
