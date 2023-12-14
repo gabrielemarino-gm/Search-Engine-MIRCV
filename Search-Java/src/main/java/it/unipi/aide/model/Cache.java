@@ -12,6 +12,7 @@ public class Cache
     private final LRUCache<Long, String> termPositions = new LRUCache<>();
     private static final int MAX_TERM_POSITION_CACHE_SIZE = 420;
 
+
     /* Cached termInfo to avoid binary search */ /* L2 */
 
 
