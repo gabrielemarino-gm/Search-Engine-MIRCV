@@ -9,15 +9,17 @@ public class Cache
     private static final Cache SearchEngineCache = new Cache();
 
     /* Cached terms for binary search: */ /* L3 */
-    private final LRUCache<Long, String> termPositions = new LRUCache<>();
     private static final int MAX_TERM_POSITION_CACHE_SIZE = 420;
+    private final LRUCache<Long, String> termPositions = new LRUCache<>(MAX_TERM_POSITION_CACHE_SIZE);
 
 
     /* Cached termInfo to avoid binary search */ /* L2 */
 
 
-    /* Cached postingListSkippable to avoid blocks retrieval */ /* L1 */
 
+    /* Cached postingListSkippable to avoid blocks retrieval */ /* L1 */
+    private static final int MAX_POSTING_LIST_CACHE_SIZE = 1400;
+    private final LRUCache<String, PostingListSkippable> postingLists = new LRUCache<>(MAX_POSTING_LIST_CACHE_SIZE);
 
     /* Cached compressed docids */ /* Test */
 
@@ -35,18 +37,23 @@ public class Cache
     public void putTermPosition(long termPosition, String termInfo) { termPositions.put(termPosition, termInfo); }
 
 
+    /* SkippableLists handling methods: */
+    public boolean containsSkippable(String term) { return postingLists.containsKey(term); }
+    public PostingListSkippable getSkippable(String term) { return postingLists.get(term); }
+    public void putSkippable(String term, PostingListSkippable postingList) { postingLists.put(term, postingList); }
 
     /* Class used to implement a LRUCache with removing operation defined when the cache is full. In that case,
     * the least recently used/accessed element will be removed.  */
     public static class LRUCache<K, V> extends LinkedHashMap<K, V>
     {
-        public LRUCache() {
-            super(MAX_TERM_POSITION_CACHE_SIZE, 0.75f, true);
+        int MAX_SIZE;
+
+        public LRUCache(int maxSize) {
+            super(maxSize, 0.75f, true);
+            MAX_SIZE = maxSize;
         }
 
         @Override
-        protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-            return size() > MAX_TERM_POSITION_CACHE_SIZE;
-        }
+        protected boolean removeEldestEntry(Map.Entry<K, V> eldest) { return size() > MAX_SIZE; }
     }
 }

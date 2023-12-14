@@ -122,6 +122,9 @@ public class Preprocesser
          *TODO: This may be enhanced by directly extract and put back
          * stemmed tokens in the same 'words' list
          */
+
+        words.replaceAll(word -> stemmer.stemWord(word));
+
         ArrayList<String> stemmedWords = new ArrayList<>();
         for (String word : words)
         {
