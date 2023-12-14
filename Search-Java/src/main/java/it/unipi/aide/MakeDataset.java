@@ -45,7 +45,7 @@ public class MakeDataset
 
                 long startTime = System.currentTimeMillis();
                 // DAAT
-                List<ScoredDocument> daatResults = daat.executeDAAT(queryTerms, false, 1000);
+                List<ScoredDocument> daatResults = daat.executeDAAT(queryTerms, false, 10);
 
                 long endTime = System.currentTimeMillis();
                 long elapsedTime = endTime - startTime;
@@ -53,7 +53,7 @@ public class MakeDataset
 
                 // MAXSCORE
                 startTime = System.currentTimeMillis();
-                List<ScoredDocument> maxScoreResults = maxScore.executeMaxScore(queryTerms, false, 1000);
+                List<ScoredDocument> maxScoreResults = maxScore.executeMaxScore(queryTerms, false, 10);
                 endTime = System.currentTimeMillis();
                 elapsedTime = endTime - startTime;
                 printDataset(queryId, endTime-startTime, queryTerms.size(), "MAXSCORE");

@@ -164,7 +164,7 @@ public class MaxScore
             }
 
             // Update the pivot
-            while (pivot < terms.size() - 1 && s[pivot] <= sigma)
+            while (pivot < terms.size() && s[pivot] <= sigma)
             {
                 pivot++;
             }
