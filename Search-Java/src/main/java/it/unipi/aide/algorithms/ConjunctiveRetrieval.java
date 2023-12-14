@@ -61,7 +61,7 @@ public class ConjunctiveRetrieval
 
         // Risultato: 1, 3, 6, 7
 
-        while(currentPosting != null)
+        while(postingLists.get(0).getCurrentPosting() != null)
         {
             breakPoint++;
             int current = currentPosting.getDocId();
@@ -71,6 +71,8 @@ public class ConjunctiveRetrieval
             // For each Posting List
             while(i < postingLists.size())
             {
+                currentPosting = postingLists.get(0).getCurrentPosting();
+
                 breakPoint++;
                 PostingListSkippable pl = postingLists.get(i);
 
@@ -172,7 +174,7 @@ public class ConjunctiveRetrieval
      */
     private void orderPostingLists(List<PostingListSkippable> postingLists)
     {
-        Comparator<PostingListSkippable> comparator = Comparator.comparingInt(postingList -> postingList.getPostingListsBlockSize());
+        Comparator<PostingListSkippable> comparator = Comparator.comparingInt(postingList -> postingList.getTermInfo().getNumPosting());
         Collections.sort(postingLists, comparator);
     }
 }
