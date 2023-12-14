@@ -276,7 +276,8 @@ public class PostingListSkippable  implements Iterator<Posting>
         return postingsOfTheCurrentBlock.size();
     }
 
-    private void openChannels(){
+    private void openChannels()
+    {
         try
         {
             docsChannel = (FileChannel) Files.newByteChannel(Paths.get(docsPath),
@@ -303,4 +304,8 @@ public class PostingListSkippable  implements Iterator<Posting>
         }
     }
 
+    public TermInfo getTermInfo()
+    {
+        return term;
+    }
 }

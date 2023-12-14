@@ -12,8 +12,7 @@ import me.tongfei.progressbar.ProgressBar;
 import java.io.*;
 import java.util.List;
 
-import static it.unipi.aide.utils.ColorText.ANSI_RESET;
-import static it.unipi.aide.utils.ColorText.BLUE;
+import static it.unipi.aide.utils.ColorText.*;
 
 public class MakeDataset
 {

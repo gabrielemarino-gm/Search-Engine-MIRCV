@@ -47,6 +47,8 @@ public class ModelEvaluation
             return;
         }
 
+        queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test" + year + "-queries.tsv";
+
         // Setup the system
         setupEvaluation();
 
