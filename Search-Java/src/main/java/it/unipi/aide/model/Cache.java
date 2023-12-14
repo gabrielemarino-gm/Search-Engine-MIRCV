@@ -20,7 +20,7 @@ public class Cache
 
     /* Cached postingListSkippable to avoid blocks retrieval */ /* L1 */
     private static final int MAX_POSTING_LIST_CACHE_SIZE = 1400;
-    private final LRUCache<String, PostingListSkippable> postingLists = new LRUCache<>(MAX_POSTING_LIST_CACHE_SIZE);
+    private final LRUCache<String, PostingListSkippable> skippables = new LRUCache<>(MAX_POSTING_LIST_CACHE_SIZE);
 
     /* Cached compressed docids */ /* Test */
 
@@ -39,9 +39,9 @@ public class Cache
 
 
     /* SkippableLists handling methods: */
-    public boolean containsSkippable(String term) { return postingLists.containsKey(term); }
-    public PostingListSkippable getSkippable(String term) { return postingLists.get(term).reset(); }
-    public void putSkippable(String term, PostingListSkippable postingList) { postingLists.put(term, postingList); }
+    public boolean containsSkippable(String term) { return skippables.containsKey(term); }
+    public PostingListSkippable getSkippable(String term) { return skippables.get(term).reset(); }
+    public void putSkippable(String term, PostingListSkippable postingList) { skippables.put(term, postingList); }
 
     /* Class used to implement a LRUCache with removing operation defined when the cache is full. In that case,
     * the least recently used/accessed element will be removed.  */

@@ -33,6 +33,7 @@ public class MakeDataset
         try (BufferedReader reader = new BufferedReader(new FileReader(queryFile)))
         {
             String line;
+            int index = 0;
             // Read the file line by line until the end
             while ((line = reader.readLine()) != null)
             {
@@ -49,14 +50,17 @@ public class MakeDataset
 
                 long endTime = System.currentTimeMillis();
                 long elapsedTime = endTime - startTime;
-                printDataset(queryId, endTime-startTime, queryTerms.size(), "DAAT");
+                printDataset(queryId, endTime-startTime, queryTerms.size(), index, "DAAT");
 
                 // MAXSCORE
+                index++;
                 startTime = System.currentTimeMillis();
                 List<ScoredDocument> maxScoreResults = maxScore.executeMaxScore(queryTerms, false, 10);
                 endTime = System.currentTimeMillis();
                 elapsedTime = endTime - startTime;
-                printDataset(queryId, endTime-startTime, queryTerms.size(), "MAXSCORE");
+                printDataset(queryId, endTime-startTime, queryTerms.size(), index, "MAXSCORE");
+
+                index++;
             }
 
             pb.stop();
@@ -74,19 +78,19 @@ public class MakeDataset
      * @param elapsedTime Time elapsed to execute the algorithm
      * @param algorithm Algorithm used
      */
-    private static void printDataset(String token, long elapsedTime, int nToken, String algorithm)
+    private static void printDataset(String token, long elapsedTime, int nToken, int index, String algorithm)
     {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(datasetFile, true)))
         {
             // if the file is empty, write the header
             if (new File(datasetFile).length() == 0)
             {
-                String header = "query_id,elapsed_time,n_token,algorithm";
+                String header = "query_id,elapsed_time,n_token,time_index,algorithm";
                 writer.write(header);
                 writer.newLine();
             }
 
-            String line = token + "," + elapsedTime + "," + nToken + "," + algorithm;
+            String line = token + "," + elapsedTime + "," + nToken + "," + index + "," + algorithm;
             writer.write(line);
             writer.newLine();
         }

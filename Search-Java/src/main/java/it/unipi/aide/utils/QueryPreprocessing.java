@@ -46,7 +46,7 @@ public class QueryPreprocessing
                     terms.put(t, termToRetrieve);
 
                     PostingListSkippable temp = new PostingListSkippable(termToRetrieve);
-                    cache.putSkippable(t, temp);
+//                    cache.putSkippable(t, temp);
 
                     postingLists.add(temp);
                 } else if (conjunctiveMode)
@@ -58,6 +58,7 @@ public class QueryPreprocessing
                 terms.put(t, temp.getTermInfo());
                 postingLists.add(temp);
             }
+
         }
 
         return postingLists;
@@ -71,7 +72,6 @@ public class QueryPreprocessing
     */
     public TermInfo binarySearch(String term)
     {
-        // TODO: Use cache to memorize only jumps at first 10 levels
         try(FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(ConfigReader.getVocabularyPath()),
                         StandardOpenOption.READ))
         {
@@ -79,7 +79,7 @@ public class QueryPreprocessing
             long WIN_LOWER_BOUND = 0;
             long WIN_UPPER_BOUND = CollectionInformation.getTotalTerms();
             long prev = -1;
-            int level = 0; // TODO: Depth level search
+            int level = 0;
 
             // Binary search on the vocabulary file
             while (true)
@@ -98,23 +98,6 @@ public class QueryPreprocessing
                 // Check if the term is in the cache
                 String middleTermString;
                 TermInfo middleTerm = null;
-                // TODO: If depth level is less than 10, use cache
-                // TODO: Otherwise always read from disk
-                /*
-                * TODO: Cache size
-                *  Memorizing 1 levels: size -> 1
-                *  Memorizing 2 levels: size -> 3
-                *  Memorizing 3 levels: size -> 7
-                *  Memorizing 4 levels: size -> 15
-                *  Memorizing 5 levels: size -> 31
-                *  Memorizing 6 levels: size -> 63
-                *  Memorizing 7 levels: size -> 127
-                *  Memorizing 8 levels: size -> 255
-                *  Memorizing 9 levels: size -> 511
-                *  Memorizing 10 levels: size -> 1023
-                *  Memorizing 11 levels: size -> 2047
-                *  Memorizing 12 levels: size -> 4095
-                */
 
                 if (level < 10)
                 {
