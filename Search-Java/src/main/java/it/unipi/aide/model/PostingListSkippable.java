@@ -153,7 +153,6 @@ public class PostingListSkippable  implements Iterator<Posting>
         return currentPosting;
     }
 
-    // TODO: Non funziona, ricorsione infinita!
     public boolean hasNext()
     {
         // Last block
