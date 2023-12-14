@@ -49,7 +49,7 @@ public class QueryPreprocessing
                     cache.putSkippable(t, temp);
 
                     postingLists.add(temp);
-                } else if (conjunctiveMode == true)
+                } else if (conjunctiveMode)
                     return null;
             }
             else
@@ -116,17 +116,27 @@ public class QueryPreprocessing
                 *  Memorizing 12 levels: size -> 4095
                 */
 
-                if(cache.containsTermPosition(WIN_MIDDLE_POINT))
+                if (level < 10)
                 {
-                    middleTermString = cache.getTermPosition(WIN_MIDDLE_POINT);
+                    if(cache.containsTermPosition(WIN_MIDDLE_POINT))
+                    {
+                        middleTermString = cache.getTermPosition(WIN_MIDDLE_POINT);
+                    }
+                    // If not, get the term from the disk
+                    else
+                    {
+                        middleTerm = getTermFromDisk(channel, WIN_MIDDLE_POINT);
+                        middleTermString = middleTerm.getTerm();
+                        cache.putTermPosition(WIN_MIDDLE_POINT, middleTermString);
+                    }
                 }
-                // If not, get the term from the disk
                 else
                 {
                     middleTerm = getTermFromDisk(channel, WIN_MIDDLE_POINT);
                     middleTermString = middleTerm.getTerm();
-                    cache.putTermPosition(WIN_MIDDLE_POINT, middleTermString);
                 }
+
+                level ++;
 
                 // Compare the term with the middle term
                 int comp = middleTermString.compareTo(term);

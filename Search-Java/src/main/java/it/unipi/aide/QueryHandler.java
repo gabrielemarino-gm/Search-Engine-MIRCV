@@ -40,7 +40,7 @@ public class QueryHandler
                 continue;
             }
 
-            System.out.printf("%sQuery Handler: Type query (%s, %s) >%s ", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
+            System.out.printf("%sQuery Handler: Type query (%s, %s) > %s ", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
             String input = scanner.nextLine();
 
             if (input.equalsIgnoreCase("q"))

@@ -125,6 +125,10 @@ public class Merging
                     offsetVocabulary[indexBlock] += TermInfo.SIZE_PRE_MERGING;
                 }
 
+                // Lists to accumulate bytes from different blocks
+                List<byte[]> docsAcc = new ArrayList<>();
+                List<byte[]> freqAcc = new ArrayList<>();
+
                 // Until we have data to analyze inside blocks...
                 while(true)
                 {
@@ -137,10 +141,9 @@ public class Merging
                     int finalTotalFreq = 0;
                     int totalTermPostings = 0;
 
-                    // ...create two lists to accumulate bytes from different blocks...
-                    // TODO -> Evaluate if it's better to create those lists outside the loop and clear each term
-                    List<byte[]> docsAcc = new ArrayList<>();
-                    List<byte[]> freqAcc = new ArrayList<>();
+                    // ...clear accumulator arrays...
+                    docsAcc.clear();
+                    freqAcc.clear();
 
                     // For each block...
                     for (int indexBlock = 0; indexBlock < BLOCKS_COUNT; indexBlock++)
@@ -216,6 +219,7 @@ public class Merging
                     // ... divide the accumulated bytes in sqrt(n) blocks ...
                     List<byte[]> docidBlocks = new ArrayList<>();
                     List<byte[]> freqBlocks = new ArrayList<>();
+
                     List<BlockDescriptor> blockDescriptors = new ArrayList<>();
 
                     // ... if totalTerms is less than 512, just write one block ...

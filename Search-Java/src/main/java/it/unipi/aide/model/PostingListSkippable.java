@@ -214,6 +214,9 @@ public class PostingListSkippable  implements Iterator<Posting>
      */
     public Posting nextGEQ(int docID)
     {
+        if(!hasNext())
+            return null;
+
         int prevBlockIndexer = currentBlockIndexer;
 
         // Find the block that may contain the docID

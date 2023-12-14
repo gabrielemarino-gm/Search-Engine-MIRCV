@@ -9,12 +9,13 @@ public class Cache
     private static final Cache SearchEngineCache = new Cache();
 
     /* Cached terms for binary search: */ /* L3 */
-    private static final int MAX_TERM_POSITION_CACHE_SIZE = 420;
+    private static final int MAX_TERM_POSITION_CACHE_SIZE = 1100;
     private final LRUCache<Long, String> termPositions = new LRUCache<>(MAX_TERM_POSITION_CACHE_SIZE);
 
 
     /* Cached termInfo to avoid binary search */ /* L2 */
-
+    private static final int MAX_TERM_INFO_CACHE_SIZE = 3000;
+    private final LRUCache<String, TermInfo> termInfos = new LRUCache<>(MAX_TERM_INFO_CACHE_SIZE);
 
 
     /* Cached postingListSkippable to avoid blocks retrieval */ /* L1 */
