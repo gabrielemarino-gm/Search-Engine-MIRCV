@@ -54,7 +54,9 @@ public class QueryPreprocessing
             }
             else
             {
-                postingLists.add(cache.getSkippable(t));
+                PostingListSkippable temp = cache.getSkippable(t);
+                terms.put(t, temp.getTermInfo());
+                postingLists.add(temp);
             }
         }
 

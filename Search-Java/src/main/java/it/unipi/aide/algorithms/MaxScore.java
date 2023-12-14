@@ -57,7 +57,7 @@ public class MaxScore
         // Initial priority queue, in increasing order of score
         // PriorityQueue<ScoredDocument> topKDocs =  new PriorityQueue<>(TOP_K, ScoredDocument.compareTo());
         List<ScoredDocument> topKDocs =  new ArrayList<>();
-        PriorityQueue<Integer> priorityQueue = new PriorityQueue<>(TOP_K, Comparator.comparingInt(o -> o));
+//        PriorityQueue<Integer> priorityQueue = new PriorityQueue<>(TOP_K, Comparator.comparingInt(o -> o));
 
         // TODO: Forse è meglio usare una PriorityQueue invece di ordinare ogni volta
         // Make sure that the list of PostingList is ordered by increasing upper bound
