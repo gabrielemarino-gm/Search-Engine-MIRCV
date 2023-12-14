@@ -91,7 +91,8 @@ public class ConjunctiveRetrieval
                         {
                             currentPosting = pl.getCurrentPosting();
                             current = currentPosting.getDocId();
-                            indexPL = 0;
+                            indexPL = 1;
+                            // TODO: <SOMETHING TO FIX HERE>
                         }
                         break;
                     }
