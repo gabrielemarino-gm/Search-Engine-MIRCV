@@ -39,7 +39,7 @@ public class Cache
 
     /* SkippableLists handling methods: */
     public boolean containsSkippable(String term) { return postingLists.containsKey(term); }
-    public PostingListSkippable getSkippable(String term) { return postingLists.get(term); }
+    public PostingListSkippable getSkippable(String term) { return postingLists.get(term).reset(); }
     public void putSkippable(String term, PostingListSkippable postingList) { postingLists.put(term, postingList); }
 
     /* Class used to implement a LRUCache with removing operation defined when the cache is full. In that case,

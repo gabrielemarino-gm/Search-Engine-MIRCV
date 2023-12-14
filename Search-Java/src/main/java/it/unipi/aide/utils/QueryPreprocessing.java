@@ -37,14 +37,17 @@ public class QueryPreprocessing
 
         for(String t: queryTerms)
         {
+
             if(! cache.containsSkippable(t)){
                 // Binary search on the vocabulary file for the term of the query
                 TermInfo termToRetrieve = binarySearch(t);
 
                 if (termToRetrieve != null) {
                     terms.put(t, termToRetrieve);
+
                     PostingListSkippable temp = new PostingListSkippable(termToRetrieve);
                     cache.putSkippable(t, temp);
+
                     postingLists.add(temp);
                 } else if (conjunctiveMode == true)
                     return null;

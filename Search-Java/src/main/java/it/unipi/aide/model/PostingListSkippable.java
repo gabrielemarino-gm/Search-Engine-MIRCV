@@ -133,10 +133,11 @@ public class PostingListSkippable  implements Iterator<Posting>
         }
     }
 
-    public void reset(){
+    public PostingListSkippable reset(){
         currentBlockIndexer = -1;
         postingsOfTheCurrentBlock.clear();
         openChannels();
+        return this;
     }
 
     /*
