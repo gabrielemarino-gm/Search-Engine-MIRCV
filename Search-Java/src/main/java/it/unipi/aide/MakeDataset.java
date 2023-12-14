@@ -12,8 +12,7 @@ import me.tongfei.progressbar.ProgressBar;
 import java.io.*;
 import java.util.List;
 
-import static it.unipi.aide.utils.ColorText.ANSI_RESET;
-import static it.unipi.aide.utils.ColorText.BLUE;
+import static it.unipi.aide.utils.ColorText.*;
 
 public class MakeDataset
 {
@@ -46,7 +45,7 @@ public class MakeDataset
 
                 long startTime = System.currentTimeMillis();
                 // DAAT
-                List<ScoredDocument> daatResults = daat.executeDAAT(queryTerms, false, 10);
+                List<ScoredDocument> daatResults = daat.executeDAAT(queryTerms, false, 1000);
 
                 long endTime = System.currentTimeMillis();
                 long elapsedTime = endTime - startTime;
@@ -54,7 +53,7 @@ public class MakeDataset
 
                 // MAXSCORE
                 startTime = System.currentTimeMillis();
-                List<ScoredDocument> maxScoreResults = maxScore.executeMaxScore(queryTerms, false, 10);
+                List<ScoredDocument> maxScoreResults = maxScore.executeMaxScore(queryTerms, false, 1000);
                 endTime = System.currentTimeMillis();
                 elapsedTime = endTime - startTime;
                 printDataset(queryId, endTime-startTime, queryTerms.size(), "MAXSCORE");
