@@ -3,6 +3,7 @@ package it.unipi;
 import it.unipi.aide.CreateIndex;
 import it.unipi.aide.ModelEvaluation;
 import it.unipi.aide.QueryHandler;
+import it.unipi.aide.utils.beautify.MemoryDisplay;
 
 import java.util.Scanner;
 
@@ -29,6 +30,7 @@ public class Driver
                              "\t"+YELLOW+"exit:"+ ANSI_RESET + "  command useful for exit from the application\n\n";
     public static void main(String[] args) throws Exception
     {
+        MemoryDisplay memoryDisplay = new MemoryDisplay();
 
         System.out.println("\n" +
                 BLUE + "███████ "+RED+"███████ "+ YELLOW + " █████  "+ BLUE +"██████  "+ GREEN +" ██████ "+ RED +"██   ██     "+ BLUE +"███████ "+ RED +"███    ██ "+ YELLOW +" ██████  "+ BLUE +"██ "+ GREEN +"███    ██ "+ BLUE +" ███████"+ ANSI_RESET+"\n" +
@@ -85,5 +87,6 @@ public class Driver
             }
 
         }
+        memoryDisplay.end();
     }
 }
