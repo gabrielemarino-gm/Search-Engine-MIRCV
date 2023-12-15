@@ -34,6 +34,20 @@ public class QueryTest
     TermInfo[] trainVocabs;
     int[] trainDocIDS, trainFrequencies;
 
+    float[] testDAATScores = new float[]
+    {
+            0.6989f,
+            0.6989f,
+            0.5229f,
+            0.5229f,
+            0.5229f,
+    };
+    float[] testMaxScores = new float[]
+    {
+            0.6989f,
+            0.6989f,
+    };
+
     @Rule
     TemporaryFolder folder = new TemporaryFolder();
 
@@ -65,17 +79,25 @@ public class QueryTest
     {
         DAAT daat = new DAAT();
         List<ScoredDocument> sd = daat.executeDAAT(Arrays.asList(new String[]{"brown", "kitti"}), false, 5);
-        for(ScoredDocument s : sd)
+//        for(ScoredDocument s : sd)
+//        {
+//            System.out.println(s);
+//        }
+        for(int i = 0; i < sd.size(); i++)
         {
-            System.out.println(s);
+            Assert.assertEquals(sd.get(i).getScore(), testDAATScores[i], 0.0001f);
         }
 
         MaxScore maxScore = new MaxScore();
         sd =  maxScore.executeMaxScore(
                 Arrays.asList(new String[]{"quick", "speedi"}), false, 5);
-        for(ScoredDocument s : sd)
+//        for(ScoredDocument s : sd)
+//        {
+//            System.out.println(s);
+//        }
+        for(int i = 0; i < sd.size(); i++)
         {
-            System.out.println(s);
+            Assert.assertEquals(sd.get(i).getScore(), testMaxScores[i], 0.0001f);
         }
     }
 
