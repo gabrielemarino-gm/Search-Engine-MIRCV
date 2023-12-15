@@ -76,7 +76,15 @@ public class SPIMI
         // Terms in all documents
         long globalTermCountSum = 0;
 
-        ProgressBar pb = new ProgressBar(BLUE + "SPIMI > " + ANSI_RESET, 8841823);
+        ProgressBar pb = new ProgressBar(BLUE + "SPIMI > " + ANSI_RESET, 0, 1000);
+        new Thread(() -> {
+            Corpus counter = new Corpus(INPUT_PATH);
+            for(String s : counter)
+            {
+                pb.maxHint(pb.getMax() + 1);
+            }
+        }).start();
+
         pb.start();
         // For each documents
         for(String doc: corpus)
@@ -146,10 +154,11 @@ public class SPIMI
 
             if (INCREMENTAL_DOCID %10_000 == 0)
             {
-                pb.stepBy(10000);
+//                pb.stepBy(10000);
                 // printMemInfo();
                 //System.out.println("SPIMI > Documents processed " + INCREMENTAL_DOCID);
             }
+            pb.stepBy(1);
         }
 
         // We need to write the last block
@@ -172,7 +181,7 @@ public class SPIMI
         CollectionInformation.setTotalDocuments(INCREMENTAL_DOCID);
         CollectionInformation.setAverageDocumentLength(globalTermCountSum / INCREMENTAL_DOCID);
 
-        pb.stepTo(8841823);
+        pb.stepTo(pb.getMax());
         pb.stop();
 
 

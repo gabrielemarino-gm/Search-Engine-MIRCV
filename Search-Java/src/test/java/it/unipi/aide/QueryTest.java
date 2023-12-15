@@ -46,6 +46,9 @@ public class QueryTest
     {
             0.6989f,
             0.6989f,
+            0.5228f,
+            0.5228f,
+            0.5228f,
     };
 
     @Rule

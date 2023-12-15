@@ -56,7 +56,7 @@ public class Merging
      */
     public void mergeBlocks()
     {
-        ProgressBar pb = new ProgressBar(BLUE + "MERGING > " + ANSI_RESET, 912028);
+        ProgressBar pb = new ProgressBar(BLUE + "MERGING > " + ANSI_RESET, 0, 1000);
         pb.start();
         long nTerms = 0;
 
@@ -120,6 +120,10 @@ public class Merging
                     // the size of the vocabulary correspondent to that block.
                     dimVocabularyFile[indexBlock] = vocabulariesFileChannel[indexBlock].size();
 
+                    /* ProgressBar */
+                    pb.maxHint(pb.getMax() + dimVocabularyFile[indexBlock] / TermInfo.SIZE_PRE_MERGING);
+                    /* ----------- */
+
                     // Get first term for each block's vocabulary
                     vocs[indexBlock] = getTermFromVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
                     offsetVocabulary[indexBlock] += TermInfo.SIZE_PRE_MERGING;
@@ -180,12 +184,21 @@ public class Merging
                             {
                                 // System.err.println("MERGING > Block #" + indexBlock + " exhausted.");
                                 vocs[indexBlock] = null;
+
+                                docIdFileChannel[indexBlock].close();
+                                frequenciesFileChannel[indexBlock].close();
+                                vocabulariesFileChannel[indexBlock].close();
+
                                 continue;
                             }
 
                             // Vocabulary shift: we are going to read the next term
                             vocs[indexBlock] = getTermFromVoc(vocabulariesFileChannel[indexBlock], offsetVocabulary[indexBlock]);
                             offsetVocabulary[indexBlock] += TermInfo.SIZE_PRE_MERGING;
+
+                            /* ProgressBar */
+                            pb.stepBy(1);
+                            /* ----------- */
                         }
                     }
 
@@ -338,9 +351,10 @@ public class Merging
 
                     nTerms++;
 
-                    if(nTerms % 100 == 0) {
-                        pb.stepBy(100);
-                    }
+//                    if(nTerms % 100 == 0) {
+//                        pb.stepBy(100);
+//                    }
+//                    pb.stepTo(nTerms);
 
                     /*
                         STOPPING CONDITION
@@ -363,7 +377,7 @@ public class Merging
 
                 }
 
-                pb.stepTo(912028);
+                pb.stepTo(pb.getMax());
                 pb.stop();
 
                 // Delete temporary blocks
