@@ -224,7 +224,7 @@ public class Merging
 
                     // ... if totalTerms is less than 512, just write one block ...
                     if (totalTermPostings <= ConfigReader.getCompressionBlockSize()
-                        &&
+                        ||
                         !ConfigReader.blockDivisionEnabled())
                     {
                         BlockDescriptor blockDescriptor = new BlockDescriptor();
