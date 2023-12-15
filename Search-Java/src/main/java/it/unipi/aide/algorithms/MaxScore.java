@@ -154,16 +154,8 @@ public class MaxScore
                 topKDocs.remove(TOP_K); // The minimum score is at the top of the queue, because it is ordered in increasing order
                 sigma = topKDocs.get(TOP_K - 1).getScore();
             }
-            // else just update the current sigma with the minimum score in the queue
-            else
-            {
-                sigma = topKDocs.get(topKDocs.size() - 1).getScore();
-            }
 
             // Update the pivot
-            // TODO -> Controllare: Query con un termine tipo "daat", non funziona
-            //  Il primo termine fa in modo che s[pivot] sia <= di sigma, viene incrementato pivot
-            //  e tutti gli altri documenti vengono saltati (ma c'e ancora spazio nei top-k)
             while (pivot < terms.size() && s[pivot] <= sigma)
             {
                 pivot++;

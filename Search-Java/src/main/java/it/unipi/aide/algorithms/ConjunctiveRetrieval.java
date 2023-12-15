@@ -50,19 +50,22 @@ public class ConjunctiveRetrieval
         orderPostingLists(postingLists);
 
         // Get the first Posting of the first Posting List (The shortest one)
-        PostingListSkippable pivot = postingLists.get(0);
+        PostingListSkippable firstPL = postingLists.get(0);
 
-        boolean leave = false;
+        boolean restartFormFirst = false;
 
-        // While pivot list has elements
-        while(pivot.getCurrentPosting() != null)
+        // While firstPL list has elements
+        while(firstPL.getCurrentPosting() != null)
         {
-            leave = false;
+            restartFormFirst = false;
             // Get first docID
-            int currentDocID = pivot.getCurrentPosting().getDocId();
+            int currentDocID = firstPL.getCurrentPosting().getDocId();
 
+            // Create a new ScoredDocument with the current docID and score 0
             ScoredDocument documentToAdd = new ScoredDocument(currentDocID, 0);
-            giveScore(documentToAdd, pivot, currentDocID);
+
+            // Compute the score of the document
+            giveScore(documentToAdd, firstPL, currentDocID);
 
             // For each other posting list
             for(int i = 1; i < postingLists.size(); i++)
@@ -75,32 +78,68 @@ public class ConjunctiveRetrieval
                     // Take the next element greater or equal
                     pl.nextGEQ(currentDocID);
 
-                    // If this cause the posting list to be empty, end
-                    if(pl.getCurrentPosting() == null)
-                        return new ArrayList<>();
+                    // If this cause the posting list to be empty, return the top-k documents found
+                    if (pl.getCurrentPosting() == null)
+                    {
+                        // Return the top-k documents
+                        ArrayList<ScoredDocument> result = new ArrayList<>();
+                        for(int j = 0; j < TOP_K && !scoredDocuments.isEmpty(); j++)
+                        {
+                            result.add(scoredDocuments.poll());
+                        }
+                        return result;
+                    }
 
-                    // If nextGEQ is greater than the current docID, update the pivot
-                    if (pl.getCurrentPosting().getDocId() > currentDocID) {
-                        pivot.nextGEQ(pl.getCurrentPosting().getDocId());
-                        leave = true;
+                    // If pl.nextGEQ is greater than the current docID, update the firstPL
+                    if (pl.getCurrentPosting().getDocId() > currentDocID)
+                    {
+                        // Update the current Posting of the first Posting List (The shortest one)
+                        firstPL.nextGEQ(pl.getCurrentPosting().getDocId());
+
+                        // restartFormFirst means that the current document is not in the intersection
+                        restartFormFirst = true;
                         break;
                     }
 
-                    // If we are here, the posting list has the same docID of the pivot
-                    giveScore(documentToAdd, pl, currentDocID);
+                    // else we are found the docID target
+                    else
+                    {
+                        if (pl.getCurrentPosting().getDocId() < currentDocID)
+                        {
+                            // return the top-k documents
+                            ArrayList<ScoredDocument> result = new ArrayList<>();
+                            for(int j = 0; j < TOP_K && !scoredDocuments.isEmpty(); j++)
+                            {
+                                result.add(scoredDocuments.poll());
+                            }
+                            return result;
+                        }
+
+                        // If we are here, the posting list has the same docID of the firstPL
+                        giveScore(documentToAdd, pl, currentDocID);
+                    }
                 }
+
+                // we are here if the current posting list is empty
                 else
                 {
-                    // If the posting list is empty, end
-                    return new ArrayList<>();
+                    // If the posting list is empty, end return the top-k documents
+                    ArrayList<ScoredDocument> result = new ArrayList<>();
+                    for(int j = 0; j < TOP_K && !scoredDocuments.isEmpty(); j++)
+                    {
+                        result.add(scoredDocuments.poll());
+                    }
+                    return result;
                 }
             }
-            // If the document survives, add it to the top-k list
-            if(leave)
+
+            // If the document is not in the intersection, restart from the first posting list
+            if (restartFormFirst)
                 continue;
 
+            // If the document survives, add it to the top-k list
             scoredDocuments.add(documentToAdd);
-            pivot.next();
+            firstPL.next();
         }
 
         // Return the top-k documents
@@ -194,7 +233,6 @@ public class ConjunctiveRetrieval
 //                            currentPosting = pl.getCurrentPosting();
 //                            current = currentPosting.getDocId();
 //                            indexPL = 1;
-//                            // TODO: <SOMETHING TO FIX HERE>
 //                        }
 //                        break;
 //                    }

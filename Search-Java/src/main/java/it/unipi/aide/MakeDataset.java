@@ -61,6 +61,14 @@ public class MakeDataset
                 printDataset(queryId, endTime-startTime, queryTerms.size(), index, "MAXSCORE");
 
                 index++;
+
+                // CONJUNCTIVE
+                startTime = System.currentTimeMillis();
+                List<ScoredDocument> conjunctiveResults = conjunctiveRetrieval.executeConjunctive(queryTerms, false, 10);
+                endTime = System.currentTimeMillis();
+                elapsedTime = endTime - startTime;
+                printDataset(queryId, endTime-startTime, queryTerms.size(), index, "CONJUNCTIVE");
+                index++;
             }
 
             pb.stop();

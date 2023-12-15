@@ -187,6 +187,7 @@ public class PostingListSkippable  implements Iterator<Posting>
             currentPosting = null;
             closeChannels();
         }
+
         return currentPosting;
     }
     
@@ -209,7 +210,7 @@ public class PostingListSkippable  implements Iterator<Posting>
         int prevBlockIndexer = currentBlockIndexer;
 
         // Find the block that may contain the docID
-        while (currentBlockIndexer < term.getNumBlocks() &&
+        while (currentBlockIndexer < (term.getNumBlocks()  - 1) &&
                 docID > blockDescriptors.get(currentBlockIndexer).getMaxDocid())
         {
            currentBlockIndexer++;
