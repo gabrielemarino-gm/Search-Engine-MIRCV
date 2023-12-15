@@ -49,6 +49,7 @@ public class QueryPreprocessing
                     cache.putSkippable(t, temp);
 
                     postingLists.add(temp);
+
                 } else if (conjunctiveMode)
                     return null;
             }

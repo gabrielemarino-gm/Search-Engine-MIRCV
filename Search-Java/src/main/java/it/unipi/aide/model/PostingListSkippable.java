@@ -157,28 +157,16 @@ public class PostingListSkippable  implements Iterator<Posting>
 
     public boolean hasNext()
     {
-        // Last block
-        if (currentBlockIndexer == term.getNumBlocks() - 1)
+        // If its empty and can still retrieve from the disk
+        if (currentBlockIndexer < term.getNumBlocks() &&
+                postingsOfTheCurrentBlock.isEmpty())
         {
-            return !postingsOfTheCurrentBlock.isEmpty();
-        }
-
-        // Not last block
-        else
-        {
-            // If no more posting in current block
-            if (postingsOfTheCurrentBlock.isEmpty())
-            {
                 // Try retrieve from next block
                 currentBlockIndexer++;
                 getPostingsFromBlock();
-                return hasNext();
-            }
-            else
-            {
-                return true;
-            }
         }
+        // Always return status of the list
+        return !postingsOfTheCurrentBlock.isEmpty();
     }
 
     /**
@@ -216,19 +204,16 @@ public class PostingListSkippable  implements Iterator<Posting>
     public Posting nextGEQ(int docID)
     {
         if(!hasNext())
-            return null;
+            return currentPosting = null;
 
         int prevBlockIndexer = currentBlockIndexer;
 
         // Find the block that may contain the docID
-        while (currentBlockIndexer < term.getNumBlocks() && docID > blockDescriptors.get(currentBlockIndexer).getMaxDocid())
+        while (currentBlockIndexer < term.getNumBlocks() &&
+                docID > blockDescriptors.get(currentBlockIndexer).getMaxDocid())
         {
            currentBlockIndexer++;
         }
-
-        // No more blocks, docID doesn't exist in this posting list
-        if (currentBlockIndexer == term.getNumBlocks())
-            return null;
 
         // Get the postings from the block, if the blockIndexer has been increased
         if (currentBlockIndexer > prevBlockIndexer)
@@ -237,12 +222,15 @@ public class PostingListSkippable  implements Iterator<Posting>
             // currentPosting = next();
         }
 
-        // While current posting has docID less than the one i need for
+        // No more blocks, docID doesn't exist in this posting list
+        if (currentBlockIndexer == term.getNumBlocks())
+            return null;
+
+        // While current posting has docID less than the one need for
         while(hasNext() && currentPosting.getDocId() < docID)
         {
             currentPosting = next();
         }
-
         return currentPosting;
     }
 

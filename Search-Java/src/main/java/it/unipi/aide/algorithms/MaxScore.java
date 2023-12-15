@@ -55,11 +55,8 @@ public class MaxScore
         int pivot = 0;
 
         // Initial priority queue, in increasing order of score
-        // PriorityQueue<ScoredDocument> topKDocs =  new PriorityQueue<>(TOP_K, ScoredDocument.compareTo());
         List<ScoredDocument> topKDocs =  new ArrayList<>();
-//        PriorityQueue<Integer> priorityQueue = new PriorityQueue<>(TOP_K, Comparator.comparingInt(o -> o));
 
-        // TODO: Forse è meglio usare una PriorityQueue invece di ordinare ogni volta
         // Make sure that the list of PostingList is ordered by increasing upper bound
         if (BM25)
             Collections.sort(postingLists, PostingListSkippable.compareToBM25());
@@ -73,7 +70,7 @@ public class MaxScore
         // Compute the upper bound of each posting list
         for(int i = 0; i < postingLists.size() ; i++)
         {
-            sigma += postingLists.get(i).getTermUpperBoundTFIDF();
+            sigma += bm25 ? postingLists.get(i).getTermUpperBoundBM25() : postingLists.get(i).getTermUpperBoundTFIDF();
             s[i] = sigma;
         }
 
@@ -164,6 +161,9 @@ public class MaxScore
             }
 
             // Update the pivot
+            // TODO -> Controllare: Query con un termine tipo "daat", non funziona
+            //  Il primo termine fa in modo che s[pivot] sia <= di sigma, viene incrementato pivot
+            //  e tutti gli altri documenti vengono saltati (ma c'e ancora spazio nei top-k)
             while (pivot < terms.size() && s[pivot] <= sigma)
             {
                 pivot++;

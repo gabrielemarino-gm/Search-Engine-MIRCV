@@ -77,7 +77,7 @@ public class ModelEvaluation
 
                 if (CONJUNCTIVE)
                 {
-                    List<ScoredDocument> resultsCONJ = conjunctiveRetrieval.executeConjunctiveRankedRetrieval(queryTerms, BM25, TOP_K);
+                    List<ScoredDocument> resultsCONJ = conjunctiveRetrieval.executeConjunctive(queryTerms, BM25, TOP_K);
                     // write results to file
                     if (!resultsCONJ.isEmpty())
                         writeResults(tokens[0], resultsCONJ);

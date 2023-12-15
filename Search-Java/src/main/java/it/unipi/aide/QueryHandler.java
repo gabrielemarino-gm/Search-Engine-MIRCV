@@ -243,7 +243,7 @@ public class QueryHandler
 
         System.out.printf("%sQuery Handler: Results (%s, %s) >%s \n", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
         // Print the list of top-k scored documents, in reverse order
-        List<ScoredDocument> results = conjunctiveRetrieval.executeConjunctiveRankedRetrieval(tokens, BM25, TOP_K);
+        List<ScoredDocument> results = conjunctiveRetrieval.executeConjunctive(tokens, BM25, TOP_K);
 
         System.out.println("PID\t\t\t|\tScore");
 
