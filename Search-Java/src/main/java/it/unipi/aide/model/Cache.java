@@ -31,6 +31,16 @@ public class Cache
     /* Returns the cache instance. Used to make all classes refer to the same cache instance. */
     public static Cache getCacheInstance() { return SearchEngineCache; }
 
+    /**
+     * Clear the cache
+     */
+    public static void clearCache()
+    {
+        SearchEngineCache.termPositions.clear();
+        SearchEngineCache.termInfos.clear();
+        SearchEngineCache.skippables.clear();
+    }
+
 
     /* TermInfo handling methods: */
     public boolean containsTermPosition(long termPosition) { return termPositions.containsKey(termPosition); }

@@ -3,6 +3,7 @@ package it.unipi.aide;
 import it.unipi.aide.algorithms.ConjunctiveRetrieval;
 import it.unipi.aide.algorithms.DAAT;
 import it.unipi.aide.algorithms.MaxScore;
+import it.unipi.aide.model.Cache;
 import it.unipi.aide.model.ScoredDocument;
 import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
@@ -22,6 +23,9 @@ public class MakeDataset
     static MaxScore maxScore = new MaxScore();
     static DAAT daat = new DAAT();
     static ConjunctiveRetrieval conjunctiveRetrieval = new ConjunctiveRetrieval();
+
+    static int topK = 10;
+    static boolean bm25 = true;
     public static void main(String[] args) throws Exception
     {
         ProgressBar pb = new ProgressBar(BLUE + "Make Dataset >" + ANSI_RESET, 200);
@@ -45,29 +49,54 @@ public class MakeDataset
                 List<String> queryTerms = preprocesser.process(query);
 
                 long startTime = System.currentTimeMillis();
-                // DAAT
-                List<ScoredDocument> daatResults = daat.executeDAAT(queryTerms, false, 10);
-
+//  ( DAAT
+                daat.executeDAAT(queryTerms, bm25, topK);
                 long endTime = System.currentTimeMillis();
-                long elapsedTime = endTime - startTime;
                 printDataset(queryId, endTime-startTime, queryTerms.size(), index, "DAAT");
 
-                // MAXSCORE
+                // DAAT WITH CACHE, try to use DAAT with the same query terms in order to use the cache
                 index++;
                 startTime = System.currentTimeMillis();
-                List<ScoredDocument> maxScoreResults = maxScore.executeMaxScore(queryTerms, false, 10);
+                daat.executeDAAT(queryTerms, true, 10);
                 endTime = System.currentTimeMillis();
-                elapsedTime = endTime - startTime;
+                printDataset(queryId, endTime-startTime, queryTerms.size(), index, "DAAT WITH CACHE");
+//  )
+
+                Cache.clearCache();
+
+//  (MAXSCORE
+                index++;
+                startTime = System.currentTimeMillis();
+                maxScore.executeMaxScore(queryTerms, bm25, topK);
+                endTime = System.currentTimeMillis();
                 printDataset(queryId, endTime-startTime, queryTerms.size(), index, "MAXSCORE");
 
+                // MAXSCORE WITH CACHE, try to use MAXSCORE with the same query terms in order to use the cache
                 index++;
-
-                // CONJUNCTIVE
                 startTime = System.currentTimeMillis();
-                List<ScoredDocument> conjunctiveResults = conjunctiveRetrieval.executeConjunctive(queryTerms, false, 10);
+                maxScore.executeMaxScore(queryTerms, bm25, topK);
                 endTime = System.currentTimeMillis();
-                elapsedTime = endTime - startTime;
+                printDataset(queryId, endTime-startTime, queryTerms.size(), index, "MAXSCORE WITH CACHE");
+//  )
+
+                Cache.clearCache();
+
+//  ( CONJUNCTIVE
+                index++;
+                startTime = System.currentTimeMillis();
+                conjunctiveRetrieval.executeConjunctive(queryTerms, bm25, topK);
+                endTime = System.currentTimeMillis();
                 printDataset(queryId, endTime-startTime, queryTerms.size(), index, "CONJUNCTIVE");
+
+                // CONJUNCTIVE WITH CACHE, try to use CONJUNCTIVE with the same query terms in order to use the cache
+                index++;
+                startTime = System.currentTimeMillis();
+                conjunctiveRetrieval.executeConjunctive(queryTerms, bm25, topK);
+                endTime = System.currentTimeMillis();
+                printDataset(queryId, endTime-startTime, queryTerms.size(), index, "CONJUNCTIVE WITH CACHE");
+//  )
+
+                Cache.clearCache();
                 index++;
             }
 
