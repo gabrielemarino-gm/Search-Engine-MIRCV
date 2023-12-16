@@ -1,5 +1,7 @@
 package it.unipi.aide.utils.beautify;
 
+import it.unipi.aide.model.Cache;
+
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
@@ -41,15 +43,18 @@ public class MemoryDisplay extends Thread {
 
         @Override
         public void run() {
+            Cache c = Cache.getCacheInstance();
             while(running) {
-                MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
+                long max = Runtime.getRuntime().maxMemory();
+                long used = max - Runtime.getRuntime().freeMemory();
 
-                MemoryUsage heapMemoryUsage = memoryMXBean.getHeapMemoryUsage();
-
-                String message = "Heap Memory Usage:\n" +
-                        "  Used: " + formatBytes(heapMemoryUsage.getUsed()) + "\n" +
-                        "  Max: " + formatBytes(heapMemoryUsage.getMax()) + "\n" +
-                        "---------------------------------------------\n";
+                String message = "Memory Usage:\n" +
+                            "  Used: " + formatBytes(used) + "\n" +
+                         "  Max: " + formatBytes(max) + "\n" +
+                        "--------------------------------------\n" +
+                        "L1: " + c.getL1Used() + "/" + c.getL1Max() + "\n" +
+                        "L2: " + c.getL2Used() + "/" + c.getL2Max() + "\n" +
+                        "L3: " + c.getL3Used() + "/" + c.getL3Max() + "\n";
 
                 updateTextArea(message);
 

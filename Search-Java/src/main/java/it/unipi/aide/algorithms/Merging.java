@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static it.unipi.aide.utils.ColorText.*;
+import static it.unipi.aide.utils.beautify.ColorText.*;
 
 public class Merging
 {
@@ -374,14 +374,13 @@ public class Merging
 
                     if(allNull)
                         break;
-
                 }
 
                 pb.stepTo(pb.getMax());
                 pb.stop();
 
                 // Delete temporary blocks
-//              FileManager.deleteDir(ConfigReader.getPartialPath());
+                FileManager.deleteDir(ConfigReader.getPartialPath());
                 System.out.printf(BLUE + "MERGING > Total terms in the Lexicon is %d%n" + ANSI_RESET, nTerms);
                 CollectionInformation.setTotalTerms(nTerms);
             }

@@ -12,20 +12,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.PriorityQueue;
 
-import static it.unipi.aide.utils.ColorText.*;
+import static it.unipi.aide.utils.beautify.ColorText.*;
 
 public class DAAT
 {
     private int TOP_K;
     private boolean BM25;
-    boolean COMPRESSION;
     HashMap<String, TermInfo> terms = new HashMap<>();
     private final DocumentIndex DOCUMENTINDEX;
 
     public DAAT()
     {
-        COMPRESSION = false;
-        DOCUMENTINDEX = new DocumentIndex(COMPRESSION);
+        DOCUMENTINDEX = new DocumentIndex(false);
     }
 
     public List<ScoredDocument> executeDAAT(List<String> queryTerms, Boolean bm25, int top_k)

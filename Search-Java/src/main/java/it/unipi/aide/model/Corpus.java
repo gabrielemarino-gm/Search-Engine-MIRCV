@@ -7,15 +7,14 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
-import static it.unipi.aide.utils.ColorText.ANSI_RESET;
-import static it.unipi.aide.utils.ColorText.RED;
+import static it.unipi.aide.utils.beautify.ColorText.ANSI_RESET;
+import static it.unipi.aide.utils.beautify.ColorText.RED;
 
 /**
  * This class represents a Corpus
  * During the creation of the object, a BufferedReader is opened towards a specified path
  * The class implements the Iterator interface, and through the correct use in the for-each, you can scroll
  * the lines of the document to be processed as if it were an array of strings
- *
  * the next() function will simply return the next line, as long as hasNext() is true.
  */
 public class Corpus implements Iterable<String>
@@ -64,30 +63,31 @@ public class Corpus implements Iterable<String>
         @Override
         public boolean hasNext()
         {
-            boolean toRet = false;
-
             try
             {
-                toRet = br.ready();
+                if(br.ready())
+                {
+                    return true;
+                }
+                else
+                {
+                    br.close();
+                    return false;
+                }
             }
             catch (IOException | NullPointerException e)
             {
-                // e.printStackTrace();
                 return false;
             }
-            return toRet;
         }
 
         @Override
         public String next() {
-            String toRet = null;
-
             try {
-                toRet = br.readLine();
+                return br.readLine();
             } catch (IOException e) {
-                e.printStackTrace();
+                return null;
             }
-            return toRet;
         }
     }
 }

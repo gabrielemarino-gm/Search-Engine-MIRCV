@@ -14,8 +14,6 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-import static java.lang.System.exit;
-
 public class PostingListSkippable  implements Iterator<Posting>
 {
 
@@ -98,7 +96,7 @@ public class PostingListSkippable  implements Iterator<Posting>
                         block.getBytesOccupiedFreq());
 
                 // Using compression
-                if(ConfigReader.compressionEnabled())
+                if(ConfigReader.isCompressionEnabled())
                 {
                     byte[] docsBytes = new byte[(int) block.getBytesOccupiedDocid()];
                     byte[] freqBytes = new byte[(int) block.getBytesOccupiedFreq()];

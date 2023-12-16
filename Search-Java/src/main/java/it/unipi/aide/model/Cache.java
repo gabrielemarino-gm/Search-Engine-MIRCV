@@ -14,13 +14,13 @@ public class Cache
 
 
     /* Cached termInfo to avoid binary search */ /* L2 */
-    private static final int MAX_TERM_INFO_CACHE_SIZE = 3000;
+    private static final int MAX_TERM_INFO_CACHE_SIZE = 10000;
     private final LRUCache<String, TermInfo> termInfos = new LRUCache<>(MAX_TERM_INFO_CACHE_SIZE);
 
 
     /* Cached postingListSkippable to avoid blocks retrieval */ /* L1 */
-    private static final int MAX_POSTING_LIST_CACHE_SIZE = 1400;
-    private final LRUCache<String, PostingListSkippable> skippables = new LRUCache<>(MAX_POSTING_LIST_CACHE_SIZE);
+    private static final int MAX_POSTING_LIST_CACHE_SIZE = 2000;
+    private final LRUCache<String, PostingListSkippable> skippables = new LRUCache<>(MAX_POSTING_LIST_CACHE_SIZE, termInfos);
 
     /* Cached compressed docids */ /* Test */
 
@@ -42,10 +42,16 @@ public class Cache
     }
 
 
-    /* TermInfo handling methods: */
+    /* TermPositions handling methods: */
     public boolean containsTermPosition(long termPosition) { return termPositions.containsKey(termPosition); }
     public String getTermPosition(long termPosition) { return termPositions.get(termPosition); }
     public void putTermPosition(long termPosition, String termInfo) { termPositions.put(termPosition, termInfo); }
+
+
+    /* TermInfos handling methods: */
+    public boolean containsTermInfo(String term) { return termInfos.containsKey(term); }
+    public TermInfo getTermInfo(String term) { return termInfos.remove(term); }
+    public void putTermInfo(String term, TermInfo termInfo) { termInfos.put(term, termInfo); }
 
 
     /* SkippableLists handling methods: */
@@ -58,13 +64,56 @@ public class Cache
     public static class LRUCache<K, V> extends LinkedHashMap<K, V>
     {
         int MAX_SIZE;
+        LRUCache<String, TermInfo> L2 = null;
 
         public LRUCache(int maxSize) {
             super(maxSize, 0.75f, true);
             MAX_SIZE = maxSize;
         }
 
+        public LRUCache(int maxSize, LRUCache<String, TermInfo> L2Cache)
+        {
+            super(maxSize);
+            L2 = L2Cache;
+        }
+
         @Override
-        protected boolean removeEldestEntry(Map.Entry<K, V> eldest) { return size() > MAX_SIZE; }
+        protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+            if (size() > MAX_SIZE && eldest.getValue() instanceof PostingListSkippable)
+                Cache.getCacheInstance().putTermInfo
+                        (
+                        (String)eldest.getKey(),
+                        ((PostingListSkippable)(eldest.getValue())).getTermInfo()
+                );
+            return size() > MAX_SIZE;
+        }
     }
+
+    public int getL1Used(){
+        return skippables.size();
+    }
+    public int getL1Max()
+    {
+        return MAX_POSTING_LIST_CACHE_SIZE;
+    }
+
+    public int getL2Used()
+    {
+        return termInfos.size();
+    }
+    public int getL2Max()
+    {
+        return MAX_TERM_INFO_CACHE_SIZE;
+    }
+
+    public int getL3Used()
+    {
+        return termPositions.size();
+    }
+
+    public int getL3Max()
+    {
+        return MAX_TERM_POSITION_CACHE_SIZE;
+    }
+
 }

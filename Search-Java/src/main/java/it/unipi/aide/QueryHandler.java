@@ -5,12 +5,13 @@ import it.unipi.aide.algorithms.MaxScore;
 import it.unipi.aide.model.DocumentIndex;
 import it.unipi.aide.algorithms.ConjunctiveRetrieval;
 import it.unipi.aide.model.ScoredDocument;
+import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.Preprocesser;
 
 import java.util.List;
 import java.util.Scanner;
 
-import static it.unipi.aide.utils.ColorText.*;
+import static it.unipi.aide.utils.beautify.ColorText.*;
 
 /**
  * This class is used by the user to make queries on the InvertedIndex
@@ -23,7 +24,7 @@ public class QueryHandler
     static boolean conjunctiveMode = false;
     static int TOP_K = 10;
     static Scanner scanner = new Scanner(System.in);
-    static Preprocesser preprocesser = new Preprocesser(true);
+    static Preprocesser preprocesser = new Preprocesser(ConfigReader.isStemmingEnabled());
     static DAAT daat = new DAAT();
     static MaxScore maxScore = new MaxScore();
     static DocumentIndex documentIndex = new DocumentIndex();

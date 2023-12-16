@@ -152,7 +152,7 @@ public class MergeTests {
             when(ConfigReader.getCollectionStatisticsPath()).thenReturn(Stats.toString());
 
             when(ConfigReader.getCompressionBlockSize()).thenReturn(512);
-            when(ConfigReader.compressionEnabled()).thenReturn(false);
+            when(ConfigReader.isCompressionEnabled()).thenReturn(false);
             when(ConfigReader.blockDivisionEnabled()).thenReturn(false);
             when(ConfigReader.getK()).thenReturn(1.2f);
             when(ConfigReader.getB()).thenReturn(0.75f);

@@ -1,13 +1,12 @@
 package it.unipi.aide.algorithms;
 
 import it.unipi.aide.model.*;
-import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.ScoreFunction;
 import it.unipi.aide.utils.QueryPreprocessing;
 
 import java.util.*;
 
-import static it.unipi.aide.utils.ColorText.*;
+import static it.unipi.aide.utils.beautify.ColorText.*;
 
 public class ConjunctiveRetrieval
 {

@@ -1,4 +1,4 @@
-package it.unipi.aide.utils;
+package it.unipi.aide.utils.beautify;
 
 public class ColorText
 {

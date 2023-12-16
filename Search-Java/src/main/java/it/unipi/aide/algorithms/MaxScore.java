@@ -9,8 +9,8 @@ import it.unipi.aide.utils.QueryPreprocessing;
 
 import java.util.*;
 
-import static it.unipi.aide.utils.ColorText.ANSI_RESET;
-import static it.unipi.aide.utils.ColorText.RED;
+import static it.unipi.aide.utils.beautify.ColorText.ANSI_RESET;
+import static it.unipi.aide.utils.beautify.ColorText.RED;
 
 /**
  * Class to implement the MaxScore algorithm
@@ -59,9 +59,9 @@ public class MaxScore
 
         // Make sure that the list of PostingList is ordered by increasing upper bound
         if (BM25)
-            Collections.sort(postingLists, PostingListSkippable.compareToBM25());
+            postingLists.sort(PostingListSkippable.compareToBM25());
         else
-            Collections.sort(postingLists, PostingListSkippable.compareToTFIDF());
+            postingLists.sort(PostingListSkippable.compareToTFIDF());
 
 
         float[] s = new float[postingLists.size()];

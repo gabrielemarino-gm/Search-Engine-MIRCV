@@ -13,7 +13,7 @@ import java.io.*;
 import java.util.List;
 import java.util.Scanner;
 
-import static it.unipi.aide.utils.ColorText.*;
+import static it.unipi.aide.utils.beautify.ColorText.*;
 
 public class ModelEvaluation
 {
@@ -21,24 +21,29 @@ public class ModelEvaluation
     static boolean CONJUNCTIVE = false;
     static int TOP_K = 10;
     static boolean BM25 = false;
-    static boolean conjunctiveMode = false;
-    static Preprocesser preprocesser = new Preprocesser(true);
+    static Preprocesser preprocesser = new Preprocesser(ConfigReader.isStemmingEnabled());
     static MaxScore maxScore = new MaxScore();
     static DAAT daat = new DAAT();
     static ConjunctiveRetrieval conjunctiveRetrieval = new ConjunctiveRetrieval();
     static String queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test2020-queries.tsv";
     static final String resultsFile = ConfigReader.getTrecEvalDataPath() + "/resultsTrecEval.txt";
     static Scanner scanner = new Scanner(System.in);
-    static String trecEvalPath = "../../Trec-Eval/trec_eval-main";
-    static String year = "2020";
+    static String trecEvalPath = "/home/matteo/Desktop/GitHub/trec-eval";
+    static String YEAR = "2020";
 
     public static void main(String[] args)
     {
+
         // evaluatePerformance -in ../../Trec-Eval/trec_eval-main -y 2019
+        int maxArgs = args.length;
+        if (maxArgs == 1)
+        {
+            System.out.println(RED + "Invalid usage: evaluatePerformance -in <path_to_queries> [-y {2019, 2020}]"+ ANSI_RESET);
+        }
         if (args.length > 3 && args[1].equals("-in") && args[3].equals("-y"))
         {
             trecEvalPath = args[2];
-            year = args[4];
+            YEAR = args[4];
         }
         else
         {
@@ -47,7 +52,7 @@ public class ModelEvaluation
             return;
         }
 
-        queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test" + year + "-queries.tsv";
+        queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test" + YEAR + "-queries.tsv";
 
         // Setup the system
         setupEvaluation();
@@ -108,7 +113,7 @@ public class ModelEvaluation
             pb.stop();
 
             // Setup path to input files
-            String queryResFile = ConfigReader.getTrecEvalDataPath() + "/" + year + "qrels-pass.txt";
+            String queryResFile = ConfigReader.getTrecEvalDataPath() + "/" + YEAR + "qrels-pass.txt";
             Process out = Runtime.getRuntime().exec(trecEvalPath
                                                             + "/trec_eval -m all_trec "
                                                             + queryResFile + " "
@@ -126,12 +131,12 @@ public class ModelEvaluation
             }
             catch (IOException e)
             {
-                e.printStackTrace();
+                System.err.println("Unable to write results");
             }
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            System.err.println("Some error occurred while processing queries");
         }
     }
 
@@ -152,10 +157,7 @@ public class ModelEvaluation
             input = scanner.nextLine();
         }
 
-        if (input.equals("2"))
-            CONJUNCTIVE = true;
-        else
-            CONJUNCTIVE = false;
+        CONJUNCTIVE = input.equals("2");
 
         if (!CONJUNCTIVE)
         {
@@ -246,7 +248,7 @@ public class ModelEvaluation
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            System.err.println("Unable to write results");
         }
     }
 }

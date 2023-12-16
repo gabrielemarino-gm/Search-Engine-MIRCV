@@ -4,7 +4,6 @@ import it.unipi.aide.algorithms.ConjunctiveRetrieval;
 import it.unipi.aide.algorithms.DAAT;
 import it.unipi.aide.algorithms.MaxScore;
 import it.unipi.aide.model.Cache;
-import it.unipi.aide.model.ScoredDocument;
 import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
 import it.unipi.aide.utils.Preprocesser;
@@ -13,13 +12,13 @@ import me.tongfei.progressbar.ProgressBar;
 import java.io.*;
 import java.util.List;
 
-import static it.unipi.aide.utils.ColorText.*;
+import static it.unipi.aide.utils.beautify.ColorText.*;
 
 public class MakeDataset
 {
     static final String datasetFile =  "data/dataset/resultsDataset.csv";
     static String queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test2020-queries.tsv";
-    static Preprocesser preprocesser = new Preprocesser(true);
+    static Preprocesser preprocesser = new Preprocesser(ConfigReader.isStemmingEnabled());
     static MaxScore maxScore = new MaxScore();
     static DAAT daat = new DAAT();
     static ConjunctiveRetrieval conjunctiveRetrieval = new ConjunctiveRetrieval();

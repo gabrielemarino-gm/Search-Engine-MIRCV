@@ -39,19 +39,30 @@ public class QueryPreprocessing
         {
 
             if(! cache.containsSkippable(t)){
-                // Binary search on the vocabulary file for the term of the query
-                TermInfo termToRetrieve = binarySearch(t);
+                if (! cache.containsTermInfo(t)){
+                    // Binary search on the vocabulary file for the term of the query
+                    TermInfo termToRetrieve = binarySearch(t);
 
-                if (termToRetrieve != null) {
-                    terms.put(t, termToRetrieve);
+                    if (termToRetrieve != null) {
+                        terms.put(t, termToRetrieve);
 
-                    PostingListSkippable temp = new PostingListSkippable(termToRetrieve);
+                        PostingListSkippable temp = new PostingListSkippable(termToRetrieve);
+                        cache.putSkippable(t, temp);
+
+                        postingLists.add(temp);
+
+                    } else if (conjunctiveMode)
+                        return null;
+                }
+                else
+                {
+                    TermInfo term = cache.getTermInfo(t);
+                    PostingListSkippable temp = new PostingListSkippable(term);
                     cache.putSkippable(t, temp);
+                    terms.put(t, term);
 
                     postingLists.add(temp);
-
-                } else if (conjunctiveMode)
-                    return null;
+                }
             }
             else
             {

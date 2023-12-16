@@ -2,9 +2,6 @@
   "workingDir" : "data/out/",
   "debugDir" : "data/debug/",
 
-  "rawCollectionPath" : "data/source/collection.tsv",
-  "compressedCollectionPath" : "data/source/collection.tar.gz",
-
   "stopwordsPath" : "stopwords.txt",
 
   "collectionStatisticsPath" : "data/out/collectionStatistics",
@@ -24,6 +21,8 @@
   "trecEvalDataPath" : "data/trec-eval",
 
   "compressionEnabled" : true,
+  "stemmingEnabled": true,
+
   "compressionBlockSize" : 512,
   "blockDivisionEnabled" : true,
   "k": 1.20,

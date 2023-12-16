@@ -592,7 +592,7 @@ public class QueryTest
         PowerMockito.when(ConfigReader.getVocabularyPath()).thenReturn(outPath.getAbsolutePath() + "/vocabulary");
         PowerMockito.when(ConfigReader.getDocidPath()).thenReturn(outPath.getAbsolutePath() + "/docids");
         PowerMockito.when(ConfigReader.getFrequencyPath()).thenReturn(outPath.getAbsolutePath() + "/frequencies");
-        PowerMockito.when(ConfigReader.compressionEnabled()).thenReturn(false);
+        PowerMockito.when(ConfigReader.isCompressionEnabled()).thenReturn(false);
         PowerMockito.when(ConfigReader.getK()).thenReturn(1.2f);
         PowerMockito.when(ConfigReader.getB()).thenReturn(0.75f);
     }
