@@ -38,9 +38,12 @@ public class QueryPreprocessing
         for(String t: queryTerms)
         {
 
+            // If not inside L1
             if(! cache.containsSkippable(t)){
+                // If not inside L2
                 if (! cache.containsTermInfo(t)){
-                    // Binary search on the vocabulary file for the term of the query
+
+                    // Binary search
                     TermInfo termToRetrieve = binarySearch(t);
 
                     if (termToRetrieve != null) {
@@ -55,24 +58,27 @@ public class QueryPreprocessing
                         return null;
                 }
                 else
+                // Present in L2
                 {
+                    // Remove from L2
                     TermInfo term = cache.getTermInfo(t);
                     PostingListSkippable temp = new PostingListSkippable(term);
+                    // Put in L1
                     cache.putSkippable(t, temp);
-                    terms.put(t, term);
 
+                    terms.put(t, term);
                     postingLists.add(temp);
                 }
             }
             else
+            // Present in L1
             {
                 PostingListSkippable temp = cache.getSkippable(t);
+
                 terms.put(t, temp.getTermInfo());
                 postingLists.add(temp);
             }
-
         }
-
         return postingLists;
     }
 

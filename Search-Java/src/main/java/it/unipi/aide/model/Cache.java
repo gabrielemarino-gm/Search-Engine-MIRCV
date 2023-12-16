@@ -8,19 +8,20 @@ public class Cache
     /* Cache instance singleton: */
     private static final Cache SearchEngineCache = new Cache();
 
+
     /* Cached terms for binary search: */ /* L3 */
     private static final int MAX_TERM_POSITION_CACHE_SIZE = 1100;
     private final LRUCache<Long, String> termPositions = new LRUCache<>(MAX_TERM_POSITION_CACHE_SIZE);
 
 
     /* Cached termInfo to avoid binary search */ /* L2 */
-    private static final int MAX_TERM_INFO_CACHE_SIZE = 10000;
+    private static final int MAX_TERM_INFO_CACHE_SIZE = 5000;
     private final LRUCache<String, TermInfo> termInfos = new LRUCache<>(MAX_TERM_INFO_CACHE_SIZE);
 
 
     /* Cached postingListSkippable to avoid blocks retrieval */ /* L1 */
-    private static final int MAX_POSTING_LIST_CACHE_SIZE = 2000;
-    private final LRUCache<String, PostingListSkippable> skippables = new LRUCache<>(MAX_POSTING_LIST_CACHE_SIZE, termInfos);
+    private static final int MAX_SKIPPABLE_LIST_CACHE_SIZE = 2000;
+    private final LRUCache<String, PostingListSkippable> skippables = new LRUCache<>(MAX_SKIPPABLE_LIST_CACHE_SIZE);
 
     /* Cached compressed docids */ /* Test */
 
@@ -59,22 +60,16 @@ public class Cache
     public PostingListSkippable getSkippable(String term) { return skippables.get(term).reset(); }
     public void putSkippable(String term, PostingListSkippable postingList) { skippables.put(term, postingList); }
 
+
     /* Class used to implement a LRUCache with removing operation defined when the cache is full. In that case,
     * the least recently used/accessed element will be removed.  */
     public static class LRUCache<K, V> extends LinkedHashMap<K, V>
     {
         int MAX_SIZE;
-        LRUCache<String, TermInfo> L2 = null;
 
         public LRUCache(int maxSize) {
             super(maxSize, 0.75f, true);
             MAX_SIZE = maxSize;
-        }
-
-        public LRUCache(int maxSize, LRUCache<String, TermInfo> L2Cache)
-        {
-            super(maxSize);
-            L2 = L2Cache;
         }
 
         @Override
@@ -94,9 +89,10 @@ public class Cache
     }
     public int getL1Max()
     {
-        return MAX_POSTING_LIST_CACHE_SIZE;
+        return MAX_SKIPPABLE_LIST_CACHE_SIZE;
     }
 
+    //
     public int getL2Used()
     {
         return termInfos.size();
@@ -106,6 +102,7 @@ public class Cache
         return MAX_TERM_INFO_CACHE_SIZE;
     }
 
+    // Term Positions
     public int getL3Used()
     {
         return termPositions.size();
