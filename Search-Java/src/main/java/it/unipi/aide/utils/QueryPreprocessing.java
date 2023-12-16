@@ -16,7 +16,6 @@ import java.util.*;
 public class QueryPreprocessing
 {
     private final HashMap<String, TermInfo> terms = new HashMap<>();
-    private final List<String> tokens = new ArrayList<>();
 
     Cache cache = Cache.getCacheInstance();
 
@@ -39,6 +38,8 @@ public class QueryPreprocessing
         List<PostingListSkippable> postingLists = new ArrayList<>();
 
         Collections.sort(queryTerms);
+
+        terms.clear();
 
         for(String t: queryTerms)
         {
