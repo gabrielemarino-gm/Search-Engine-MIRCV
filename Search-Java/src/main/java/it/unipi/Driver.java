@@ -33,11 +33,11 @@ public class Driver
         MemoryDisplay memoryDisplay = new MemoryDisplay();
 
         System.out.println("\n" +
-                BLUE + "███████ "+RED+"███████ "+ YELLOW + " █████  "+ BLUE +"██████  "+ GREEN +" ██████ "+ RED +"██   ██     "+ BLUE +"███████ "+ RED +"███    ██ "+ YELLOW +" ██████  "+ BLUE +"██ "+ GREEN +"███    ██ "+ BLUE +" ███████"+ ANSI_RESET+"\n" +
-                BLUE + "██      "+RED+"██      "+ YELLOW + "██   ██ "+ BLUE +"██   ██ "+ GREEN +"██      "+ RED +"██   ██     "+ BLUE +"██      "+ RED +"████   ██ "+ YELLOW +"██       "+ BLUE +"██ "+ GREEN +"████   ██ "+ BLUE +" ██     "+ ANSI_RESET+"\n" +
-                BLUE + "███████ "+RED+"█████   "+ YELLOW + "███████ "+ BLUE +"██████  "+ GREEN +"██      "+ RED +"███████     "+ BLUE +"█████   "+ RED +"██ ██  ██ "+ YELLOW +"██   ███ "+ BLUE +"██ "+ GREEN +"██ ██  ██ "+ BLUE +" █████  "+ ANSI_RESET+"\n" +
-                BLUE + "     ██ "+RED+"██      "+ YELLOW + "██   ██ "+ BLUE +"██   ██ "+ GREEN +"██      "+ RED +"██   ██     "+ BLUE +"██      "+ RED +"██  ██ ██ "+ YELLOW +"██    ██ "+ BLUE +"██ "+ GREEN +"██  ██ ██ "+ BLUE +" ██     "+ ANSI_RESET+"\n" +
-                BLUE + "███████ "+RED+"███████ "+ YELLOW + "██   ██ "+ BLUE +"██   ██ "+ GREEN +" ██████ "+ RED +"██   ██     "+ BLUE +"███████ "+ RED +"██   ████ "+ YELLOW +" ██████  "+ BLUE +"██ "+ GREEN +"██   ████ "+ BLUE +" ███████"+ ANSI_RESET+"\n" +
+                BLUE + "███████ "+RED+"███████ "+ YELLOW + " █████  "+ BLUE +"██████  "+ GREEN +" ██████ "+ RED +"██   ██     "+ BLUE +"███████ "+ RED +"███    ██ "+ YELLOW +" ██████  "+ BLUE +"██ "+ GREEN +"███    ██ "+ BLUE +"███████"+ ANSI_RESET+"\n" +
+                BLUE + "██      "+RED+"██      "+ YELLOW + "██   ██ "+ BLUE +"██   ██ "+ GREEN +"██      "+ RED +"██   ██     "+ BLUE +"██      "+ RED +"████   ██ "+ YELLOW +"██       "+ BLUE +"██ "+ GREEN +"████   ██ "+ BLUE +"██     "+ ANSI_RESET+"\n" +
+                BLUE + "███████ "+RED+"█████   "+ YELLOW + "███████ "+ BLUE +"██████  "+ GREEN +"██      "+ RED +"███████     "+ BLUE +"█████   "+ RED +"██ ██  ██ "+ YELLOW +"██   ███ "+ BLUE +"██ "+ GREEN +"██ ██  ██ "+ BLUE +"█████  "+ ANSI_RESET+"\n" +
+                BLUE + "     ██ "+RED+"██      "+ YELLOW + "██   ██ "+ BLUE +"██   ██ "+ GREEN +"██      "+ RED +"██   ██     "+ BLUE +"██      "+ RED +"██  ██ ██ "+ YELLOW +"██    ██ "+ BLUE +"██ "+ GREEN +"██  ██ ██ "+ BLUE +"██     "+ ANSI_RESET+"\n" +
+                BLUE + "███████ "+RED+"███████ "+ YELLOW + "██   ██ "+ BLUE +"██   ██ "+ GREEN +" ██████ "+ RED +"██   ██     "+ BLUE +"███████ "+ RED +"██   ████ "+ YELLOW +" ██████  "+ BLUE +"██ "+ GREEN +"██   ████ "+ BLUE +"███████"+ ANSI_RESET+"\n" +
                 "                                                                                                    \n\n" +
                 "Welcome to the Search Engine!\n");
         System.out.println("Commands available:");

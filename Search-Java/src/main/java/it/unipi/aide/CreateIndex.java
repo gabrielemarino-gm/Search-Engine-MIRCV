@@ -22,7 +22,6 @@ public class CreateIndex
             if (args[i].equals("-in")) {INPUT_PATH = args[i+1]; i += 2; continue;}
             if (args[i].equals("-ss")) {STOPSTEM = true; i += 1; continue;}
             if (args[i].equals("-d")) {DEBUG = true; i += 1; continue;}
-            if (args[i].equals("-c")) {COMPRESSION = true; i += 1; continue;}
 
             else {i++; System.out.println(RED + "Search Engine ERR > Unknown key for the command createIndex. Try again." + ANSI_RESET); }
         }
