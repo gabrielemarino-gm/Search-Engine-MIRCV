@@ -19,16 +19,20 @@ public class CreateIndex
     public static void main(String[] args)
     {
         int maxArgs = args.length;
-        if (maxArgs == 1) {
+        if (maxArgs == 1)
+        {
             System.out.println(HELP_STRING);
             return;
         }
+
         for(String s : args)
-            if(s.equals("-h"))
+        {
+            if (s.equals("-h"))
             {
                 System.out.println(HELP_STRING);
                 return;
             }
+        }
 
         boolean DEBUG = false;
         boolean COMPRESSION = false;

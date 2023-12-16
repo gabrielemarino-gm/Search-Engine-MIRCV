@@ -1,6 +1,7 @@
 package it.unipi;
 
 import it.unipi.aide.CreateIndex;
+import it.unipi.aide.MakeDataset;
 import it.unipi.aide.ModelEvaluation;
 import it.unipi.aide.QueryHandler;
 import it.unipi.aide.utils.beautify.MemoryDisplay;
@@ -23,8 +24,7 @@ public class Driver
                              "\t"+YELLOW+"evaluatePerformance:"+ ANSI_RESET + "  evaluate the performance of the model, using the trec_eval tool.\n\n" +
                              "\t"+YELLOW+"help:"+ ANSI_RESET + "  show the available commands\n\n" +
                              "\t"+YELLOW+"exit:"+ ANSI_RESET + "  exit from the application\n\n";
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) throws Exception {
         MemoryDisplay memoryDisplay = new MemoryDisplay();
 
         System.out.println("\n" +
@@ -58,6 +58,10 @@ public class Driver
                     break;
                 case "evaluatePerformance":
                     ModelEvaluation.main(splitCommands);
+                    System.out.println();
+                    break;
+                case "makeDataset":
+                    MakeDataset.main(splitCommands);
                     System.out.println();
                     break;
                 case "help":

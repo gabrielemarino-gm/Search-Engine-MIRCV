@@ -194,15 +194,24 @@ public class QueryHandler
         // System.out.printf("%sQuery Handler: Results (%s, %s) >%s \n", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
 
         System.out.println("PID\t\t\t|\tScore");
-        for (ScoredDocument sd : daat.executeDAAT(tokens, BM25, TOP_K))
-        {
-            float score = sd.getScore();
-            String pid = documentIndex.get(sd.getDocID()).getPid();
+        List<ScoredDocument> resultsDAAT = daat.executeDAAT(tokens, BM25, TOP_K);
 
-            if (Integer.parseInt(pid) < 10)
-                System.out.println(String.format("%s\t\t\t|\t%.4f", pid, score));
-            else
-                System.out.println(String.format("%s\t\t|\t%.4f", pid, score));
+        if (resultsDAAT.isEmpty())
+        {
+            System.out.println(RED + "No results found." + ANSI_RESET);
+        }
+        else
+        {
+            for (ScoredDocument sd : resultsDAAT)
+            {
+                float score = sd.getScore();
+                String pid = documentIndex.get(sd.getDocID()).getPid();
+
+                if (Integer.parseInt(pid) < 10)
+                    System.out.println(String.format("%s\t\t\t|\t%.4f", pid, score));
+                else
+                    System.out.println(String.format("%s\t\t|\t%.4f", pid, score));
+            }
         }
 
         long endTime = System.currentTimeMillis();
@@ -219,18 +228,26 @@ public class QueryHandler
         // System.out.printf("%sQuery Handler: Results (%s, %s) >%s \n", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
 
         System.out.println("PID\t\t\t|\tScore");
-        // Print the list of top-k scored documents, in reverse order
-        for (ScoredDocument sd : maxScore.executeMaxScore(tokens, BM25, TOP_K))
+
+        List<ScoredDocument> resultsMaxScore = maxScore.executeMaxScore(tokens, BM25, TOP_K);
+        if (resultsMaxScore.isEmpty())
         {
-            float score = sd.getScore();
-            String pid = documentIndex.get(sd.getDocID()).getPid();
-
-            if (Integer.parseInt(pid) < 10)
-                System.out.println(String.format("%s\t\t\t|\t%.4f", pid, score));
-            else
-                System.out.println(String.format("%s\t\t|\t%.4f", pid, score));
+            System.out.println(RED + "No results found." + ANSI_RESET);
         }
+        else
+        {
+            // Print the list of top-k scored documents, in reverse order
+            for (ScoredDocument sd : resultsMaxScore)
+            {
+                float score = sd.getScore();
+                String pid = documentIndex.get(sd.getDocID()).getPid();
 
+                if (Integer.parseInt(pid) < 10)
+                    System.out.println(String.format("%s\t\t\t|\t%.4f", pid, score));
+                else
+                    System.out.println(String.format("%s\t\t|\t%.4f", pid, score));
+            }
+        }
         long endTime = System.currentTimeMillis();
         long elapsedTime = endTime - startTime;
 
@@ -250,7 +267,7 @@ public class QueryHandler
 
         if (results.isEmpty())
         {
-            System.out.println(RED + "Query Handler ERR > No results found." + ANSI_RESET);
+            System.out.println(RED + "No results found." + ANSI_RESET);
         }
         else
         {

@@ -48,7 +48,7 @@ public class MaxScore
 
         if(postingLists.isEmpty())
         {
-            System.out.println(RED + "MAX-SCORE ERR > No posting lists found" + ANSI_RESET);
+            // System.out.println(RED + "MAX-SCORE ERR > No posting lists found" + ANSI_RESET);
             return new ArrayList<>();
         }
 

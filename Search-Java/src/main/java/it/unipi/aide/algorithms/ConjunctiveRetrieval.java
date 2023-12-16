@@ -40,7 +40,7 @@ public class ConjunctiveRetrieval
 
         if(postingLists == null || postingLists.isEmpty())
         {
-            System.out.println(RED + "Conjunctive Retrieval ERR > No posting lists found" + ANSI_RESET);
+            // System.out.println(RED + "Conjunctive Retrieval ERR > No posting lists found" + ANSI_RESET);
             return new ArrayList<>();
         }
 

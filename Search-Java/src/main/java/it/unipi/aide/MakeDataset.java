@@ -17,7 +17,8 @@ import static it.unipi.aide.utils.beautify.ColorText.*;
 public class MakeDataset
 {
     static final String datasetFile =  "data/dataset/resultsDataset.csv";
-    static String queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test2020-queries.tsv";
+    //static String queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test2020-queries.tsv";
+    static String queryFile = "data/queries/queries.eval.tsv";
     static Preprocesser preprocesser = new Preprocesser(ConfigReader.isStemmingEnabled());
     static MaxScore maxScore = new MaxScore();
     static DAAT daat = new DAAT();
@@ -27,7 +28,7 @@ public class MakeDataset
     static boolean bm25 = true;
     public static void main(String[] args) throws Exception
     {
-        ProgressBar pb = new ProgressBar(BLUE + "Make Dataset >" + ANSI_RESET, 200);
+        ProgressBar pb = new ProgressBar(BLUE + "Make Dataset >" + ANSI_RESET, 101092);
         pb.start();
 
         FileManager.removeFile(datasetFile);
@@ -56,7 +57,7 @@ public class MakeDataset
                 // DAAT WITH CACHE, try to use DAAT with the same query terms in order to use the cache
                 index++;
                 startTime = System.currentTimeMillis();
-                daat.executeDAAT(queryTerms, true, 10);
+                daat.executeDAAT(queryTerms, bm25, 10);
                 endTime = System.currentTimeMillis();
                 printDataset(queryId, endTime-startTime, queryTerms.size(), index, "DAAT WITH CACHE");
 //  )

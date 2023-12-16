@@ -36,7 +36,7 @@ public class DAAT
 
         if(postingLists.isEmpty())
         {
-            System.out.println(RED + "DAAT ERR > No posting lists found" + ANSI_RESET);
+            // System.out.println(RED + "DAAT ERR > No posting lists found" + ANSI_RESET);
             return new ArrayList<>();
         }
 
