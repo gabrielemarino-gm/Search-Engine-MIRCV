@@ -106,7 +106,7 @@ public class Preprocesser
      * @param tokens Set of tokens
      * @return List of tokens without Stopwords
      */
-    private List<String> removeStopwords(ArrayList<String> tokens) {
+    private ArrayList<String> removeStopwords(ArrayList<String> tokens) {
         tokens.removeIf(stopwords::contains);
         return tokens;
     }
@@ -116,21 +116,17 @@ public class Preprocesser
      * @param words List of tokens
      * @return List of stemmed tokens
      */
-    private ArrayList<String> performStemming(List<String> words)
+    private ArrayList<String> performStemming(ArrayList<String> words)
     {
-        /*
-         *TODO: This may be enhanced by directly extract and put back
-         * stemmed tokens in the same 'words' list
-         */
-
         words.replaceAll(word -> stemmer.stemWord(word));
 
-        ArrayList<String> stemmedWords = new ArrayList<>();
-        for (String word : words)
-        {
-            stemmedWords.add(stemmer.stemWord(word));
-        }
-        return stemmedWords;
+//        ArrayList<String> stemmedWords = new ArrayList<>();
+//        for (String word : words)
+//        {
+//            stemmedWords.add(stemmer.stemWord(word));
+//        }
+//        return stemmedWords;
+        return words;
     }
 
     /**

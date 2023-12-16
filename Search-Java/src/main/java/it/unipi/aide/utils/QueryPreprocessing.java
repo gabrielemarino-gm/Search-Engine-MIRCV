@@ -91,7 +91,8 @@ public class QueryPreprocessing
     public TermInfo binarySearch(String term)
     {
         try(FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(ConfigReader.getVocabularyPath()),
-                        StandardOpenOption.READ))
+                        StandardOpenOption.READ)
+        )
         {
             // Window of the binary search, start from the whole vocabulary file
             long WIN_LOWER_BOUND = 0;

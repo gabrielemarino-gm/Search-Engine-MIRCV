@@ -28,6 +28,8 @@ public class MemoryDisplay extends Thread {
             textArea = new JTextArea();
             textArea.setEditable(false);
 
+            frame.setFocusableWindowState(false);
+
             JScrollPane scrollPane = new JScrollPane(textArea);
             frame.getContentPane().add(scrollPane);
 
