@@ -4,9 +4,12 @@ import it.unipi.aide.algorithms.ConjunctiveRetrieval;
 import it.unipi.aide.algorithms.DAAT;
 import it.unipi.aide.algorithms.MaxScore;
 import it.unipi.aide.model.Cache;
+import it.unipi.aide.model.Corpus;
+import it.unipi.aide.model.ScoredDocument;
 import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
 import it.unipi.aide.utils.Preprocesser;
+import it.unipi.aide.utils.beautify.MemoryDisplay;
 import me.tongfei.progressbar.ProgressBar;
 
 import java.io.*;
@@ -17,8 +20,8 @@ import static it.unipi.aide.utils.beautify.ColorText.*;
 public class MakeDataset
 {
     static final String datasetFile =  "data/dataset/resultsDataset.csv";
-    //static String queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test2020-queries.tsv";
-    static String queryFile = "data/queries/queries.eval.tsv";
+//    static String queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test2020-queries.tsv";
+    static String queryFile = "data/queries/queries.train.tsv";
     static Preprocesser preprocesser = new Preprocesser(ConfigReader.isStemmingEnabled());
     static MaxScore maxScore = new MaxScore();
     static DAAT daat = new DAAT();
@@ -26,10 +29,25 @@ public class MakeDataset
 
     static int topK = 10;
     static boolean bm25 = true;
-    public static void main(String[] args) throws Exception
+    public static void main(String[] args)
     {
-        ProgressBar pb = new ProgressBar(BLUE + "Make Dataset >" + ANSI_RESET, 101092);
+        ProgressBar pb = new ProgressBar(BLUE + "Make Dataset >" + ANSI_RESET, 0);
         pb.start();
+
+        new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(new FileReader(queryFile)))
+            {
+
+                while (reader.readLine() != null)
+                {
+                pb.maxHint(pb.getMax() + 1);
+                }
+            }
+            catch (IOException io)
+            {
+                System.err.println("Error while counting lines");
+            }
+        }).start();
 
         FileManager.removeFile(datasetFile);
         FileManager.createFile(datasetFile);
@@ -47,18 +65,20 @@ public class MakeDataset
                 String query = splitLine[1];
 
                 List<String> queryTerms = preprocesser.process(query);
-
+                List<ScoredDocument> results;
                 long startTime = System.currentTimeMillis();
 //  ( DAAT
-                daat.executeDAAT(queryTerms, bm25, topK);
+                results = daat.executeDAAT(queryTerms, bm25, topK);
                 long endTime = System.currentTimeMillis();
+                results.clear();
                 printDataset(queryId, endTime-startTime, queryTerms.size(), index, "DAAT");
 
                 // DAAT WITH CACHE, try to use DAAT with the same query terms in order to use the cache
                 index++;
                 startTime = System.currentTimeMillis();
-                daat.executeDAAT(queryTerms, bm25, 10);
+                results = daat.executeDAAT(queryTerms, bm25, 10);
                 endTime = System.currentTimeMillis();
+                results.clear();
                 printDataset(queryId, endTime-startTime, queryTerms.size(), index, "DAAT WITH CACHE");
 //  )
 
@@ -67,15 +87,17 @@ public class MakeDataset
 //  (MAXSCORE
                 index++;
                 startTime = System.currentTimeMillis();
-                maxScore.executeMaxScore(queryTerms, bm25, topK);
+                results = maxScore.executeMaxScore(queryTerms, bm25, topK);
                 endTime = System.currentTimeMillis();
+                results.clear();
                 printDataset(queryId, endTime-startTime, queryTerms.size(), index, "MAXSCORE");
 
                 // MAXSCORE WITH CACHE, try to use MAXSCORE with the same query terms in order to use the cache
                 index++;
                 startTime = System.currentTimeMillis();
-                maxScore.executeMaxScore(queryTerms, bm25, topK);
+                results = maxScore.executeMaxScore(queryTerms, bm25, topK);
                 endTime = System.currentTimeMillis();
+                results.clear();
                 printDataset(queryId, endTime-startTime, queryTerms.size(), index, "MAXSCORE WITH CACHE");
 //  )
 
@@ -84,29 +106,33 @@ public class MakeDataset
 //  ( CONJUNCTIVE
                 index++;
                 startTime = System.currentTimeMillis();
-                conjunctiveRetrieval.executeConjunctive(queryTerms, bm25, topK);
+                results = conjunctiveRetrieval.executeConjunctive(queryTerms, bm25, topK);
                 endTime = System.currentTimeMillis();
+                results.clear();
                 printDataset(queryId, endTime-startTime, queryTerms.size(), index, "CONJUNCTIVE");
 
                 // CONJUNCTIVE WITH CACHE, try to use CONJUNCTIVE with the same query terms in order to use the cache
                 index++;
                 startTime = System.currentTimeMillis();
-                conjunctiveRetrieval.executeConjunctive(queryTerms, bm25, topK);
+                results = conjunctiveRetrieval.executeConjunctive(queryTerms, bm25, topK);
                 endTime = System.currentTimeMillis();
+                results.clear();
                 printDataset(queryId, endTime-startTime, queryTerms.size(), index, "CONJUNCTIVE WITH CACHE");
 //  )
 
                 Cache.clearCache();
                 index++;
             }
-
-            pb.stop();
         }
         catch (IOException e)
         {
             e.printStackTrace();
         }
+        finally {
+            pb.stop();
+        }
     }
+
 
 
     /**

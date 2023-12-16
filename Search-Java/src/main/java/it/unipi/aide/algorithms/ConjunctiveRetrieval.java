@@ -51,12 +51,10 @@ public class ConjunctiveRetrieval
         // Get the first Posting of the first Posting List (The shortest one)
         PostingListSkippable firstPL = postingLists.get(0);
 
-        boolean restartFormFirst = false;
-
         // While firstPL list has elements
+        extern:
         while(firstPL.getCurrentPosting() != null)
         {
-            restartFormFirst = false;
             // Get first docID
             int currentDocID = firstPL.getCurrentPosting().getDocId();
 
@@ -80,13 +78,7 @@ public class ConjunctiveRetrieval
                     // If this cause the posting list to be empty, return the top-k documents found
                     if (pl.getCurrentPosting() == null)
                     {
-                        // Return the top-k documents
-                        ArrayList<ScoredDocument> result = new ArrayList<>();
-                        for(int j = 0; j < TOP_K && !scoredDocuments.isEmpty(); j++)
-                        {
-                            result.add(scoredDocuments.poll());
-                        }
-                        return result;
+                        break extern;
                     }
 
                     // If pl.nextGEQ is greater than the current docID, update the firstPL
@@ -96,8 +88,7 @@ public class ConjunctiveRetrieval
                         firstPL.nextGEQ(pl.getCurrentPosting().getDocId());
 
                         // restartFormFirst means that the current document is not in the intersection
-                        restartFormFirst = true;
-                        break;
+                        continue extern;
                     }
 
                     // else we are found the docID target
@@ -105,13 +96,7 @@ public class ConjunctiveRetrieval
                     {
                         if (pl.getCurrentPosting().getDocId() < currentDocID)
                         {
-                            // return the top-k documents
-                            ArrayList<ScoredDocument> result = new ArrayList<>();
-                            for(int j = 0; j < TOP_K && !scoredDocuments.isEmpty(); j++)
-                            {
-                                result.add(scoredDocuments.poll());
-                            }
-                            return result;
+                            break extern;
                         }
 
                         // If we are here, the posting list has the same docID of the firstPL
@@ -122,19 +107,13 @@ public class ConjunctiveRetrieval
                 // we are here if the current posting list is empty
                 else
                 {
-                    // If the posting list is empty, end return the top-k documents
-                    ArrayList<ScoredDocument> result = new ArrayList<>();
-                    for(int j = 0; j < TOP_K && !scoredDocuments.isEmpty(); j++)
-                    {
-                        result.add(scoredDocuments.poll());
-                    }
-                    return result;
+                    break extern;
                 }
             }
 
             // If the document is not in the intersection, restart from the first posting list
-            if (restartFormFirst)
-                continue;
+//            if (restartFormFirst)
+//                continue;
 
             // If the document survives, add it to the top-k list
             scoredDocuments.add(documentToAdd);
@@ -147,6 +126,10 @@ public class ConjunctiveRetrieval
         {
             result.add(scoredDocuments.poll());
         }
+
+        for(PostingListSkippable pls : postingLists)
+            pls.closeChannels();
+
         return result;
     }
 

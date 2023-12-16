@@ -167,6 +167,9 @@ public class MaxScore
             currentDoc = nextDoc;
         }
 
+        for(PostingListSkippable pls : postingLists)
+            pls.closeChannels();
+
         return topKDocs;
     }
 

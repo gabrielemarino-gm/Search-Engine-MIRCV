@@ -90,6 +90,8 @@ public class DAAT
             if(!stop)
                 scoredDocuments.add(documentToAdd);
         }
+        for(PostingListSkippable pls : postingLists)
+            pls.closeChannels();
 
         ArrayList<ScoredDocument> result = new ArrayList<>();
         for(int i = 0; i < TOP_K && !scoredDocuments.isEmpty(); i++)

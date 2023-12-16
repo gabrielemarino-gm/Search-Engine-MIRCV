@@ -263,11 +263,6 @@ public class PostingListSkippable  implements Iterator<Posting>
         return term.getTermUpperBoundBM25();
     }
 
-    public int getPostingListsBlockSize()
-    {
-        return postingsOfTheCurrentBlock.size();
-    }
-
     private void openChannels()
     {
         try
@@ -283,7 +278,7 @@ public class PostingListSkippable  implements Iterator<Posting>
         }
     }
 
-    private void closeChannels()
+    public void closeChannels()
     {
         try
         {
