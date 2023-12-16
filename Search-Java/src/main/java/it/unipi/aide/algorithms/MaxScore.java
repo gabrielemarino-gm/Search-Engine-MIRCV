@@ -41,7 +41,7 @@ public class MaxScore
         BM25 = bm25;
         TOP_K = top_k;
         // Retrieve the posting lists of the query terms
-        QueryPreprocessing qp = new QueryPreprocessing();
+        QueryPreprocessing qp = QueryPreprocessing.getInstance();
         this.postingLists = qp.retrievePostingList(queryTerms, false);
         terms = qp.getTerms();
 

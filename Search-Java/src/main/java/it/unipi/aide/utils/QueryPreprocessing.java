@@ -20,7 +20,12 @@ public class QueryPreprocessing
 
     Cache cache = Cache.getCacheInstance();
 
-    public QueryPreprocessing() {}
+    private final static QueryPreprocessing singleton = new QueryPreprocessing();
+
+
+    public static QueryPreprocessing getInstance() {
+        return singleton;
+    }
 
     /**
      * Retrieve the posting lists of the query terms

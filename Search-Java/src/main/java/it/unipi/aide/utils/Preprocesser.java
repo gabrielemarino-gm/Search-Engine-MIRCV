@@ -22,7 +22,7 @@ public class Preprocesser
     private final Pattern urlPattern;
     private final Pattern htmlPattern;
     private final Pattern nonDigitPattern;
-    private final Pattern multipleSpacePattern;
+//    private final Pattern multipleSpacePattern;
     private final Pattern consecutiveLettersPattern;
     private final Pattern camelCasePattern;
 
@@ -40,7 +40,7 @@ public class Preprocesser
         urlPattern = Pattern.compile("(https?://\\S+|www\\.\\S+)");
         htmlPattern = Pattern.compile("<[^>]+>");
         nonDigitPattern = Pattern.compile("[^a-zA-Z ]");
-        multipleSpacePattern = Pattern.compile("\\s+");
+//        multipleSpacePattern = Pattern.compile("\\s+");
         consecutiveLettersPattern = Pattern.compile("(.)\\1{2,}");
         camelCasePattern = Pattern.compile("(?<=[a-z])(?=[A-Z])");
 

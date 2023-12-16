@@ -34,7 +34,7 @@ public class ConjunctiveRetrieval
         BM25 = bm25;
         TOP_K = top_k;
 
-        QueryPreprocessing qp = new QueryPreprocessing();
+        QueryPreprocessing qp = QueryPreprocessing.getInstance();
 
         List<PostingListSkippable> postingLists = qp.retrievePostingList(queryTerms, true);
 
