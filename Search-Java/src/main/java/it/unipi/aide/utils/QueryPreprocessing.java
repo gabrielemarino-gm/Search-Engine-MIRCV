@@ -37,10 +37,9 @@ public class QueryPreprocessing
     {
         List<PostingListSkippable> postingLists = new ArrayList<>();
 
-        Collections.sort(queryTerms);
-
         terms.clear();
 
+        Collections.sort(queryTerms);
         for(String t: queryTerms)
         {
 
@@ -96,110 +95,112 @@ public class QueryPreprocessing
     */
     public TermInfo binarySearch(String term)
     {
-        try(FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(ConfigReader.getVocabularyPath()),
-                        StandardOpenOption.READ)
-        )
+        // Window of the binary search, start from the whole vocabulary file
+        long WIN_LOWER_BOUND = 0;
+        long WIN_UPPER_BOUND = CollectionInformation.getTotalTerms();
+        long prev = -1;
+        int level = 0;
+
+        // Binary search on the vocabulary file
+        while (true)
         {
-            // Window of the binary search, start from the whole vocabulary file
-            long WIN_LOWER_BOUND = 0;
-            long WIN_UPPER_BOUND = CollectionInformation.getTotalTerms();
-            long prev = -1;
-            int level = 0;
+            // Middle point of the window
+            long WIN_MIDDLE_POINT = (WIN_UPPER_BOUND - WIN_LOWER_BOUND)/ 2 + WIN_LOWER_BOUND;
+            if(prev == WIN_MIDDLE_POINT)
+                break;
+            prev = WIN_MIDDLE_POINT;
 
-            // Binary search on the vocabulary file
-            while (true)
+
+            // Check if the window is empty
+            if(WIN_UPPER_BOUND == WIN_LOWER_BOUND)
+                return null;
+
+            // Check if the term is in the cache
+            String middleTermString;
+            TermInfo middleTerm = null;
+
+            if (level < 10)
             {
-                // Middle point of the window
-                long WIN_MIDDLE_POINT = (WIN_UPPER_BOUND - WIN_LOWER_BOUND)/ 2 + WIN_LOWER_BOUND;
-                if(prev == WIN_MIDDLE_POINT)
-                    break;
-                prev = WIN_MIDDLE_POINT;
-
-
-                // Check if the window is empty
-                if(WIN_UPPER_BOUND == WIN_LOWER_BOUND)
-                    return null;
-
-                // Check if the term is in the cache
-                String middleTermString;
-                TermInfo middleTerm = null;
-
-                if (level < 10)
+                if(cache.containsTermPosition(WIN_MIDDLE_POINT))
                 {
-                    if(cache.containsTermPosition(WIN_MIDDLE_POINT))
-                    {
-                        middleTermString = cache.getTermPosition(WIN_MIDDLE_POINT);
-                    }
-                    // If not, get the term from the disk
-                    else
-                    {
-                        middleTerm = getTermFromDisk(channel, WIN_MIDDLE_POINT);
-                        middleTermString = middleTerm.getTerm();
-                        cache.putTermPosition(WIN_MIDDLE_POINT, middleTermString);
-                    }
+                    middleTermString = cache.getTermPosition(WIN_MIDDLE_POINT);
                 }
+                // If not, get the term from the disk
                 else
                 {
-                    middleTerm = getTermFromDisk(channel, WIN_MIDDLE_POINT);
+                    middleTerm = getTermFromDisk(WIN_MIDDLE_POINT);
                     middleTermString = middleTerm.getTerm();
-                }
-
-                level ++;
-
-                // Compare the term with the middle term
-                int comp = middleTermString.compareTo(term);
-
-                if (comp == 0)
-                {
-                    // Found
-                    if(middleTerm == null)
-                        middleTerm = getTermFromDisk(channel, WIN_MIDDLE_POINT);
-
-                    return middleTerm;
-                }
-                else if (comp > 0)
-                {
-                    // Right half
-                    WIN_UPPER_BOUND = WIN_MIDDLE_POINT;
-                }
-                else
-                {
-                    // Second half
-                    WIN_LOWER_BOUND = WIN_MIDDLE_POINT;
+                    cache.putTermPosition(WIN_MIDDLE_POINT, middleTermString);
                 }
             }
+            else
+            {
+                middleTerm = getTermFromDisk(WIN_MIDDLE_POINT);
+                middleTermString = middleTerm.getTerm();
+            }
+
+            level ++;
+
+            // Compare the term with the middle term
+            int comp = middleTermString.compareTo(term);
+
+            if (comp == 0)
+            {
+                // Found
+                if(middleTerm == null)
+                    middleTerm = getTermFromDisk(WIN_MIDDLE_POINT);
+
+                return middleTerm;
+            }
+            else if (comp > 0)
+            {
+                // Right half
+                WIN_UPPER_BOUND = WIN_MIDDLE_POINT;
+            }
+            else
+            {
+                // Second half
+                WIN_LOWER_BOUND = WIN_MIDDLE_POINT;
+            }
         }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
+
         return null;
     }
 
     /**
-     * Get the term from the disk
-     * @param channel FileChannel of the vocabulary file
+     * Get the term from the diskZ
      * @param from Offset of the term
      * @return TermInfo of the term
      * @throws IOException If the file is not found
      */
-    private TermInfo getTermFromDisk(FileChannel channel, long from) throws IOException
+    private TermInfo getTermFromDisk(long from)
     {
-        MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY,
-                from * TermInfo.SIZE_POST_MERGING, TermInfo.SIZE_POST_MERGING);
+        try(
+                FileChannel channel = (FileChannel) Files.newByteChannel(Paths.get(ConfigReader.getVocabularyPath()),
+                    StandardOpenOption.READ)
+            )
+        {
+            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY,
+                    from * TermInfo.SIZE_POST_MERGING, TermInfo.SIZE_POST_MERGING);
 
-        byte[] termBytes = new byte[TermInfo.SIZE_TERM];
-        buffer.get(termBytes);
+            byte[] termBytes = new byte[TermInfo.SIZE_TERM];
+            buffer.get(termBytes);
 
-        String term = new String(termBytes).trim();
-        int totFreq = buffer.getInt();
-        int nPost = buffer.getInt();
-        int nBlocks = buffer.getInt();
-        long offset = buffer.getLong();
-        float tfidf = buffer.getFloat();
-        float bm25 = buffer.getFloat();
+            String term = new String(termBytes).trim();
+            int totFreq = buffer.getInt();
+            int nPost = buffer.getInt();
+            int nBlocks = buffer.getInt();
+            long offset = buffer.getLong();
+            float tfidf = buffer.getFloat();
+            float bm25 = buffer.getFloat();
 
-        return new TermInfo(term, totFreq, nPost, offset, nBlocks, tfidf, bm25);
+            return new TermInfo(term, totFreq, nPost, offset, nBlocks, tfidf, bm25);
+        }
+        catch (IOException e)
+        {
+            System.err.println("Error while searching a term");
+        }
+        return null;
     }
 
     public HashMap<String, TermInfo> getTerms()

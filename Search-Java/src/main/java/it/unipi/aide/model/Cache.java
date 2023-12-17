@@ -15,12 +15,12 @@ public class Cache
 
 
     /* Cached termInfo to avoid binary search */ /* L2 */
-    private static final int MAX_TERM_INFO_CACHE_SIZE = 5000;
+    private static final int MAX_TERM_INFO_CACHE_SIZE = 2000;
     private final LRUCache<String, TermInfo> termInfos = new LRUCache<>(MAX_TERM_INFO_CACHE_SIZE);
 
 
     /* Cached postingListSkippable to avoid blocks retrieval */ /* L1 */
-    private static final int MAX_SKIPPABLE_LIST_CACHE_SIZE = 2000;
+    private static final int MAX_SKIPPABLE_LIST_CACHE_SIZE = 1000;
     private final LRUCache<String, PostingListSkippable> skippables = new LRUCache<>(MAX_SKIPPABLE_LIST_CACHE_SIZE);
 
     /* Cached compressed docids */ /* Test */

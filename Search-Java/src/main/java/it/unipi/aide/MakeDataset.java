@@ -13,6 +13,10 @@ import it.unipi.aide.utils.beautify.MemoryDisplay;
 import me.tongfei.progressbar.ProgressBar;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 import static it.unipi.aide.utils.beautify.ColorText.*;
@@ -31,6 +35,7 @@ public class MakeDataset
     static boolean bm25 = true;
     public static void main(String[] args)
     {
+        MemoryDisplay md = new MemoryDisplay();
         ProgressBar pb = new ProgressBar(BLUE + "Make Dataset >" + ANSI_RESET, 0);
         pb.start();
 
@@ -130,6 +135,7 @@ public class MakeDataset
         }
         finally {
             pb.stop();
+            md.end();
         }
     }
 
@@ -141,24 +147,19 @@ public class MakeDataset
      * @param elapsedTime Time elapsed to execute the algorithm
      * @param algorithm Algorithm used
      */
-    private static void printDataset(String token, long elapsedTime, int nToken, int index, String algorithm)
-    {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(datasetFile, true)))
-        {
-            // if the file is empty, write the header
-            if (new File(datasetFile).length() == 0)
-            {
-                String header = "query_id,elapsed_time,n_token,time_index,algorithm";
-                writer.write(header);
-                writer.newLine();
+    private static void printDataset(String token, long elapsedTime, int nToken, int index, String algorithm) {
+        try (FileChannel channel = FileChannel.open(Paths.get(datasetFile), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()
+        ) {
+
+            if (new File(datasetFile).length() == 0) {
+                baos.write("query_id,elapsed_time,n_token,time_index,algorithm\n".getBytes());
             }
 
-            String line = token + "," + elapsedTime + "," + nToken + "," + index + "," + algorithm;
-            writer.write(line);
-            writer.newLine();
-        }
-        catch (IOException e)
-        {
+            baos.write(String.format("%s,%d,%d,%d,%s\n",token,elapsedTime,nToken,index,algorithm).getBytes());
+            channel.write(ByteBuffer.wrap(baos.toByteArray()));
+
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

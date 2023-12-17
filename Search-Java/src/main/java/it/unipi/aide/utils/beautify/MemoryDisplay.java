@@ -1,10 +1,11 @@
 package it.unipi.aide.utils.beautify;
 
+import com.sun.management.UnixOperatingSystemMXBean;
 import it.unipi.aide.model.Cache;
 
 import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
-import java.lang.management.MemoryUsage;
+import java.lang.management.OperatingSystemMXBean;
+
 import javax.swing.*;
 
 public class MemoryDisplay extends Thread {
@@ -46,19 +47,28 @@ public class MemoryDisplay extends Thread {
         @Override
         public void run() {
             Cache c = Cache.getCacheInstance();
+
             while(running) {
                 long max = Runtime.getRuntime().maxMemory();
                 long used = max - Runtime.getRuntime().freeMemory();
 
-                String message = "Memory Usage:\n" +
-                            "  Used: " + formatBytes(used) + "\n" +
-                         "  Max: " + formatBytes(max) + "\n" +
-                        "--------------------------------------\n" +
-                        "L1: " + c.getL1Used() + "/" + c.getL1Max() + "\n" +
-                        "L2: " + c.getL2Used() + "/" + c.getL2Max() + "\n" +
-                        "L3: " + c.getL3Used() + "/" + c.getL3Max() + "\n";
+                StringBuilder bricks = new StringBuilder();
+                bricks.append("Memory usage:\n");
+                bricks.append("\tUsed: ").append(formatBytes(used)).append("\n");
+                bricks.append("\tMax: ").append(formatBytes(max)).append("\n");
+                bricks.append("--------------------------------------\n");
+                bricks.append("L1: ").append(c.getL1Used()).append("/").append(c.getL1Max()).append("\n");
+                bricks.append("L2: ").append(c.getL2Used()).append("/").append(c.getL2Max()).append("\n");
+                bricks.append("L3: ").append(c.getL3Used()).append("/").append(c.getL3Max()).append("\n");
 
-                updateTextArea(message);
+                bricks.append("\n\n");
+
+                OperatingSystemMXBean os = ManagementFactory.getOperatingSystemMXBean();
+                if(os instanceof UnixOperatingSystemMXBean){
+                    bricks.append("Open fd: ").append(((UnixOperatingSystemMXBean) os).getOpenFileDescriptorCount());
+                }
+
+                updateTextArea(bricks.toString());
 
                 try {
                     Thread.sleep(1000); // Adjust the sleep duration as needed
