@@ -42,7 +42,6 @@ public class QueryPreprocessing
         Collections.sort(queryTerms);
         for(String t: queryTerms)
         {
-
             // If not inside L1
             if(! cache.containsSkippable(t)){
                 // If not inside L2
@@ -59,8 +58,13 @@ public class QueryPreprocessing
 
                         postingLists.add(temp);
 
-                    } else if (conjunctiveMode)
+                    } else if (conjunctiveMode) {
+
+                        for(PostingListSkippable pls : postingLists)
+                            pls.closeChannels();
+
                         return null;
+                    }
                 }
                 else
                 // Present in L2
@@ -84,6 +88,7 @@ public class QueryPreprocessing
                 postingLists.add(temp);
             }
         }
+
         return postingLists;
     }
 

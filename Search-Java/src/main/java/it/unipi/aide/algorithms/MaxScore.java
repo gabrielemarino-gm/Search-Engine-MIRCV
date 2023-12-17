@@ -169,6 +169,7 @@ public class MaxScore
 
         for(PostingListSkippable pls : postingLists)
             pls.closeChannels();
+        postingLists.clear();
 
         return topKDocs;
     }

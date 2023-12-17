@@ -90,6 +90,7 @@ public class DAAT
             if(!stop)
                 scoredDocuments.add(documentToAdd);
         }
+
         for(PostingListSkippable pls : postingLists)
             pls.closeChannels();
 

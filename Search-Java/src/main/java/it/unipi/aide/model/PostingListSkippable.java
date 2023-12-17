@@ -27,8 +27,8 @@ public class PostingListSkippable  implements Iterator<Posting>
     private final List<Posting> postingsOfTheCurrentBlock = new ArrayList<>();
     private int currentBlockIndexer = -1;
 
-    FileChannel docsChannel;
-    FileChannel freqChannel;
+    private FileChannel docsChannel;
+    private FileChannel freqChannel;
 
     public PostingListSkippable(TermInfo termInfo)
     {
@@ -265,6 +265,7 @@ public class PostingListSkippable  implements Iterator<Posting>
 
     private void openChannels()
     {
+        closeChannels(); // PATCH: avoid too many open files
         try
         {
             docsChannel = (FileChannel) Files.newByteChannel(Paths.get(docsPath),
@@ -282,8 +283,14 @@ public class PostingListSkippable  implements Iterator<Posting>
     {
         try
         {
-            docsChannel.close();
-            freqChannel.close();
+            if(docsChannel != null && docsChannel.isOpen()) {
+                docsChannel.close();
+                docsChannel = null;
+            }
+            if(freqChannel != null && freqChannel.isOpen()) {
+                freqChannel.close();
+                freqChannel = null;
+            }
         }
         catch (IOException e)
         {

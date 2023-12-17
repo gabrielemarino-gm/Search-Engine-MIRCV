@@ -120,15 +120,15 @@ public class ConjunctiveRetrieval
             firstPL.next();
         }
 
+        for(PostingListSkippable pls : postingLists)
+            pls.closeChannels();
+
         // Return the top-k documents
         ArrayList<ScoredDocument> result = new ArrayList<>();
         for(int j = 0; j < TOP_K && !scoredDocuments.isEmpty(); j++)
         {
             result.add(scoredDocuments.poll());
         }
-
-        for(PostingListSkippable pls : postingLists)
-            pls.closeChannels();
 
         return result;
     }

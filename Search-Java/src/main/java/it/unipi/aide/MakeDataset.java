@@ -127,9 +127,10 @@ public class MakeDataset
 
                 Cache.clearCache();
                 index++;
+                Thread.sleep(20);
             }
         }
-        catch (IOException e)
+        catch (IOException | InterruptedException e)
         {
             e.printStackTrace();
         }
