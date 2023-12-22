@@ -23,7 +23,7 @@ public class QueryHandler
     static String ALGORITHM = "DAAT";
     static boolean conjunctiveMode = false;
     static int TOP_K = 10;
-    static Scanner scanner = new Scanner(System.in);
+    static Scanner scanner /*= new Scanner(System.in)*/;
     static Preprocesser preprocesser = new Preprocesser(ConfigReader.isStemmingEnabled());
     static DAAT daat = new DAAT();
     static MaxScore maxScore = new MaxScore();
@@ -31,8 +31,9 @@ public class QueryHandler
 
     static ConjunctiveRetrieval conjunctiveRetrieval = new ConjunctiveRetrieval();
 
-    public static void main(String[] args)
+    public static void main(String[] args, Scanner s)
     {
+        scanner = s;
         while (true)
         {
             if (!SETUP)

@@ -53,11 +53,11 @@ public class Driver
                     System.out.println();
                     break;
                 case "makeQuery":
-                    QueryHandler.main(splitCommands);
+                    QueryHandler.main(splitCommands, scanner);
                     System.out.println();
                     break;
                 case "evaluatePerformance":
-                    ModelEvaluation.main(splitCommands);
+                    ModelEvaluation.main(splitCommands, scanner);
                     System.out.println();
                     break;
                 case "makeDataset":

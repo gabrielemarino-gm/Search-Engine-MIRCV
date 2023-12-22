@@ -30,10 +30,11 @@ public class ModelEvaluation
     static String resultsFile = null;
     static String queryResFile = null;
     static String YEAR = null;
-    static Scanner scanner = new Scanner(System.in);
+    static Scanner scanner /*= new Scanner(System.in)*/;
 
-    public static void main(String[] args)
+    public static void main(String[] args, Scanner s)
     {
+        scanner = s;
         // evaluatePerformance -in ../../Trec-Eval/trec_eval-main -y 2019
         int maxArgs = args.length;
         if (maxArgs == 1)
