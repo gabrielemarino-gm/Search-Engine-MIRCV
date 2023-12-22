@@ -27,8 +27,6 @@ public class TermInfo {
     private int numPosting;
     private int numBlocks; // Only post-merging
     private long offset;
-    private int termFrequency;
-
     private int maxTF; // Only pre-merging
     private int BM25TF; // Only pre-merging
     private int BM25DL; // Only pre-merging
@@ -155,7 +153,6 @@ public class TermInfo {
     public long getOffset() {return offset;}
     public int getNumPosting() {return numPosting;}
     public String getTerm() {return term;}
-    public int getTermFrequency() {return termFrequency;}
     public int getMaxTF() {return maxTF;}
     public int getBM25TF() {return BM25TF;}
     public int getBM25DL() {return BM25DL;}
