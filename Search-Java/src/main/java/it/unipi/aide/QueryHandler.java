@@ -133,7 +133,7 @@ public class QueryHandler
         else if (input.equals("2"))
         {
             conjunctiveMode = true;
-            ALGORITHM = "HOLISTIC BOOLEAN CONJUNCTIVE RANKED RETRIEVAL";
+            ALGORITHM = "HOLISTIC CONJUNCTIVE RANKED RETRIEVAL";
         }
         else
         {
@@ -194,6 +194,7 @@ public class QueryHandler
         // System.out.printf("%sQuery Handler: Results (%s, %s) >%s \n", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
 
         System.out.println("PID\t\t\t|\tScore");
+
         List<ScoredDocument> resultsDAAT = daat.executeDAAT(tokens, BM25, TOP_K);
 
         if (resultsDAAT.isEmpty())

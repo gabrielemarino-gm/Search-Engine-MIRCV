@@ -10,6 +10,7 @@ import it.unipi.aide.utils.Preprocesser;
 import me.tongfei.progressbar.ProgressBar;
 
 import java.io.*;
+import java.net.URL;
 import java.util.List;
 import java.util.Scanner;
 
@@ -25,34 +26,65 @@ public class ModelEvaluation
     static MaxScore maxScore = new MaxScore();
     static DAAT daat = new DAAT();
     static ConjunctiveRetrieval conjunctiveRetrieval = new ConjunctiveRetrieval();
-    static String queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test2020-queries.tsv";
-    static final String resultsFile = ConfigReader.getTrecEvalDataPath() + "/resultsTrecEval.txt";
+    static String queryFile = null;
+    static String resultsFile = null;
+    static String queryResFile = null;
+    static String YEAR = null;
     static Scanner scanner = new Scanner(System.in);
-    static String trecEvalPath = "/home/matteo/Desktop/GitHub/trec-eval";
-    static String YEAR = "2020";
 
     public static void main(String[] args)
     {
-
         // evaluatePerformance -in ../../Trec-Eval/trec_eval-main -y 2019
         int maxArgs = args.length;
         if (maxArgs == 1)
         {
-            System.out.println(RED + "Invalid usage: evaluatePerformance -in <path_to_queries> [-y {2019, 2020}]"+ ANSI_RESET);
+            System.out.println(RED + "Invalid usage: evaluatePerformance -in <queries_folder> [-y {2019, 2020}]"+ ANSI_RESET);
         }
-        if (args.length > 3 && args[1].equals("-in") && args[3].equals("-y"))
+
+        int i = 1;
+        while(i < maxArgs)
         {
-            trecEvalPath = args[2];
-            YEAR = args[4];
+            switch (args[i])
+            {
+                case "-in":
+                    queryFile = args[i+1];
+                    resultsFile = args[i+1];
+                    queryResFile = args[i+1];
+                    i += 2;
+                    break;
+                case "-y":
+                    YEAR = args[i+1];
+                    i += 2;
+                    break;
+                default:
+                    System.out.println(RED + "Invalid usage: evaluatePerformance -in <evaluation_files_folder> [-y {2019, 2020}]"+ ANSI_RESET);
+                    return;
+            }
+        }
+
+        if (queryFile == null)
+        {
+            System.out.println(RED + "MODEL EVALUATION WARN > Using default path "+ ANSI_RESET);
+            queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test2020-queries.tsv";
+            resultsFile = ConfigReader.getTrecEvalDataPath() + "/resultsTrecEval.txt";
+            queryResFile = ConfigReader.getTrecEvalDataPath() + "/2020qrels-pass.txt";
+        }
+        else if (YEAR == null)
+        {
+            System.out.println(YELLOW + "MODEL EVALUATION WARN > Using default year <2020>"+ ANSI_RESET);
+            YEAR = "2020";
         }
         else
         {
-            System.out.println(RED + "MODEL EVALUATION ERR > Invalid input. Try again." + ANSI_RESET);
-            // Return to the Driver
-            return;
+            if (!YEAR.equals("2019") && !YEAR.equals("2020")) {
+                System.out.println(RED + "Invalid year: evaluatePerformance -in <queries_folder> [-y {2019, 2020}]" + ANSI_RESET);
+                return;
+            }
         }
 
-        queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test" + YEAR + "-queries.tsv";
+        queryFile = queryFile + "/msmarco-test" + YEAR + "-queries.tsv";
+        resultsFile = resultsFile + "/resultsTrecEval.txt";
+        queryResFile = queryResFile + "/"+ YEAR + "qrels-pass.txt";
 
         // Setup the system
         setupEvaluation();
@@ -113,7 +145,17 @@ public class ModelEvaluation
             pb.stop();
 
             // Setup path to input files
-            String queryResFile = ConfigReader.getTrecEvalDataPath() + "/" + YEAR + "qrels-pass.txt";
+            // Get trec_eval folder in resources
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            String path = "trec_eval";
+            URL resPath = classLoader.getResource(path);
+            if (resPath == null)
+            {
+                System.err.println("Unable to find trec_eval folder");
+                return;
+            }
+
+            String trecEvalPath = resPath.getPath();
             Process out = Runtime.getRuntime().exec(trecEvalPath
                                                             + "/trec_eval -m all_trec "
                                                             + queryResFile + " "
@@ -134,9 +176,16 @@ public class ModelEvaluation
                 System.err.println("Unable to write results");
             }
         }
+        catch (FileNotFoundException fnf)
+        {
+            System.err.println("File not found");
+            pb.stop();
+        }
         catch (IOException e)
         {
             System.err.println("Some error occurred while processing queries");
+            pb.stop();
+            e.printStackTrace();
         }
     }
 
