@@ -9,6 +9,7 @@ import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.Preprocesser;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import static it.unipi.aide.utils.beautify.ColorText.*;
@@ -31,6 +32,9 @@ public class QueryHandler
 
     static ConjunctiveRetrieval conjunctiveRetrieval = new ConjunctiveRetrieval();
 
+    static long tot = 0;
+    static int c = 0;
+
     public static void main(String[] args, Scanner s)
     {
         scanner = s;
@@ -43,7 +47,16 @@ public class QueryHandler
             }
 
             System.out.printf("%sQuery Handler: Type query (%s, %s) > %s ", BLUE, ALGORITHM, BM25? "BM25" : "TF-IDF", ANSI_RESET);
-            String input = scanner.nextLine();
+            String input;
+            try
+            {
+                input = scanner.nextLine();
+            }
+            catch (NoSuchElementException e)
+            {
+                System.out.println(tot/c);
+                return;
+            }
 
             if (input.equalsIgnoreCase("q"))
             {
@@ -252,7 +265,8 @@ public class QueryHandler
         }
         long endTime = System.currentTimeMillis();
         long elapsedTime = endTime - startTime;
-
+        tot += elapsedTime;
+        c += 1;
         System.out.println("(" + elapsedTime + " ms)");
     }
 
