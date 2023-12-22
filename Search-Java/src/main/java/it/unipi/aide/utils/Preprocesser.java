@@ -1,6 +1,7 @@
 package it.unipi.aide.utils;
 
 import ca.rmen.porterstemmer.PorterStemmer;
+import it.unipi.aide.model.TermInfo;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -156,6 +157,8 @@ public class Preprocesser
                     removeStopwords(terms)
             );
         }
+
+        terms.replaceAll(term -> term.substring(0, Math.min(term.length(), TermInfo.SIZE_TERM)));
 
         return terms;
     }
