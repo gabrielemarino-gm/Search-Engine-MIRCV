@@ -1,9 +1,19 @@
 package it.unipi.aide;
 
-import it.unipi.aide.model.Corpus;
+import it.unipi.aide.algorithms.MaxScore;
+import it.unipi.aide.model.*;
+import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.Preprocesser;
+import it.unipi.aide.utils.QueryPreprocessing;
 import me.tongfei.progressbar.ProgressBar;
 
+import java.io.IOException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -11,35 +21,23 @@ public class MatteFaCose {
 
     public static void main(String[] args) {
 
-        ProgressBar pb = new ProgressBar("MatteFaCose", 0, 1000);
-
-        new Thread(() -> {
-            Corpus corpus = new Corpus("data/source/collection.tar.gz");
-            for (String s : corpus) {
-                pb.maxHint(pb.getMax() + 1);
-            }
-        }).start();
-
         Preprocesser preprocesser = new Preprocesser(true);
-        Corpus corpus = new Corpus("data/source/collection.tar.gz");
-        HashMap<Integer, Integer> map = new HashMap<>();
-        int j = 0;
-        pb.start();
-        for(String s : corpus)
-        {
-            String[] a;
-            a = s.split("\t");
 
-            List<String> r = preprocesser.process(a[1]);
-            for(String p: r)
-                map.put(p.length(), map.getOrDefault(p.length(), 0) + 1);
+        MaxScore ms = new MaxScore();
 
-            pb.stepBy(1);
+        Corpus corpus = new Corpus("data/trec-eval/msmarco-test2020-queries.tsv");
+        long tot = 0;
+        for(String s: corpus) {
+            List<String> queryTerms = preprocesser.process(s.split("\t")[1]);
+
+            long start = System.currentTimeMillis();
+            List<ScoredDocument> scoredDocs =  ms.executeMaxScore(queryTerms, true, 10);
+            for(ScoredDocument sd: scoredDocs) {
+                System.out.println(sd.getDocID() + " " + sd.getScore());
+            }
+            tot += System.currentTimeMillis() - start;
         }
-        pb.stop();
 
-        for(Integer i : map.keySet()){
-            System.out.println(i + " " + map.get(i));
-        }
+        System.out.println(tot / 200);
     }
 }
