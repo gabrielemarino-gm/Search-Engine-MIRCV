@@ -53,20 +53,13 @@ public class MemoryDisplay extends Thread {
                 long used = max - Runtime.getRuntime().freeMemory();
 
                 StringBuilder bricks = new StringBuilder();
-                bricks.append("Memory usage:\n");
-                bricks.append("\tUsed: ").append(formatBytes(used)).append("\n");
-                bricks.append("\tMax: ").append(formatBytes(max)).append("\n");
+                bricks.append("Memory usage:\t").append(formatBytes(used)).append(" | ").append(formatBytes(max)).append("\n");
                 bricks.append("--------------------------------------\n");
                 bricks.append("L1: ").append(c.getL1Used()).append("/").append(c.getL1Max()).append("\n");
                 bricks.append("L2: ").append(c.getL2Used()).append("/").append(c.getL2Max()).append("\n");
                 bricks.append("L3: ").append(c.getL3Used()).append("/").append(c.getL3Max()).append("\n");
 
                 bricks.append("\n\n");
-
-                OperatingSystemMXBean os = ManagementFactory.getOperatingSystemMXBean();
-                if(os instanceof UnixOperatingSystemMXBean){
-                    bricks.append("Open fd: ").append(((UnixOperatingSystemMXBean) os).getOpenFileDescriptorCount());
-                }
 
                 updateTextArea(bricks.toString());
 
@@ -84,18 +77,20 @@ public class MemoryDisplay extends Thread {
         }
 
         private static String formatBytes(long bytes) {
-            long kilobytes = bytes / 1024;
-            long megabytes = kilobytes / 1024;
-            long gigabytes = megabytes / 1024;
+//            long kilobytes = bytes / 1024;
+//            long megabytes = kilobytes / 1024;
+//            long gigabytes = megabytes / 1024;
+//
+//            if (gigabytes > 0) {
+//                return gigabytes + " GB";
+//            } else if (megabytes > 0) {
+//                return megabytes + " MB";
+//            } else if (kilobytes > 0) {
+//                return kilobytes + " KB";
+//            } else {
+//                return bytes + " B";
+//            }
 
-            if (gigabytes > 0) {
-                return gigabytes + " GB";
-            } else if (megabytes > 0) {
-                return megabytes + " MB";
-            } else if (kilobytes > 0) {
-                return kilobytes + " KB";
-            } else {
-                return bytes + " B";
-            }
+            return bytes / Math.pow(10,6) + " MB";
         }
 }
