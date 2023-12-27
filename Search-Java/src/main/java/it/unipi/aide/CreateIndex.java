@@ -3,7 +3,6 @@ package it.unipi.aide;
 import it.unipi.aide.algorithms.Merging;
 import it.unipi.aide.algorithms.SPIMI;
 import it.unipi.aide.utils.ConfigReader;
-
 import static it.unipi.aide.utils.beautify.ColorText.*;
 
 public class CreateIndex
@@ -42,7 +41,8 @@ public class CreateIndex
         int i = 1;
         while(i < maxArgs)
         {
-            switch (args[i]) {
+            switch (args[i])
+            {
                 case "-in":
                     INPUT_PATH = args[i + 1];
                     i += 2;
@@ -86,7 +86,6 @@ public class CreateIndex
         // Index merging
         Merging merge = new Merging(COMPRESSION, nBlocks, DEBUG);
         merge.mergeBlocks();
-
-        System.exit(0);
+        // System.exit(0);
     }
 }

@@ -4,7 +4,7 @@ import it.unipi.aide.algorithms.ConjunctiveRetrieval;
 import it.unipi.aide.algorithms.DAAT;
 import it.unipi.aide.algorithms.MaxScore;
 import it.unipi.aide.model.Cache;
-import it.unipi.aide.model.Corpus;
+import it.unipi.aide.model.DocumentIndex;
 import it.unipi.aide.model.ScoredDocument;
 import it.unipi.aide.utils.ConfigReader;
 import it.unipi.aide.utils.FileManager;
@@ -24,121 +24,151 @@ import static it.unipi.aide.utils.beautify.ColorText.*;
 public class MakeDataset
 {
     static final String datasetFile =  "data/dataset/resultsDataset.csv";
+    // static String queryFile = ConfigReader.getTrecEvalDataPath() + "/prova.tsv";
     static String queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test2020-queries.tsv";
     // static String queryFile = "data/queries/queries.eval.tsv";
     static Preprocesser preprocesser = new Preprocesser(ConfigReader.isStemmingEnabled());
     static MaxScore maxScore = new MaxScore();
     static DAAT daat = new DAAT();
     static ConjunctiveRetrieval conjunctiveRetrieval = new ConjunctiveRetrieval();
-
+    static DocumentIndex documentIndex = new DocumentIndex();
     static int topK = 10;
     static boolean bm25 = true;
     public static void main(String[] args)
     {
         MemoryDisplay md = new MemoryDisplay();
-        // ProgressBar pb = new ProgressBar(BLUE + "Make Dataset >" + ANSI_RESET, 0);
-        // pb.start();
-
-        //new Thread(() -> {
-        //     try (BufferedReader reader = new BufferedReader(new FileReader(queryFile)))
-        //     {
-        //         while (reader.readLine() != null)
-        //         {
-        //             pb.maxHint(pb.getMax() + 1);
-        //         }
-        //     }
-        //     catch (IOException io)
-        //     {
-        //         System.err.println("Error while counting lines");
-        //     }
-        // }).start();
 
         FileManager.removeFile(datasetFile);
         FileManager.createFile(datasetFile);
+
+        ProgressBar pb = new ProgressBar(BLUE + "Make Dataset DAAT>" + ANSI_RESET, 200);
+        pb.start();
 
         try (BufferedReader reader = new BufferedReader(new FileReader(queryFile)))
         {
             String line;
             int index = 0;
-            // Read the file line by line until the end
+
+            // Read the file line by line until the end run DAAT
             while ((line = reader.readLine()) != null)
             {
-                // pb.step();
+                pb.step();
                 String[] splitLine = line.split("\t");
                 String queryId = splitLine[0];
                 String query = splitLine[1];
-
                 List<String> queryTerms = preprocesser.process(query);
-                List<ScoredDocument> results;
-                long startTime = System.currentTimeMillis();
-//  ( DAAT
-                results = daat.executeDAAT(queryTerms, bm25, topK);
-                printResults(results);
-                long endTime = System.currentTimeMillis();
-                results.clear();
-                printDataset(queryId, endTime-startTime, queryTerms.size(), index, "DAAT");
-
-                //// DAAT WITH CACHE, try to use DAAT with the same query terms in order to use the cache
-                //index++;
-                //startTime = System.currentTimeMillis();
-                //results = daat.executeDAAT(queryTerms, bm25, topK);
-                //endTime = System.currentTimeMillis();
-                //results.clear();
-                //printDataset(queryId, endTime-startTime, queryTerms.size(), index, "DAAT WITH CACHE");
-//  )
-
-                Cache.clearCache();
-
-//  (MAXSCORE
-                index++;
-                startTime = System.currentTimeMillis();
-                results = maxScore.executeMaxScore(queryTerms, bm25, topK);
-                printResults(results);
-                endTime = System.currentTimeMillis();
-                results.clear();
-                printDataset(queryId, endTime-startTime, queryTerms.size(), index, "MAXSCORE");
-
-                //// MAXSCORE WITH CACHE, try to use MAXSCORE with the same query terms in order to use the cache
-                //index++;
-                //startTime = System.currentTimeMillis();
-                //results = maxScore.executeMaxScore(queryTerms, bm25, topK);
-                //endTime = System.currentTimeMillis();
-                //results.clear();
-                //printDataset(queryId, endTime-startTime, queryTerms.size(), index, "MAXSCORE WITH CACHE");
-//  )
-
-                Cache.clearCache();
-
-//  ( CONJUNCTIVE
-                index++;
-                startTime = System.currentTimeMillis();
-                results = conjunctiveRetrieval.executeConjunctive(queryTerms, bm25, topK);
-                printResults(results);
-                endTime = System.currentTimeMillis();
-                results.clear();
-                printDataset(queryId, endTime-startTime, queryTerms.size(), index, "CONJUNCTIVE");
-
-                // // CONJUNCTIVE WITH CACHE, try to use CONJUNCTIVE with the same query terms in order to use the cache
-                // index++;
-                // startTime = System.currentTimeMillis();
-                // results = conjunctiveRetrieval.executeConjunctive(queryTerms, bm25, topK);
-                // endTime = System.currentTimeMillis();
-                // results.clear();
-                // printDataset(queryId, endTime-startTime, queryTerms.size(), index, "CONJUNCTIVE WITH CACHE");
-//  )
-                Cache.clearCache();
+                runDAAT(queryId, queryTerms, index);
+                Thread.sleep(2000);
                 index++;
             }
         }
-        catch (IOException e)
+        catch (IOException | InterruptedException e)
         {
             e.printStackTrace();
         }
         finally
         {
-            // pb.stop();
+            pb.stop();
             md.end();
         }
+
+        Cache.clearCache();
+        pb = new ProgressBar(BLUE + "Make Dataset MAXSCORE>" + ANSI_RESET, 200);
+        pb.start();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(queryFile)))
+        {
+            String line;
+            int index = 0;
+
+            // Read the file line by line until the end run MAXSCORE
+            while ((line = reader.readLine()) != null)
+            {
+                pb.step();
+                String[] splitLine = line.split("\t");
+                String queryId = splitLine[0];
+                String query = splitLine[1];
+
+                List<String> queryTerms = preprocesser.process(query);
+                runMaxScore(queryId, queryTerms, index);
+                Thread.sleep(2000);
+                index++;
+            }
+        }
+        catch (IOException | InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            pb.stop();
+            md.end();
+        }
+
+        Cache.clearCache();
+        pb = new ProgressBar(BLUE + "Make Dataset CONJUNCTIVE>" + ANSI_RESET, 200);
+        pb.start();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(queryFile)))
+        {
+            String line;
+            int index = 0;
+
+            // Read the file line by line until the end run CONJUNCTIVE RETRIEVAL
+            while ((line = reader.readLine()) != null)
+            {
+                pb.step();
+                String[] splitLine = line.split("\t");
+                String queryId = splitLine[0];
+                String query = splitLine[1];
+
+                List<String> queryTerms = preprocesser.process(query);
+                runConjunctiveRetrieval(queryId, queryTerms, index);
+                Thread.sleep(2000);
+                index++;
+            }
+        }
+        catch (IOException | InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            pb.stop();
+            md.end();
+        }
+    }
+
+    private static void runDAAT(String queryId, List<String> queryTerms, int index)
+    {
+        // DAAT
+        long startTime = System.currentTimeMillis();
+        List<ScoredDocument> results = daat.executeDAAT(queryTerms, bm25, topK);
+        long endTime = System.currentTimeMillis();
+        results.clear();
+        printDataset(queryId, endTime-startTime, queryTerms.size(), index, "DAAT");
+    }
+
+    private static void runMaxScore(String queryId, List<String> queryTerms, int index)
+    {
+        // MAXSCORE
+        index++;
+        long startTime = System.currentTimeMillis();
+        List<ScoredDocument> results = maxScore.executeMaxScore(queryTerms, bm25, topK);
+        long endTime = System.currentTimeMillis();
+        results.clear();
+        printDataset(queryId, endTime-startTime, queryTerms.size(), index, "MAXSCORE");
+    }
+
+    private static void runConjunctiveRetrieval(String queryId, List<String> queryTerms, int index)
+    {
+        // CONJUNCTIVE RETRIEVAL
+        index++;
+        long startTime = System.currentTimeMillis();
+        List<ScoredDocument> results = conjunctiveRetrieval.executeConjunctive(queryTerms, bm25, topK);
+        long endTime = System.currentTimeMillis();
+        results.clear();
+        printDataset(queryId, endTime-startTime, queryTerms.size(), index, "CONJUNCTIVE RETRIEVAL");
     }
 
     /**
@@ -166,13 +196,4 @@ public class MakeDataset
             e.printStackTrace();
         }
     }
-
-    private static void printResults(List<ScoredDocument> scoredDocuments)
-    {
-        for (ScoredDocument scoredDocument : scoredDocuments)
-        {
-            System.out.print(scoredDocument.toString() + ", ");
-        }
-    }
-
 }

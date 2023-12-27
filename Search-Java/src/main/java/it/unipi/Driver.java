@@ -14,13 +14,17 @@ public class Driver
 {
     // "\t"+YELLOW+"evaluatePerformance:"+ ANSI_RESET + "
     static Scanner scanner = new Scanner(System.in);
-    static String commands = "\t"+YELLOW+"createIndex:"+ ANSI_RESET + "  create the inverted index from scratch." +
-                             "\n\n" +
+    static String commands = "\t"+YELLOW+"createIndex:"+ ANSI_RESET + "  create the inverted index from scratch. The command that must and could be used are:\n" +
+                                "\t\t\t-in <corpus_file>:   the path of the corpus file. MANDATORY.\n" +
+                                "\t\t\t-ss:  enable the stopword removal and the stemming.\n" +
+                                "\t\t\t-c:   enable the compression of the index.\n" +
+                                "\t\t\t-d:   enable the debug files creation.\n\n" +
+
                              "\t"+YELLOW+"makeQuery:"+ ANSI_RESET + "  make a query. After the activation of the command, the application\n " +
-                             "\t\t\t\twill ask for multiple input query, use also the following:\n" +
+                             "\t\t\twill ask for setting up the system. The command could be used are:\n" +
                              "\t\t\t[s]:   command useful for setup the system.\n" +
-                             "\t\t\t[q]:   command useful for exit from the query handler mode.\n" +
-                             "\n\n" +
+                             "\t\t\t[q]:   command useful for exit from the query handler mode.\n\n" +
+
                              "\t"+YELLOW+"evaluatePerformance:"+ ANSI_RESET + "  evaluate the performance of the model, using the trec_eval tool.\n\n" +
                              "\t"+YELLOW+"help:"+ ANSI_RESET + "  show the available commands\n\n" +
                              "\t"+YELLOW+"exit:"+ ANSI_RESET + "  exit from the application\n\n";
@@ -34,9 +38,7 @@ public class Driver
                 BLUE + "     ██ "+RED+"██      "+ YELLOW + "██   ██ "+ BLUE +"██   ██ "+ GREEN +"██      "+ RED +"██   ██     "+ BLUE +"██      "+ RED +"██  ██ ██ "+ YELLOW +"██    ██ "+ BLUE +"██ "+ GREEN +"██  ██ ██ "+ BLUE +"██     "+ ANSI_RESET+"\n" +
                 BLUE + "███████ "+RED+"███████ "+ YELLOW + "██   ██ "+ BLUE +"██   ██ "+ GREEN +" ██████ "+ RED +"██   ██     "+ BLUE +"███████ "+ RED +"██   ████ "+ YELLOW +" ██████  "+ BLUE +"██ "+ GREEN +"██   ████ "+ BLUE +"███████"+ ANSI_RESET+"\n" +
                 "                                                                                                    \n\n" +
-                "Welcome to the Search Engine!\n");
-        System.out.println("Commands available:");
-        System.out.println(commands);
+                "Welcome to the Search Engine! For help digit help\n");
 
         label:
         while (true)
@@ -47,22 +49,19 @@ public class Driver
 
             String[] splitCommands = option.split(" ");
 
-            switch (splitCommands[0]) {
+            switch (splitCommands[0])
+            {
                 case "createIndex":
                     CreateIndex.main(splitCommands);
-                    System.out.println();
                     break;
                 case "makeQuery":
                     QueryHandler.main(splitCommands, scanner);
-                    System.out.println();
                     break;
                 case "evaluatePerformance":
                     ModelEvaluation.main(splitCommands, scanner);
-                    System.out.println();
                     break;
                 case "makeDataset":
                     MakeDataset.main(splitCommands);
-                    System.out.println();
                     break;
                 case "help":
                     System.out.printf(commands);
