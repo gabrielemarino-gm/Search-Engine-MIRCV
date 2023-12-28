@@ -53,26 +53,20 @@ public class Driver
             {
                 case "createIndex":
                     CreateIndex.main(splitCommands);
-                    break;
                 case "makeQuery":
                     QueryHandler.main(splitCommands, scanner);
-                    break;
                 case "evaluatePerformance":
                     ModelEvaluation.main(splitCommands, scanner);
-                    break;
                 case "makeDataset":
                     MakeDataset.main(splitCommands);
-                    break;
                 case "help":
                     System.out.printf(commands);
-                    break;
                 case "exit":
                     System.out.println("Exiting...");
                     break label;
                 default:
                     System.out.println(RED + "Search Engine ERR > Command Not Found. Try one of the following:" + ANSI_RESET);
                     System.out.println(commands);
-                    break;
             }
         }
 
