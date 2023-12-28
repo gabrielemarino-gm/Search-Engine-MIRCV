@@ -53,14 +53,18 @@ public class Driver
             {
                 case "createIndex":
                     CreateIndex.main(splitCommands);
+                    break;
                 case "makeQuery":
                     QueryHandler.main(splitCommands, scanner);
+                    break;
                 case "evaluatePerformance":
                     ModelEvaluation.main(splitCommands, scanner);
+                    break;
                 case "makeDataset":
                     MakeDataset.main(splitCommands);
                 case "help":
                     System.out.printf(commands);
+                    break;
                 case "exit":
                     System.out.println("Exiting...");
                     break label;
