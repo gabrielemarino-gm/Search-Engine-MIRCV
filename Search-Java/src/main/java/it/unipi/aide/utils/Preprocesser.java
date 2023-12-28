@@ -23,7 +23,6 @@ public class Preprocesser
     private final Pattern urlPattern;
     private final Pattern htmlPattern;
     private final Pattern nonDigitPattern;
-//    private final Pattern multipleSpacePattern;
     private final Pattern consecutiveLettersPattern;
     private final Pattern camelCasePattern;
 
@@ -158,6 +157,7 @@ public class Preprocesser
             );
         }
 
+        // STEP 6: Truncate terms to SIZE_TERM characters
         terms.replaceAll(term -> term.substring(0, Math.min(term.length(), TermInfo.SIZE_TERM)));
 
         return terms;

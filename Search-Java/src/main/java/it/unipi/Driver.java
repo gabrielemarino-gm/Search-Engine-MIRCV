@@ -16,16 +16,18 @@ public class Driver
     static Scanner scanner = new Scanner(System.in);
     static String commands = "\t"+YELLOW+"createIndex:"+ ANSI_RESET + "  create the inverted index from scratch. The command that must and could be used are:\n" +
                                 "\t\t\t-in <corpus_file>:   the path of the corpus file. MANDATORY.\n" +
-                                "\t\t\t-ss:  enable the stopword removal and the stemming.\n" +
-                                "\t\t\t-c:   enable the compression of the index.\n" +
-                                "\t\t\t-d:   enable the debug files creation.\n\n" +
+                                "\t\t\t-ss:                 enable the stopword removal and the stemming.\n" +
+                                "\t\t\t-c:                  enable the compression of the index.\n" +
+                                "\t\t\t-d:                  enable the debug files creation.\n\n" +
 
                              "\t"+YELLOW+"makeQuery:"+ ANSI_RESET + "  make a query. After the activation of the command, the application\n " +
                              "\t\t\twill ask for setting up the system. The command could be used are:\n" +
                              "\t\t\t[s]:   command useful for setup the system.\n" +
                              "\t\t\t[q]:   command useful for exit from the query handler mode.\n\n" +
 
-                             "\t"+YELLOW+"evaluatePerformance:"+ ANSI_RESET + "  evaluate the performance of the model, using the trec_eval tool.\n\n" +
+                             "\t"+YELLOW+"evaluatePerformance:"+ ANSI_RESET + "  evaluate the performance of the model, using the trec_eval tool.\n" +
+                             "\t\t\t-in <treceval_path>:   the path of the trec_eval tool. MANDATORY.\n" +
+                             "\t\t\t-y:                    choose the year of the trec_eval tool. 2020 or 2019. MANDATORY.\n\n" +
                              "\t"+YELLOW+"help:"+ ANSI_RESET + "  show the available commands\n\n" +
                              "\t"+YELLOW+"exit:"+ ANSI_RESET + "  exit from the application\n\n";
     public static void main(String[] args) throws Exception {

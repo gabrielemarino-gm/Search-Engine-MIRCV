@@ -35,7 +35,7 @@ public class ModelEvaluation
     public static void main(String[] args, Scanner s)
     {
         scanner = s;
-        // evaluatePerformance -in ../../Trec-Eval/trec_eval-main -y 2019
+        // evaluatePerformance -in ../../Trec-Eval/trec_eval-main -y 2020
         int maxArgs = args.length;
         if (maxArgs == 1)
         {
@@ -156,7 +156,10 @@ public class ModelEvaluation
                 return;
             }
 
+            // TODO: change this to the correct path
+
             String trecEvalPath = resPath.getPath();
+
             Process out = Runtime.getRuntime().exec(trecEvalPath
                                                             + "/trec_eval -m all_trec "
                                                             + queryResFile + " "
@@ -179,12 +182,12 @@ public class ModelEvaluation
         }
         catch (FileNotFoundException fnf)
         {
-            System.err.println("File not found");
+            System.out.println(RED + "Model Evaluation ERR > Unable to find the file " + queryFile + ANSI_RESET);
             pb.stop();
         }
         catch (IOException e)
         {
-            System.err.println("Some error occurred while processing queries");
+            System.out.println(RED + "Model Evaluation ERR > Some error occurred while processing queries" + ANSI_RESET);
             pb.stop();
             e.printStackTrace();
         }
