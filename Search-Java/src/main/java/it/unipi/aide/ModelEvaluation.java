@@ -146,24 +146,24 @@ public class ModelEvaluation
             pb.stop();
 
             // Setup path to input files
-            // Get trec_eval folder in resources
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            String path = "trec_eval";
-            URL resPath = classLoader.getResource(path);
-            if (resPath == null)
-            {
-                System.err.println("Unable to find trec_eval folder");
-                return;
-            }
 
             // TODO: change this to the correct path
 
-            String trecEvalPath = resPath.getPath();
+            String trecEvalPath = ConfigReader.getTrecEvalDataPath();
+            Process out;
+            try
+            {
+                out = Runtime.getRuntime().exec(trecEvalPath
+                        + "/trec_eval -m all_trec "
+                        + queryResFile + " "
+                        + resultsFile);
+            }
+            catch (IOException e)
+            {
+                System.err.println("Unable to find trec_eval script. Leaving.");
+                return;
+            }
 
-            Process out = Runtime.getRuntime().exec(trecEvalPath
-                                                            + "/trec_eval -m all_trec "
-                                                            + queryResFile + " "
-                                                            + resultsFile);
             BufferedReader stdout = new BufferedReader(new InputStreamReader(out.getInputStream()));
             try
             {
