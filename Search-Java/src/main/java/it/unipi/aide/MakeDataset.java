@@ -25,14 +25,11 @@ import static it.unipi.aide.utils.beautify.ColorText.*;
 public class MakeDataset
 {
     static final String datasetFile =  "data/dataset/resultsDataset.csv";
-    // static String queryFile = ConfigReader.getTrecEvalDataPath() + "/prova.tsv";
     static String queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test2020-queries.tsv";
-    // static String queryFile = "data/queries/queries.eval.tsv";
     static Preprocesser preprocesser = new Preprocesser(ConfigReader.isStemmingEnabled());
     static MaxScore maxScore = new MaxScore();
     static DAAT daat = new DAAT();
     static ConjunctiveRetrieval conjunctiveRetrieval = new ConjunctiveRetrieval();
-    static DocumentIndex documentIndex = new DocumentIndex();
     static int topK = 10;
     static boolean bm25 = true;
     public static void main(String[] args)
@@ -59,7 +56,11 @@ public class MakeDataset
                 String query = splitLine[1];
                 List<String> queryTerms = preprocesser.process(query);
                 runDAAT(queryId, queryTerms, index);
-                Thread.sleep(2000);
+
+                // random interval between 3 and 10 seconds
+                int random = (int) (Math.random() * 10 + 3);
+                Thread.sleep(random * 1000L);
+
                 index++;
             }
         }
@@ -73,7 +74,6 @@ public class MakeDataset
             md.end();
         }
 
-        Cache.clearCache();
         pb = new ProgressBar(BLUE + "Make Dataset MAXSCORE>" + ANSI_RESET, 200);
         pb.start();
 
@@ -92,7 +92,10 @@ public class MakeDataset
 
                 List<String> queryTerms = preprocesser.process(query);
                 runMaxScore(queryId, queryTerms, index);
-                Thread.sleep(2000);
+
+                int random = (int) (Math.random() * 10 + 3);
+                Thread.sleep(random * 1000L);
+
                 index++;
             }
         }
@@ -106,7 +109,6 @@ public class MakeDataset
             md.end();
         }
 
-        Cache.clearCache();
         pb = new ProgressBar(BLUE + "Make Dataset CONJUNCTIVE>" + ANSI_RESET, 200);
         pb.start();
 
@@ -125,7 +127,11 @@ public class MakeDataset
 
                 List<String> queryTerms = preprocesser.process(query);
                 runConjunctiveRetrieval(queryId, queryTerms, index);
-                Thread.sleep(2000);
+
+
+                int random = (int) (Math.random() * 10 + 3);
+                Thread.sleep(random * 1000L);
+
                 index++;
             }
         }
