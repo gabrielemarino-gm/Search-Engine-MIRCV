@@ -89,11 +89,6 @@ public class ModelEvaluation
 
         queryResFile = ConfigReader.getTrecEvalDataPath() + "/"+ YEAR + "qrels-pass.txt";
 
-        System.out.println(queryFile);
-        System.out.println(queryResFile);
-        System.out.println(resultsFile);
-        System.out.println(trecEvalPath);
-
         // Setup the system
         setupEvaluation();
 

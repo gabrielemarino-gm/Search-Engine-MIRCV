@@ -39,6 +39,7 @@ public class MakeDataset
         FileManager.removeFile(datasetFile);
         FileManager.createFile(datasetFile);
 
+        long sleepTime = 1000L;
         ProgressBar pb = new ProgressBar(BLUE + "Make Dataset DAAT>" + ANSI_RESET, 200);
         pb.start();
 
@@ -58,8 +59,7 @@ public class MakeDataset
                 runDAAT(queryId, queryTerms, index);
 
                 // random interval between 3 and 10 seconds
-                int random = (int) (Math.random() * 10 + 3);
-                Thread.sleep(random * 1000L);
+                Thread.sleep(sleepTime);
 
                 index++;
             }
@@ -93,8 +93,7 @@ public class MakeDataset
                 List<String> queryTerms = preprocesser.process(query);
                 runMaxScore(queryId, queryTerms, index);
 
-                int random = (int) (Math.random() * 10 + 3);
-                Thread.sleep(random * 1000L);
+                Thread.sleep(sleepTime);
 
                 index++;
             }
@@ -129,8 +128,8 @@ public class MakeDataset
                 runConjunctiveRetrieval(queryId, queryTerms, index);
 
 
-                int random = (int) (Math.random() * 10 + 3);
-                Thread.sleep(random * 1000L);
+                // int random = (int) (Math.random() * 10 + 3);
+                Thread.sleep(sleepTime);
 
                 index++;
             }

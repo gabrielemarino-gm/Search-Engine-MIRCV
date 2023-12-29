@@ -52,9 +52,8 @@ public class Driver
         while (true)
         {
             System.out.print(BLUE + "Search Engine > " + ANSI_RESET);
-
+            scanner = new Scanner(System.in);
             String option = scanner.nextLine();
-
             String[] splitCommands = option.split(" ");
 
             switch (splitCommands[0])
