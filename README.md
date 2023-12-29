@@ -20,6 +20,7 @@ To create the inverted index, use the command:
 
     `createIndex -in <corpus_file> -ss -c -d` 
     
+phpCopy code
     -   `-in <corpus_file>`: Specify the path of the corpus file (mandatory).
     -   `-ss`: Enable stopword removal and stemming.
     -   `-c`: Enable compression of the index.
@@ -39,9 +40,9 @@ To evaluate the performance of the model, use the command: `evaluatePerformance`
 Play Attention: The Trec-Eval tool must be already compiled.
 The user can olso use the following optional command:
 
-phpCopy code
     `evaluatePerformance -in <trec_eval_local_path> -out <outpath_for_results> -y <2019 or 2020>` 
     
+phpCopy code
     -   `-in <trec_eval_local_path>`: the path of the local Trec-Eval tool. DEFAULT: take the path from the config file.
     -   `-out <outpath_for_results>`: the path of the output file with the file txt to give in input to Trec-Eval tool. DEFAULT: data/trec-eval/resultsTrecEval.txt
     -   `-y`: choose the year of the Trec-Eval tool. 2020 or 2019. DEFAULT: 2020.
