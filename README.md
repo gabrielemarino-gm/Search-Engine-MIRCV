@@ -35,7 +35,7 @@ While the Query Handler is active, the user can use the following command:
 
 
 ## Evaluating Performance
-To evaluate the performance of the model, use the command: `evaluatePerformance` This uses the <a href="https://github.com/usnistgov/trec_eval">Trec-Eval<\a> tool.
+To evaluate the performance of the model, use the command: `evaluatePerformance` This uses the <a href="https://github.com/usnistgov/trec_eval">Trec-Eval</a> tool.
 Play Attention: The Trec-Eval tool must be already compiled.
 The user can olso use the following optional command:
 
