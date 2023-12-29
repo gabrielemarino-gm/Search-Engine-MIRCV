@@ -31,6 +31,7 @@ public class ConfigReader
     private static String partialVocabularyPath;
     private static String partialDocsPath;
     private static String partialFrequenciesPath;
+    private static String trecEvalHomePath;
     private static String trecEvalDataPath;
     private static boolean compressionEnabled;
     private static boolean stemmingEnabled;
@@ -42,21 +43,26 @@ public class ConfigReader
 
 
     private static String DEFAULT_PATH = "config.json";
+
+    /**
+     * Read the configuration file and set the values of the properties
+     */
     static
     {
         ObjectMapper objectMapper = new ObjectMapper();
         try
         {
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             JsonNode rootNode;
             Path tempFilePath = Paths.get(DEFAULT_PATH);
+
             // Create the config file if it doesn't exist
-            if (!Files.exists(tempFilePath)) {
+            if (!Files.exists(tempFilePath))
+            {
                 Files.createFile(tempFilePath);
 
                 try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(DEFAULT_PATH);
-                     OutputStream os = Files.newOutputStream(tempFilePath)) {
-
+                     OutputStream os = Files.newOutputStream(tempFilePath))
+                {
                     byte[] buffer = new byte[1024];
                     int bytesRead;
                     while ((bytesRead = is.read(buffer)) != -1) {
@@ -87,6 +93,7 @@ public class ConfigReader
             partialDocsPath = rootNode.get("partialDocsPath").asText();
             partialFrequenciesPath = rootNode.get("partialFrequenciesPath").asText();
 
+            trecEvalHomePath = rootNode.get("trecEvalHomePath").asText();
             trecEvalDataPath = rootNode.get("trecEvalDataPath").asText();
 
             compressionEnabled = rootNode.get("compressionEnabled").asBoolean();
@@ -109,25 +116,37 @@ public class ConfigReader
         }
     }
 
-    private static void setConfigValue(String propertyName, String newValue) {
+    /**
+     * Set the value of a property in the configuration file
+     * @param propertyName the name of the property
+     * @param newValue the new value of the property
+     */
+    private static void setConfigValue(String propertyName, String newValue)
+    {
         ObjectMapper objectMapper = new ObjectMapper();
-        try {
+        try
+        {
             Path tempFilePath = Paths.get(DEFAULT_PATH);
 
             // Read the existing JSON content from the temporary file
             JsonNode rootNode = objectMapper.readTree(tempFilePath.toFile());
 
             // Update the property value
-            if (rootNode.has(propertyName)) {
+            if (rootNode.has(propertyName))
+            {
                 ((ObjectNode) rootNode).put(propertyName, newValue);
 
                 // Write the updated JSON content back to the temporary file
                 Files.write(tempFilePath, objectMapper.writeValueAsBytes(rootNode),
                         StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-            } else {
+            }
+            else
+            {
                 System.out.println("Property '" + propertyName + "' not found in the configuration.");
             }
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
     }
@@ -155,6 +174,7 @@ public class ConfigReader
     public static String getPartialDocsPath() { return partialDocsPath; }
 
     public static String getPartialFrequenciesPath() { return partialFrequenciesPath; }
+    public static String getTrecEvalHomePath() { return trecEvalHomePath; }
 
     public static String getTrecEvalDataPath() { return trecEvalDataPath; }
 
@@ -180,4 +200,6 @@ public class ConfigReader
         stemmingEnabled = val;
         setConfigValue("stemmingEnabled", String.valueOf(val));
     }
+
+    public static void createConfigFile() {return;}
 }

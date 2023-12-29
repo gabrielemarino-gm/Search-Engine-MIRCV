@@ -18,7 +18,8 @@
   "partialDocsPath" : "data/out/partial/docidsBlock-",
   "partialFrequenciesPath" : "data/out/partial/frequenciesBlock-",
 
-  "trecEvalDataPath" : "data/trec-eval",
+  "trecEvalHomePath": "../../Trec-Eval/trec_eval-main",
+  "trecEvalDataPath": "data/trec-eval",
 
   "compressionEnabled" : true,
   "stemmingEnabled": true,

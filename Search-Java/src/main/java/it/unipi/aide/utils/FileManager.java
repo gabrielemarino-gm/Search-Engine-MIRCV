@@ -96,7 +96,8 @@ public class FileManager
 
         try
         {
-            if(!checkDir(file.getParent())){
+            if(!checkDir(file.getParent()))
+            {
                 createDir(file.getParent());
             }
             return file.createNewFile();

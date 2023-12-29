@@ -30,6 +30,7 @@ public class ModelEvaluation
     static String resultsFile = null;
     static String queryResFile = null;
     static String YEAR = null;
+    static String trecEvalPath = null;
     static Scanner scanner /*= new Scanner(System.in)*/;
 
     public static void main(String[] args, Scanner s)
@@ -37,10 +38,6 @@ public class ModelEvaluation
         scanner = s;
         // evaluatePerformance -in ../../Trec-Eval/trec_eval-main -y 2020
         int maxArgs = args.length;
-        if (maxArgs == 1)
-        {
-            System.out.println(RED + "Invalid usage: evaluatePerformance -in <queries_folder> [-y {2019, 2020}]"+ ANSI_RESET);
-        }
 
         int i = 1;
         while(i < maxArgs)
@@ -48,44 +45,54 @@ public class ModelEvaluation
             switch (args[i])
             {
                 case "-in":
-                    queryFile = args[i+1];
-                    resultsFile = args[i+1];
-                    queryResFile = args[i+1];
+                    trecEvalPath = args[i+1];
                     i += 2;
                     break;
-                case "-y":
+                case "-out":
                     YEAR = args[i+1];
+                    resultsFile = args[i+1];
                     i += 2;
                     break;
-                default:
-                    System.out.println(RED + "Invalid usage: evaluatePerformance -in <evaluation_files_folder> [-y {2019, 2020}]"+ ANSI_RESET);
-                    return;
             }
         }
 
-        if (queryFile == null)
+        if (maxArgs == 0)
+            System.out.println(YELLOW + "Model Evaluation WRN > No arguments specified, using default values" + ANSI_RESET);
+
+        // if the user didn't specify the path to the files, use the default one, 2020 version
+        if (trecEvalPath == null)
         {
-            System.out.println(RED + "MODEL EVALUATION WARN > Using default path "+ ANSI_RESET);
-            queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test2020-queries.tsv";
-            resultsFile = ConfigReader.getTrecEvalDataPath() + "/resultsTrecEval.txt";
-            queryResFile = ConfigReader.getTrecEvalDataPath() + "/2020qrels-pass.txt";
+            System.out.println(YELLOW + "Model Evaluation WRN > Using trec-eval path of the config file" + ANSI_RESET);
+            trecEvalPath = ConfigReader.getTrecEvalHomePath();
         }
-        else if (YEAR == null)
+
+        if (resultsFile == null)
         {
-            System.out.println(YELLOW + "MODEL EVALUATION WARN > Using default year <2020>"+ ANSI_RESET);
+            resultsFile = ConfigReader.getTrecEvalDataPath() + "/resultsTrecEval.txt";
+            System.out.println(YELLOW + "Model Evaluation WRN > Using default output file (" + resultsFile + ")" + ANSI_RESET);
+        }
+
+        if (YEAR == null)
+        {
+            System.out.println(YELLOW + "Model Evaluation WRN > Using default year (2020) " + ANSI_RESET);
             YEAR = "2020";
+            queryFile = ConfigReader.getTrecEvalDataPath() + "/msmarco-test" + YEAR + "-queries.tsv";
         }
         else
         {
-            if (!YEAR.equals("2019") && !YEAR.equals("2020")) {
-                System.out.println(RED + "Invalid year: evaluatePerformance -in <queries_folder> [-y {2019, 2020}]" + ANSI_RESET);
+            if (!YEAR.equals("2019") && !YEAR.equals("2020"))
+            {
+                System.out.println(RED + "Model Evaluation ERR> Invalid year: evaluatePerformance -in <queries_folder> [-y {2019, 2020}]" + ANSI_RESET);
                 return;
             }
         }
 
-        queryFile = queryFile + "/msmarco-test" + YEAR + "-queries.tsv";
-        resultsFile = resultsFile + "/resultsTrecEval.txt";
-        queryResFile = queryResFile + "/"+ YEAR + "qrels-pass.txt";
+        queryResFile = ConfigReader.getTrecEvalDataPath() + "/"+ YEAR + "qrels-pass.txt";
+
+        System.out.println(queryFile);
+        System.out.println(queryResFile);
+        System.out.println(resultsFile);
+        System.out.println(trecEvalPath);
 
         // Setup the system
         setupEvaluation();
@@ -146,10 +153,6 @@ public class ModelEvaluation
             pb.stop();
 
             // Setup path to input files
-
-            // TODO: change this to the correct path
-
-            String trecEvalPath = ConfigReader.getTrecEvalDataPath();
             Process out;
             try
             {
@@ -177,7 +180,7 @@ public class ModelEvaluation
             }
             catch (IOException e)
             {
-                System.err.println("Unable to write results");
+                System.out.println(RED + "Model Evaluation ERR > Unable to write results" + ANSI_RESET);
             }
         }
         catch (FileNotFoundException fnf)

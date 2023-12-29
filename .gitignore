@@ -2,8 +2,11 @@
 /.idea/
 /Search-Java/.idea/
 /Search-Java/target/
-/Search-Java/data/
+/Search-Java/data/dataset
+/Search-Java/data/debug
+/Search-Java/data/out
+/Search-Java/data/queries
+/Search-Java/data/source
 Search-Java/data/out/complete/docIDsBlock
 Search-Java/data/out/complete/docIDsBlock
 Search-Java/data/out/complete/frequenciesBlock
-Search-Java/src/main/java/it/unipi/aide/GabTest.java
