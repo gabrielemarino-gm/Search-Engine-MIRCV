@@ -35,6 +35,13 @@ At first the system will ask the user for a configuration, which it will save an
   -   Use `s` to set up your system and configure recovery options.
   -   Use `q` to exit the query manager.
 
+### System Setup for Query Handler
+
+-   When prompted, choose between disjunctive and conjunctive mode.
+-   Select the algorithm (DAAT or MaxScore) for the query.
+-   Choose the scoring function (TF-IDF or BM25).
+-   Set the value of k for the top-k documents.
+
 
 ## Evaluating Performance
 To evaluate the performance of the model, use the command: `evaluatePerformance` This uses the <a href="https://github.com/usnistgov/trec_eval">Trec-Eval</a> tool.
@@ -47,13 +54,6 @@ Use the following optional command:
     -   `-in <trec_eval_local_path>`: the path of the local Trec-Eval tool. DEFAULT: take the path from the config file.
     -   `-out <outpath_for_results>`: the path of the output file with the file txt to give in input to Trec-Eval tool. DEFAULT: data/trec-eval/resultsTrecEval.txt
     -   `-y`: choose the year of the Trec-Eval tool. 2020 or 2019. DEFAULT: 2020.
-
-## System Setup for Query Handler
-
--   When prompted, choose between disjunctive and conjunctive mode.
--   Select the algorithm (DAAT or MaxScore) for the query.
--   Choose the scoring function (TF-IDF or BM25).
--   Set the value of k for the top-k documents.
 
 ## Exiting the Application
 
