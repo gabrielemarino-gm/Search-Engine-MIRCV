@@ -1,7 +1,7 @@
 
 # Search Engine User Manual
 
-This application allows you to perform various tasks related to information retrieval, including creating an inverted index, making queries, and evaluating the performance of the retrieval model.
+This application empowers you to perform various tasks related to information retrieval, encompassing the creation of an inverted index, making queries, and evaluating the performance of the retrieval model.
 
 # Getting Started
 
