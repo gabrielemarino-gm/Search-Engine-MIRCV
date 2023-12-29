@@ -60,15 +60,15 @@ public class Driver
             {
                 case "createIndex":
                     CreateIndex.main(splitCommands);
+                    System.exit(0);
                     break;
                 case "makeQuery":
                     QueryHandler.main(splitCommands, scanner);
                     break;
                 case "evaluatePerformance":
                     ModelEvaluation.main(splitCommands, scanner);
+                    System.exit(0);
                     break;
-                case "makeDataset":
-                    MakeDataset.main(splitCommands);
                 case "help":
                     System.out.printf(commands);
                     break;

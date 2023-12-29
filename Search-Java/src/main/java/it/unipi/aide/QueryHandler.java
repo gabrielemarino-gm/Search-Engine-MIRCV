@@ -97,7 +97,7 @@ public class QueryHandler
 
     /**
      * User interface for the query handler.
-     * Setup the system for the query
+     * Set up the system for the query
      */
     private static void setupSystem()
     {
