@@ -29,7 +29,7 @@ To create the inverted index, use the command:
 ## Query Handler
 
 The Query Handler allows you to make queries interactively.
-At first the system will ask the user for a configuration, which it will save and will not be asked again (unless the user uses the comma s).
+At first the system will ask the user for a configuration, which it will save and will not be asked again (unless the user uses the command s).
 
 - While the Query Handler is active, the user can use the following command:
   -   Use `s` to set up your system and configure recovery options.
