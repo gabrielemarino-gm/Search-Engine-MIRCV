@@ -35,7 +35,7 @@ At first the system will ask the user for a configuration, which it will save an
   -   Use `s` to set up your system and configure recovery options.
   -   Use `q` to exit the query manager.
 
-### System Setup for Query Handler
+####  Query Handler Setup
 
 -   When prompted, choose between disjunctive and conjunctive mode.
 -   Select the algorithm (DAAT or MaxScore) for the query.
