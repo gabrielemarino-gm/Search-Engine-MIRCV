@@ -19,7 +19,8 @@ This application allows you to perform various tasks related to information retr
 To create the inverted index, use the command:
 
     createIndex -in <corpus_file> -ss -c -d
-    
+
+- Where:
     -   `-in <corpus_file>`: Specify the path of the corpus file (mandatory).
     -   `-ss`: Enable stopword removal and stemming.
     -   `-c`: Enable compression of the index.
@@ -36,11 +37,12 @@ While the Query Handler is active, the user can use the following command:
 
 ## Evaluating Performance
 To evaluate the performance of the model, use the command: `evaluatePerformance` This uses the <a href="https://github.com/usnistgov/trec_eval">Trec-Eval</a> tool.
-Play Attention: The Trec-Eval tool must be already compiled.
-The user can olso use the following optional command:
+Play Attention: You must have the Trec-Eval tool installed on your machine and the path to the tool must be specified in the config file if you want to use this command without using the `-in` option.
+Use the following optional command:
 
     evaluatePerformance -in <trec_eval_local_path> -out <outpath_for_results> -y <2019 or 2020>
-    
+
+- Where:
     -   `-in <trec_eval_local_path>`: the path of the local Trec-Eval tool. DEFAULT: take the path from the config file.
     -   `-out <outpath_for_results>`: the path of the output file with the file txt to give in input to Trec-Eval tool. DEFAULT: data/trec-eval/resultsTrecEval.txt
     -   `-y`: choose the year of the Trec-Eval tool. 2020 or 2019. DEFAULT: 2020.
