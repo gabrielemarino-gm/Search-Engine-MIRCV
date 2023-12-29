@@ -18,8 +18,6 @@ This application allows you to perform various tasks related to information retr
 
 To create the inverted index, use the command:
 
-    phpCopy code
-    
     `createIndex -in <corpus_file> -ss -c -d` 
     
     -   `-in <corpus_file>`: Specify the path of the corpus file (mandatory).
@@ -41,7 +39,7 @@ To evaluate the performance of the model, use the command: `evaluatePerformance`
 Play Attention: The Trec-Eval tool must be already compiled.
 The user can olso use the following optional command:
 
-    phpCopy code
+phpCopy code
     `evaluatePerformance -in <trec_eval_local_path> -out <outpath_for_results> -y <2019 or 2020>` 
     
     -   `-in <trec_eval_local_path>`: the path of the local Trec-Eval tool. DEFAULT: take the path from the config file.
