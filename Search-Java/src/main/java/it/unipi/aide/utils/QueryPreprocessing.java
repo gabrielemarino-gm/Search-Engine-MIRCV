@@ -124,6 +124,7 @@ public class QueryPreprocessing
             String middleTermString;
             TermInfo middleTerm = null;
 
+            // If the level is less than 10, check if the term is in the cache
             if (level < 10)
             {
                 if(cache.containsTermPosition(WIN_MIDDLE_POINT))
@@ -138,6 +139,7 @@ public class QueryPreprocessing
                     cache.putTermPosition(WIN_MIDDLE_POINT, middleTermString);
                 }
             }
+            // If the level is greater than 10, get the term from the disk
             else
             {
                 middleTerm = getTermFromDisk(WIN_MIDDLE_POINT);

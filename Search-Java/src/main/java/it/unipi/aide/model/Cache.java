@@ -9,7 +9,7 @@ public class Cache
     private static final Cache SearchEngineCache = new Cache();
 
 
-    /* Cached terms for binary search: */ /* L3 */
+    /* Cached termPosition to avoid the access to all the terms of the binary search paths*/ /* L3 */
     private static final int MAX_TERM_POSITION_CACHE_SIZE = 1100;
     private final LRUCache<Long, String> termPositions = new LRUCache<>(MAX_TERM_POSITION_CACHE_SIZE);
 
@@ -22,11 +22,6 @@ public class Cache
     /* Cached postingListSkippable to avoid blocks retrieval */ /* L1 */
     private static final int MAX_SKIPPABLE_LIST_CACHE_SIZE = 1000;
     private final LRUCache<String, PostingListSkippable> skippables = new LRUCache<>(MAX_SKIPPABLE_LIST_CACHE_SIZE);
-
-    /* Cached compressed docids */ /* Test */
-
-
-    /* Cached compressed freqs */ /* Test */
 
 
     /* Returns the cache instance. Used to make all classes refer to the same cache instance. */
@@ -67,16 +62,22 @@ public class Cache
     {
         int MAX_SIZE;
 
-        public LRUCache(int maxSize) {
+        public LRUCache(int maxSize)
+        {
             super(maxSize, 0.75f, true);
             MAX_SIZE = maxSize;
         }
 
+        /**
+         * Remove the eldest entry if the cache is full
+         * @param eldest
+         * @return
+         */
         @Override
-        protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+        protected boolean removeEldestEntry(Map.Entry<K, V> eldest)
+        {
             if (size() > MAX_SIZE && eldest.getValue() instanceof PostingListSkippable)
-                Cache.getCacheInstance().putTermInfo
-                        (
+                Cache.getCacheInstance().putTermInfo(
                         (String)eldest.getKey(),
                         ((PostingListSkippable)(eldest.getValue())).getTermInfo()
                 );
@@ -84,15 +85,14 @@ public class Cache
         }
     }
 
-    public int getL1Used(){
+    public int getL1Used()
+    {
         return skippables.size();
     }
     public int getL1Max()
     {
         return MAX_SKIPPABLE_LIST_CACHE_SIZE;
     }
-
-    //
     public int getL2Used()
     {
         return termInfos.size();
@@ -107,7 +107,6 @@ public class Cache
     {
         return termPositions.size();
     }
-
     public int getL3Max()
     {
         return MAX_TERM_POSITION_CACHE_SIZE;
